@@ -104,7 +104,7 @@ Stack\run($app); // The app will run after all the middlewares have run
 
 By default Proton runs with debug options disabled. To enable debugging add
 
-```
+```php
 $app['debug'] = true;
 ```
 
