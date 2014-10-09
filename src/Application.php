@@ -43,6 +43,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function __construct()
     {
         $this->container = new Container;
+        $this->container->add('debug', false);
         $this->router = new RouteCollection($this->container);
         $this->eventEmitter = new EventEmitter;
     }
@@ -132,11 +133,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
         // Overwrite the Request object that Orno\Route uses by default
         $this->container->add('Orno\Http\Request', $request);
 
-        $this->eventEmitter->emit(
-            (new Events\RequestReceivedEvent($request))
-        );
-
         try {
+
+            $this->eventEmitter->emit(
+                (new Events\RequestReceivedEvent($request))
+            );
 
             $dispatcher = $this->router->getDispatcher();
             $response = $dispatcher->dispatch(
@@ -157,13 +158,24 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
             }
 
             $response = new Response;
-            $response->setStatusCode(500);
-            $response->setContent(json_encode([
+
+            if (method_exists($e, 'getStatusCode')) {
+                $response->setStatusCode($e->getStatusCode());
+            } else {
+                $response->setStatusCode(500);
+            }
+
+            $return = [
                 'error' =>  [
-                    'message'   =>  $e->getMessage(),
-                    'trace'     =>  explode(PHP_EOL, $e->getTraceAsString())
+                    'message'   =>  $e->getMessage()
                 ]
-            ]));
+            ];
+
+            if ($this['debug'] === true) {
+                $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
+            }
+
+            $response->setContent(json_encode($return));
 
             $this->eventEmitter->emit(
                 (new Events\ResponseBeforeEvent($request, $response))

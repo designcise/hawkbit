@@ -46,7 +46,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals('bar', $foo);
-        $this->assertEquals(500, $response->getStatusCode());
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
     public function testTerminate()
@@ -110,6 +110,22 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         } catch (\Exception $e) {
             $this->assertTrue($e instanceof \Orno\Http\Exception\NotFoundException);
         }
+    }
+
+    public function testHandleWithOtherException()
+    {
+        $app = new \Proton\Application();
+        $app['debug'] = true;
+
+        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+
+        $app->subscribe('request.received', function ($event) {
+            throw new \Exception('A test exception');
+        });
+
+        $response = $app->handle($request);
+
+        $this->assertEquals(500, $response->getStatusCode());
     }
 
     public function testRun()

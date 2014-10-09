@@ -100,6 +100,14 @@ $app = $stack->resolve($app);
 Stack\run($app); // The app will run after all the middlewares have run
 ```
 
+## Debugging
+
+By default Proton runs with debug options disabled. To enable debugging add
+
+```
+$app['debug'] = true;
+```
+
 ## Events
 
 You can intercept requests and responses at three points during the lifecycle:

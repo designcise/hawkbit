@@ -1,5 +1,9 @@
 # Proton Changelog
 
+## 1.0.3 (2014-10-09)
+
+* Added `$app['debug']` flag
+ 
 ## 1.0.2 (2014-10-06)
 
 * Exception trace is an exploded string instead of an array (to prevent epic looping and object dumping)
