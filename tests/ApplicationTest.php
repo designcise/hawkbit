@@ -11,6 +11,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app = new \Proton\Application();
         $this->assertTrue($app->getContainer() instanceof \Orno\Di\Container);
         $this->assertTrue($app->getRouter() instanceof \Orno\Route\RouteCollection);
+        $this->assertTrue($app->getEventEmitter() instanceof \League\Event\Emitter);
     }
 
     public function testArrayAccessContainer()
@@ -126,6 +127,62 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals(500, $response->getStatusCode());
+    }
+
+    public function testCustomExceptionDecorator()
+    {
+        $app = new \Proton\Application();
+        $app['debug'] = true;
+
+        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+
+        $app->subscribe('request.received', function ($event) {
+            throw new \Exception('A test exception');
+        });
+
+        $app->setExceptionDecorator(function ($e) {
+            $response = new \Symfony\Component\HttpFoundation\Response;
+            $response->setStatusCode(500);
+            $response->setContent('Fail');
+            return $response;
+        });
+
+        $response = $app->handle($request);
+
+        $this->assertEquals(500, $response->getStatusCode());
+        $this->assertEquals('Fail', $response->getContent());
+    }
+
+    /**
+     * @expectedException \LogicException
+     */
+    public function testExceptionDecoratorDoesntReturnResponseObject()
+    {
+        $app = new \Proton\Application();
+        $app->setExceptionDecorator(function ($e) {
+            return true;
+        });
+
+        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+
+        $app->subscribe('request.received', function ($event) {
+            throw new \Exception('A test exception');
+        });
+
+        $response = $app->handle($request);
+    }
+
+    public function testCustomEvents()
+    {
+        $app = new \Proton\Application();
+
+        $time = null;
+        $app->subscribe('custom.event', function ($event, $args) use (&$time) {
+            $time = $args;
+        });
+
+        $app->getEventEmitter()->emit('custom.event', time());
+        $this->assertTrue($time !== null);
     }
 
     public function testRun()
