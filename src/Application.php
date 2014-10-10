@@ -37,6 +37,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     protected $container;
 
     /**
+     * @var \callable
+     */
+    protected $exceptionDecorator;
+
+    /**
      * New Application
      * @return void
      */
@@ -46,6 +51,25 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
         $this->container->add('debug', false);
         $this->router = new RouteCollection($this->container);
         $this->eventEmitter = new EventEmitter;
+
+        $this->setExceptionDecorator(function (\Exception $e) {
+
+            $response = new Response;
+            $response->setStatusCode(method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
+
+            $return = [
+                'error' =>  [
+                    'message'   =>  $e->getMessage()
+                ]
+            ];
+
+            if ($this['debug'] === true) {
+                $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
+            }
+
+            $response->setContent(json_encode($return));
+            return $response;
+        });
     }
 
     /**
@@ -73,6 +97,16 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function getEventEmitter()
     {
         return $this->eventEmitter;
+    }
+
+    /**
+     * Set the exception decorator
+     * @param callable $func
+     * @return void
+     */
+    public function setExceptionDecorator(callable $func)
+    {
+        $this->exceptionDecorator = $func;
     }
 
     /**
@@ -166,25 +200,10 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 throw $e;
             }
 
-            $response = new Response;
-
-            if (method_exists($e, 'getStatusCode')) {
-                $response->setStatusCode($e->getStatusCode());
-            } else {
-                $response->setStatusCode(500);
+            $response = call_user_func($this->exceptionDecorator, $e);
+            if (!$response instanceof Response) {
+                throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
             }
-
-            $return = [
-                'error' =>  [
-                    'message'   =>  $e->getMessage()
-                ]
-            ];
-
-            if ($this['debug'] === true) {
-                $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
-            }
-
-            $response->setContent(json_encode($return));
 
             $this->eventEmitter->emit(
                 (new Events\ResponseBeforeEvent($request, $response))

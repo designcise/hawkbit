@@ -129,6 +129,49 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(500, $response->getStatusCode());
     }
 
+    public function testCustomExceptionDecorator()
+    {
+        $app = new \Proton\Application();
+        $app['debug'] = true;
+
+        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+
+        $app->subscribe('request.received', function ($event) {
+            throw new \Exception('A test exception');
+        });
+
+        $app->setExceptionDecorator(function ($e) {
+            $response = new \Symfony\Component\HttpFoundation\Response;
+            $response->setStatusCode(500);
+            $response->setContent('Fail');
+            return $response;
+        });
+
+        $response = $app->handle($request);
+
+        $this->assertEquals(500, $response->getStatusCode());
+        $this->assertEquals('Fail', $response->getContent());
+    }
+
+    /**
+     * @expectedException \LogicException
+     */
+    public function testExceptionDecoratorDoesntReturnResponseObject()
+    {
+        $app = new \Proton\Application();
+        $app->setExceptionDecorator(function ($e) {
+            return true;
+        });
+
+        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+
+        $app->subscribe('request.received', function ($event) {
+            throw new \Exception('A test exception');
+        });
+
+        $response = $app->handle($request);
+    }
+
     public function testRun()
     {
         $app = new \Proton\Application();
