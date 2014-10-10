@@ -67,6 +67,15 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
+     * Return the event emitter
+     * @return \League\Event\Emitter
+     */
+    public function getEventEmitter()
+    {
+        return $this->eventEmitter;
+    }
+
+    /**
      * Add a GET route
      * @param string $route
      * @param mixed $action

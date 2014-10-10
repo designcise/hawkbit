@@ -11,6 +11,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app = new \Proton\Application();
         $this->assertTrue($app->getContainer() instanceof \Orno\Di\Container);
         $this->assertTrue($app->getRouter() instanceof \Orno\Route\RouteCollection);
+        $this->assertTrue($app->getEventEmitter() instanceof \League\Event\Emitter);
     }
 
     public function testArrayAccessContainer()
