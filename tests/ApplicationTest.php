@@ -172,6 +172,19 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
     }
 
+    public function testCustomEvents()
+    {
+        $app = new \Proton\Application();
+
+        $time = null;
+        $app->subscribe('custom.event', function ($event, $args) use (&$time) {
+            $time = $args;
+        });
+
+        $app->getEventEmitter()->emit('custom.event', time());
+        $this->assertTrue($time !== null);
+    }
+
     public function testRun()
     {
         $app = new \Proton\Application();

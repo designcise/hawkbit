@@ -104,8 +104,19 @@ Stack\run($app); // The app will run after all the middlewares have run
 
 By default Proton runs with debug options disabled. To enable debugging add
 
-```
+```php
 $app['debug'] = true;
+```
+
+## Custom exception decoration
+
+```php
+$app->setEventDecorator(function (\Exception $e) {
+    $response = new \Symfony\Component\HttpFoundation\Response;
+    $response->setStatusCode(500);
+    $response->setContent('Epic fail!');
+    return $response;
+});
 ```
 
 ## Events
@@ -143,6 +154,20 @@ $app->subscribe('response.after', function ($event) {
 ```
 
 This event is fired when a response has been output and before the application lifecycle is completed.
+
+### Custom Events
+
+You can fire custom events using the event emitter directly:
+
+```php
+// Subscribe
+$app->subscribe('custom.event', function ($event, $time) {
+    return 'the time is '.$time;
+});
+
+// Publish
+$app->getEventEmitter()->emit('custom.event', time());
+```
 
 ## Dependency Injection Container
 
