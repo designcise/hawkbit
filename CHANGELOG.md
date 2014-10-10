@@ -1,5 +1,10 @@
 # Proton Changelog
 
+## 1.0.4 (2014-10-10)
+
+* Added `setExceptionDecorator` method
+* Added `getEventEmitter` method
+
 ## 1.0.3 (2014-10-09)
 
 * Added `$app['debug']` flag
