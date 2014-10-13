@@ -1,5 +1,9 @@
 # Proton Changelog
 
+## 1.0.5 (2014-10-13)
+
+* Improved dependency version constraints (#2)
+
 ## 1.0.4 (2014-10-10)
 
 * Added `setExceptionDecorator` method
