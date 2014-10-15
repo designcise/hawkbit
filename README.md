@@ -111,7 +111,7 @@ $app['debug'] = true;
 ## Custom exception decoration
 
 ```php
-$app->setEventDecorator(function (\Exception $e) {
+$app->setExceptionDecorator(function (\Exception $e) {
     $response = new \Symfony\Component\HttpFoundation\Response;
     $response->setStatusCode(500);
     $response->setContent('Epic fail!');
