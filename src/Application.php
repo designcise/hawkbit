@@ -171,6 +171,8 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      * @param  int $type
      * @param  boolean $catch
      * @return \Symfony\Component\HttpFoundation\Response
+     * @throws \LogicException
+     * @throws \Exception
      */
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
@@ -227,7 +229,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     /**
      * Run the application
      * @param  \Symfony\Component\HttpFoundation\Request $request
-     * @return string
+     * @return void
      */
     public function run(Request $request = null)
     {
