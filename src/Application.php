@@ -56,6 +56,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
             $response = new Response;
             $response->setStatusCode(method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
+            $response->headers->add(['Content-Type' => 'application/json']);
 
             $return = [
                 'error' =>  [
