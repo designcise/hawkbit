@@ -53,7 +53,7 @@ $app = new Proton\Application();
 
 $app['HomeController'] = function () {
     return new HomeController();
-});
+};
 
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
