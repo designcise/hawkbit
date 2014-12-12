@@ -1,10 +1,12 @@
 <?php
+
 /**
- * The Proton Micro Framework
+ * The Proton Micro Framework.
  *
  * @author  Alex Bilbie <hello@alexbilbie.com>
  * @license MIT
  */
+
 namespace Proton\Events;
 
 use League\Event\AbstractEvent;
@@ -19,14 +21,16 @@ abstract class ProtonEvent extends AbstractEvent
     protected $request;
 
     /**
-     * @var \Symfony\Component\HttpFoundation\Response
+     * @var \Symfony\Component\HttpFoundation\Response|null
      */
     protected $response;
 
     /**
-     * Description
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
+     * New ProtonEvent.
+     *
+     * @param \Symfony\Component\HttpFoundation\Request       $request
+     * @param \Symfony\Component\HttpFoundation\Response|null $response
+     *
      * @return void
      */
     public function __construct(Request $request, Response $response = null)
@@ -36,7 +40,8 @@ abstract class ProtonEvent extends AbstractEvent
     }
 
     /**
-     * Returns the request object
+     * Returns the request object.
+     *
      * @return \Symfony\Component\HttpFoundation\Request
      */
     public function getRequest()
@@ -45,7 +50,8 @@ abstract class ProtonEvent extends AbstractEvent
     }
 
     /**
-     * Returns the response object
+     * Returns the response object.
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function getResponse()
