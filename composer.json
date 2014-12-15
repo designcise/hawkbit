@@ -20,7 +20,7 @@
     ],
     "require": {
         "php": ">=5.4.0",
-        "symfony/http-kernel": "2.5.*",
+        "symfony/http-kernel": "~2.5",
         "orno/route": "~1.0",
         "orno/di": "~2.0",
         "league/event": "~1.0"
