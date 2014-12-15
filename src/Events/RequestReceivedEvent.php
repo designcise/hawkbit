@@ -10,7 +10,9 @@ namespace Proton\Events;
 class RequestReceivedEvent extends ProtonEvent
 {
     /**
-     * (@inheritdoc)
+     * Get the event name.
+     *
+     * @return string
      */
     public function getName()
     {
