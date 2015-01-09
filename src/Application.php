@@ -50,7 +50,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function __construct()
     {
-        $this->container = new Container;
+        $this->setContainer(new Container);
         $this->container->add('debug', false);
         $this->router = new RouteCollection($this->container);
         $this->eventEmitter = new EventEmitter;
@@ -84,6 +84,15 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function getContainer()
     {
         return $this->container;
+    }
+
+    /**
+     * Set the container
+     * @param \Orno\Di\Container $container
+     */
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
     }
 
     /**
