@@ -9,8 +9,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testSetGet()
     {
         $app = new \Proton\Application();
-        $this->assertTrue($app->getContainer() instanceof \Orno\Di\Container);
-        $this->assertTrue($app->getRouter() instanceof \Orno\Route\RouteCollection);
+        $this->assertTrue($app->getContainer() instanceof \League\Container\Container);
+        $this->assertTrue($app->getRouter() instanceof \League\Route\RouteCollection);
         $this->assertTrue($app->getEventEmitter() instanceof \League\Event\Emitter);
     }
 
@@ -109,7 +109,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         try {
             $app->handle($request, 1, false);
         } catch (\Exception $e) {
-            $this->assertTrue($e instanceof \Orno\Http\Exception\NotFoundException);
+            $this->assertTrue($e instanceof \League\Route\Http\Exception\NotFoundException);
         }
     }
 
