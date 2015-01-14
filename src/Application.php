@@ -11,8 +11,8 @@ namespace Proton;
 
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
-use Orno\Di\Container;
-use Orno\Route\RouteCollection;
+use League\Container\Container;
+use League\Route\RouteCollection;
 use League\Event\Emitter as EventEmitter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,7 +24,7 @@ use Proton\Events;
 class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
 {
     /**
-     * @var \Orno\Route\RouteCollection
+     * @var \League\Route\RouteCollection
      */
     protected $router;
 
@@ -34,7 +34,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     protected $eventEmitter;
 
     /**
-     * @var \Orno\Di\Container
+     * @var \League\Container\Container
      */
     protected $container;
 
@@ -79,7 +79,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     /**
      * Returns the DI container.
      *
-     * @return \Orno\Di\Container
+     * @return \League\Container\Container
      */
     public function getContainer()
     {
@@ -88,7 +88,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
     /**
      * Set the container
-     * @param \Orno\Di\Container $container
+     * @param \League\Container\Container $container
      */
     public function setContainer(Container $container)
     {
@@ -98,7 +98,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     /**
      * Return the router.
      *
-     * @return \Orno\Route\RouteCollection
+     * @return \League\Route\RouteCollection
      */
     public function getRouter()
     {
@@ -206,9 +206,6 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
-        // Overwrite the Request object that Orno\Route uses by default
-        $this->container->add('Orno\Http\Request', $request);
-
         try {
 
             $this->eventEmitter->emit(

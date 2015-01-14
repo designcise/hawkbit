@@ -8,11 +8,11 @@
 
 Proton is a [StackPHP](http://stackphp.com/) compatible micro framework.
 
-Under the hood it uses [Orno\Route](https://github.com/orno/route) for routing, [Orno\Di](https://github.com/orno/di) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
+Under the hood it uses [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
 ## Installation
 
-Just add `"alexbilbie/proton": "1.0.*"` to your `composer.json` file.
+Just add `"alexbilbie/proton": "1.1.*"` to your `composer.json` file.
 
 ## Setup
 
@@ -171,7 +171,7 @@ $app->getEventEmitter()->emit('custom.event', time());
 
 ## Dependency Injection Container
 
-Proton uses `Orno/Di` as its dependency injection container.
+Proton uses `League/Container` as its dependency injection container.
 
 You can bind singleton objects into the container from the main application object using ArrayAccess:
 
