@@ -1,5 +1,10 @@
 # Proton Changelog
 
+## 1.1.0 (2015-01-14)
+
+* Switched `orno/di` dependancy for `league/container`
+* Switched `orno/route` dependancy for `league/route`
+
 ## 1.0.5 (2014-10-13)
 
 * Improved dependency version constraints (#2)
