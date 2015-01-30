@@ -49,6 +49,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function __construct()
     {
         $this->setContainer(new Container);
+        $this->container->singleton('app', $this);
         $this->container->add('debug', false);
         $this->router = new RouteCollection($this->container);
         $this->eventEmitter = new EventEmitter;
