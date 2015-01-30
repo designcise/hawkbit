@@ -2,21 +2,28 @@
 
 namespace ProtonTests;
 
+use League\Container\Container;
+use League\Event\Emitter;
+use League\Route\Http\Exception\NotFoundException;
+use League\Route\RouteCollection;
 use Proton;
+use Proton\Application;
+use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
     public function testSetGet()
     {
-        $app = new \Proton\Application();
-        $this->assertTrue($app->getContainer() instanceof \League\Container\Container);
-        $this->assertTrue($app->getRouter() instanceof \League\Route\RouteCollection);
-        $this->assertTrue($app->getEventEmitter() instanceof \League\Event\Emitter);
+        $app = new Application();
+        $this->assertTrue($app->getContainer() instanceof Container);
+        $this->assertTrue($app->getRouter() instanceof RouteCollection);
+        $this->assertTrue($app->getEventEmitter() instanceof Emitter);
     }
 
     public function testArrayAccessContainer()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
         $app['foo'] = 'bar';
 
         $this->assertSame('bar', $app['foo']);
@@ -27,10 +34,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testSubscribe()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
 
         $app->subscribe('request.received', function ($event) {
-            $this->assertTrue($event->getRequest() instanceof \Symfony\Component\HttpFoundation\Request);
+            $this->assertTrue($event->getRequest() instanceof Request);
         });
 
         $reflected = new \ReflectionProperty($app, 'emitter');
@@ -43,7 +50,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $foo = 'bar';
         });
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $response = $app->handle($request);
 
         $this->assertEquals('bar', $foo);
@@ -52,13 +59,13 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testTerminate()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
 
         $app->subscribe('response.after', function ($event) {
-            $this->assertTrue($event->getRequest() instanceof \Symfony\Component\HttpFoundation\Request);
+            $this->assertTrue($event->getRequest() instanceof Request);
         });
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
         $response = $app->handle($request);
 
         $app->terminate($request, $response);
@@ -66,7 +73,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testHandleSuccess()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
 
         $app->get('/', function ($request, $response) {
             $response->setContent('<h1>It works!</h1>');
@@ -93,7 +100,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
 
         $response = $app->handle($request, 1, true);
 
@@ -102,23 +109,23 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testHandleFailThrowException()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
 
         try {
             $app->handle($request, 1, false);
         } catch (\Exception $e) {
-            $this->assertTrue($e instanceof \League\Route\Http\Exception\NotFoundException);
+            $this->assertTrue($e instanceof NotFoundException);
         }
     }
 
     public function testHandleWithOtherException()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
         $app['debug'] = true;
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
 
         $app->subscribe('request.received', function ($event) {
             throw new \Exception('A test exception');
@@ -131,17 +138,17 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testCustomExceptionDecorator()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
         $app['debug'] = true;
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
 
         $app->subscribe('request.received', function ($event) {
             throw new \Exception('A test exception');
         });
 
         $app->setExceptionDecorator(function ($e) {
-            $response = new \Symfony\Component\HttpFoundation\Response;
+            $response = new Response;
             $response->setStatusCode(500);
             $response->setContent('Fail');
             return $response;
@@ -158,12 +165,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testExceptionDecoratorDoesntReturnResponseObject()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
         $app->setExceptionDecorator(function ($e) {
             return true;
         });
 
-        $request = \Symfony\Component\HttpFoundation\Request::createFromGlobals();
+        $request = Request::createFromGlobals();
 
         $app->subscribe('request.received', function ($event) {
             throw new \Exception('A test exception');
@@ -174,7 +181,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testCustomEvents()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
 
         $time = null;
         $app->subscribe('custom.event', function ($event, $args) use (&$time) {
@@ -187,7 +194,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testRun()
     {
-        $app = new \Proton\Application();
+        $app = new Application();
 
         $app->get('/', function ($request, $response) {
             $response->setContent('<h1>It works!</h1>');
@@ -195,10 +202,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         });
 
         $app->subscribe('request.received', function ($event) {
-            $this->assertTrue($event->getRequest() instanceof \Symfony\Component\HttpFoundation\Request);
+            $this->assertTrue($event->getRequest() instanceof Request);
         });
         $app->subscribe('response.after', function ($event) {
-            $this->assertTrue($event->getResponse() instanceof \Symfony\Component\HttpFoundation\Response);
+            $this->assertTrue($event->getResponse() instanceof Response);
         });
 
         ob_start();
