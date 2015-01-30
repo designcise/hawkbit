@@ -1,6 +1,10 @@
 # Proton Changelog
 
-## 1.2 (2015-01-30)
+## 1.2.1 (2015-01-30)
+
+* Fixed RouteCollection being set twice
+
+## 1.2.0 (2015-01-30)
 
 * Inject request object into container (#17)
 * Spelling fix (#11)
