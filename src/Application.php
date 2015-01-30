@@ -39,13 +39,22 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     protected $exceptionDecorator;
 
     /**
-     * New Application.
+     * @var array
      */
-    public function __construct()
+    protected $config = [];
+
+    /**
+     * New Application.
+     *
+     * @param bool $debug Enable debug mode
+     */
+    public function __construct($debug = true)
     {
         $this->setContainer(new Container);
         $this->container->singleton('app', $this);
         $this->router = new RouteCollection($this->container);
+
+        $this->config['debug'] = $debug;
 
         $this->setExceptionDecorator(function (\Exception $e) {
             $response = new Response;
@@ -58,7 +67,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 ]
             ];
 
-            if ($this['debug'] === true) {
+            if ($this->getConfig('debug', true) === true) {
                 $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
             }
 
@@ -323,5 +332,31 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function offsetExists($key)
     {
         return $this->container->isRegistered($key);
+    }
+
+    /**
+     * Set a config item
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @internal param bool $debug
+     */
+    public function setConfig($key, $value)
+    {
+        $this->config[$key] = $value;
+    }
+
+    /**
+     * Get a config key's value
+     *
+     * @param string $key
+     * @param mixed  $default
+     *
+     * @return mixed
+     */
+    public function getConfig($key, $default = null)
+    {
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
 }
