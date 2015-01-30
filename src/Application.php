@@ -51,7 +51,6 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function __construct($debug = true)
     {
         $this->setContainer(new Container);
-        $this->router = new RouteCollection($this->container);
 
         $this->setConfig('debug', $debug);
 
