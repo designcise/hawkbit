@@ -1,5 +1,15 @@
 # Proton Changelog
 
+## 1.2 (2015-01-30)
+
+* Inject request object into container (#17)
+* Spelling fix (#11)
+* Inject app into container (#16)
+* Updated `league/event` to `~2.0`
+* Use event `EmitterTrait` (#14)
+* Use `ContainerAwareTrait` (#12)
+* New `setConfig` and `getConfig` methods
+
 ## 1.1.0 (2015-01-14)
 
 * Switched `orno/di` dependency for `league/container`
