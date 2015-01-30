@@ -45,8 +45,6 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
     /**
      * New Application.
-     *
-     * @return void
      */
     public function __construct()
     {
