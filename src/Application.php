@@ -8,6 +8,7 @@
 
 namespace Proton;
 
+use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 use League\Container\ContainerInterface;
 use League\Event\EmitterTrait;
@@ -23,7 +24,7 @@ use Proton\Events;
 /**
  * Proton Application Class.
  */
-class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
+class Application implements HttpKernelInterface, TerminableInterface, ContainerAwareInterface, ListenerAcceptorInterface, \ArrayAccess
 {
     use EmitterTrait;
     use ContainerAwareTrait;
