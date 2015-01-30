@@ -206,6 +206,9 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
+        // Passes the request to the container
+        $this->container->add('Symfony\Component\HttpFoundation\Request', $request);
+
         try {
 
             $this->eventEmitter->emit(
