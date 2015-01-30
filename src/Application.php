@@ -8,6 +8,8 @@
 
 namespace Proton;
 
+use League\Container\ContainerAwareTrait;
+use League\Container\ContainerInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -24,16 +26,12 @@ use Proton\Events;
 class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
 {
     use EmitterTrait;
+    use ContainerAwareTrait;
 
     /**
      * @var \League\Route\RouteCollection
      */
     protected $router;
-
-    /**
-     * @var \League\Container\Container
-     */
-    protected $container;
 
     /**
      * @var \callable
@@ -47,8 +45,6 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     {
         $this->setContainer(new Container);
         $this->container->singleton('app', $this);
-        $this->container->add('debug', false);
-
         $this->router = new RouteCollection($this->container);
 
         $this->setExceptionDecorator(function (\Exception $e) {
@@ -73,23 +69,14 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Returns the DI container.
+     * Set a container.
      *
-     * @return \League\Container\Container
+     * @param \League\Container\ContainerInterface $container
      */
-    public function getContainer()
-    {
-        return $this->container;
-    }
-
-    /**
-     * Set the container
-     *
-     * @param \League\Container\Container $container
-     */
-    public function setContainer(Container $container)
+    public function setContainer(ContainerInterface $container)
     {
         $this->container = $container;
+        $this->router = new RouteCollection($this->container);
     }
 
     /**
