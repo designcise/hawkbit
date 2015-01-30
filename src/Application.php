@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The Proton Micro Framework.
  *
@@ -61,8 +60,8 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
             $response->headers->add(['Content-Type' => 'application/json']);
 
             $return = [
-                'error' =>  [
-                    'message'   =>  $e->getMessage()
+                'error' => [
+                    'message' => $e->getMessage()
                 ]
             ];
 
@@ -71,6 +70,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
             }
 
             $response->setContent(json_encode($return));
+
             return $response;
         });
     }
@@ -87,6 +87,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
     /**
      * Set the container
+     *
      * @param \League\Container\Container $container
      */
     public function setContainer(Container $container)
@@ -282,7 +283,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     /**
      * Subscribe to an event.
      *
-     * @param string $event
+     * @param string   $event
      * @param callable $listener
      *
      * @return void
