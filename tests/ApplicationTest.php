@@ -33,7 +33,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $this->assertTrue($event->getRequest() instanceof \Symfony\Component\HttpFoundation\Request);
         });
 
-        $reflected = new \ReflectionProperty($app, 'eventEmitter');
+        $reflected = new \ReflectionProperty($app, 'emitter');
         $reflected->setAccessible(true);
         $emitter = $reflected->getValue($app);
         $this->assertTrue($emitter->hasListeners('request.received'));

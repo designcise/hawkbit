@@ -8,11 +8,12 @@
 
 namespace Proton;
 
+use League\Event\EmitterTrait;
+use League\Event\ListenerAcceptorInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
-use League\Event\Emitter as EventEmitter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Proton\Events;
@@ -22,15 +23,12 @@ use Proton\Events;
  */
 class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
 {
+    use EmitterTrait;
+
     /**
      * @var \League\Route\RouteCollection
      */
     protected $router;
-
-    /**
-     * @var \League\Event\Emitter
-     */
-    protected $eventEmitter;
 
     /**
      * @var \League\Container\Container
@@ -50,11 +48,10 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
         $this->setContainer(new Container);
         $this->container->singleton('app', $this);
         $this->container->add('debug', false);
+
         $this->router = new RouteCollection($this->container);
-        $this->eventEmitter = new EventEmitter;
 
         $this->setExceptionDecorator(function (\Exception $e) {
-
             $response = new Response;
             $response->setStatusCode(method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
             $response->headers->add(['Content-Type' => 'application/json']);
@@ -112,7 +109,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function getEventEmitter()
     {
-        return $this->eventEmitter;
+        return $this->getEmitter();
     }
 
     /**
@@ -211,7 +208,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
         try {
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\RequestReceivedEvent($request))
             );
 
@@ -221,7 +218,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 $request->getPathInfo()
             );
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\ResponseBeforeEvent($request, $response))
             );
 
@@ -238,7 +235,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
             }
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\ResponseBeforeEvent($request, $response))
             );
 
@@ -256,7 +253,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function terminate(Request $request, Response $response)
     {
-        $this->eventEmitter->emit(
+        $this->emit(
             (new Events\ResponseAfterEvent($request, $response))
         );
     }
@@ -285,12 +282,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      *
      * @param string   $event
      * @param callable $listener
-     *
-     * @return void
+     * @param int      $priority
      */
-    public function subscribe($event, $listener)
+    public function subscribe($event, $listener, $priority = ListenerAcceptorInterface::P_NORMAL)
     {
-        $this->eventEmitter->addListener($event, $listener);
+        $this->addListener($event, $listener, $priority);
     }
 
     /**
