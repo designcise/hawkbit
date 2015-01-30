@@ -54,7 +54,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
         $this->container->singleton('app', $this);
         $this->router = new RouteCollection($this->container);
 
-        $this->config['debug'] = $debug;
+        $this->setConfig('debug', $debug);
 
         $this->setExceptionDecorator(function (\Exception $e) {
             $response = new Response;
