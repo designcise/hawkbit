@@ -30,8 +30,6 @@ abstract class ProtonEvent extends AbstractEvent
      *
      * @param \Symfony\Component\HttpFoundation\Request       $request
      * @param \Symfony\Component\HttpFoundation\Response|null $response
-     *
-     * @return void
      */
     public function __construct(Request $request, Response $response = null)
     {

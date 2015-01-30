@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The Proton Micro Framework.
  *
@@ -9,11 +8,14 @@
 
 namespace Proton;
 
+use League\Container\ContainerAwareTrait;
+use League\Container\ContainerInterface;
+use League\Event\EmitterTrait;
+use League\Event\ListenerAcceptorInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
-use League\Event\Emitter as EventEmitter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Proton\Events;
@@ -23,20 +25,13 @@ use Proton\Events;
  */
 class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
 {
+    use EmitterTrait;
+    use ContainerAwareTrait;
+
     /**
      * @var \League\Route\RouteCollection
      */
     protected $router;
-
-    /**
-     * @var \League\Event\Emitter
-     */
-    protected $eventEmitter;
-
-    /**
-     * @var \League\Container\Container
-     */
-    protected $container;
 
     /**
      * @var \callable
@@ -44,55 +39,53 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     protected $exceptionDecorator;
 
     /**
+     * @var array
+     */
+    protected $config = [];
+
+    /**
      * New Application.
      *
-     * @return void
+     * @param bool $debug Enable debug mode
      */
-    public function __construct()
+    public function __construct($debug = true)
     {
         $this->setContainer(new Container);
-        $this->container->add('debug', false);
         $this->router = new RouteCollection($this->container);
-        $this->eventEmitter = new EventEmitter;
+
+        $this->setConfig('debug', $debug);
 
         $this->setExceptionDecorator(function (\Exception $e) {
-
             $response = new Response;
             $response->setStatusCode(method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
             $response->headers->add(['Content-Type' => 'application/json']);
 
             $return = [
-                'error' =>  [
-                    'message'   =>  $e->getMessage()
+                'error' => [
+                    'message' => $e->getMessage()
                 ]
             ];
 
-            if ($this['debug'] === true) {
+            if ($this->getConfig('debug', true) === true) {
                 $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
             }
 
             $response->setContent(json_encode($return));
+
             return $response;
         });
     }
 
     /**
-     * Returns the DI container.
+     * Set a container.
      *
-     * @return \League\Container\Container
+     * @param \League\Container\ContainerInterface $container
      */
-    public function getContainer()
-    {
-        return $this->container;
-    }
-
-    /**
-     * Set the container
-     * @param \League\Container\Container $container
-     */
-    public function setContainer(Container $container)
+    public function setContainer(ContainerInterface $container)
     {
         $this->container = $container;
+        $this->container->singleton('app', $this);
+        $this->router = new RouteCollection($this->container);
     }
 
     /**
@@ -112,7 +105,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function getEventEmitter()
     {
-        return $this->eventEmitter;
+        return $this->getEmitter();
     }
 
     /**
@@ -211,7 +204,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
         try {
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\RequestReceivedEvent($request))
             );
 
@@ -221,7 +214,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 $request->getPathInfo()
             );
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\ResponseBeforeEvent($request, $response))
             );
 
@@ -238,7 +231,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
             }
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\ResponseBeforeEvent($request, $response))
             );
 
@@ -256,7 +249,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function terminate(Request $request, Response $response)
     {
-        $this->eventEmitter->emit(
+        $this->emit(
             (new Events\ResponseAfterEvent($request, $response))
         );
     }
@@ -283,14 +276,13 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     /**
      * Subscribe to an event.
      *
-     * @param string $event
+     * @param string   $event
      * @param callable $listener
-     *
-     * @return void
+     * @param int      $priority
      */
-    public function subscribe($event, $listener)
+    public function subscribe($event, $listener, $priority = ListenerAcceptorInterface::P_NORMAL)
     {
-        $this->eventEmitter->addListener($event, $listener);
+        $this->addListener($event, $listener, $priority);
     }
 
     /**
@@ -340,5 +332,31 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function offsetExists($key)
     {
         return $this->container->isRegistered($key);
+    }
+
+    /**
+     * Set a config item
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @internal param bool $debug
+     */
+    public function setConfig($key, $value)
+    {
+        $this->config[$key] = $value;
+    }
+
+    /**
+     * Get a config key's value
+     *
+     * @param string $key
+     * @param mixed  $default
+     *
+     * @return mixed
+     */
+    public function getConfig($key, $default = null)
+    {
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
 }
