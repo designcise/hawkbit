@@ -143,7 +143,6 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
         $logger = new Logger($name);
         $this->loggers[$name] = $logger;
         return $logger;
-        
     }
 
     /**
