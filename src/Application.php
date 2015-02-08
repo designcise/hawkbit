@@ -16,6 +16,7 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
+use Monolog\Logger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Proton\Events;
@@ -42,6 +43,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      * @var array
      */
     protected $config = [];
+    
+    /**
+     * @var array
+     */
+    protected $loggers = [];
 
     /**
      * New Application.
@@ -121,6 +127,23 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     public function getEventEmitter()
     {
         return $this->getEmitter();
+    }
+    
+    /**
+     * Return a logger
+     * 
+     * @return \Monolog\Logger
+     */
+    public function getLogger($name)
+    {
+        if (isset($this->loggers[$name])) {
+            return $this->loggers[$name];
+        }
+        
+        $logger = new Logger($name);
+        $this->loggers[$name] = $logger;
+        return $logger;
+        
     }
 
     /**
