@@ -134,7 +134,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      * 
      * @return \Monolog\Logger
      */
-    public function getLogger($name)
+    public function getLogger($name = 'default')
     {
         if (isset($this->loggers[$name])) {
             return $this->loggers[$name];
