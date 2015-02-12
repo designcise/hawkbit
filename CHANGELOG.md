@@ -1,5 +1,9 @@
 # Proton Changelog
 
+## 1.3.0 (2015-02-12)
+
+* Added Monolog support
+
 ## 1.2.1 (2015-01-30)
 
 * Fixed RouteCollection being set twice
