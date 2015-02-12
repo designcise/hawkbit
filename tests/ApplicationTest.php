@@ -6,6 +6,7 @@ use League\Container\Container;
 use League\Event\Emitter;
 use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
+use Monolog\Logger;
 use Proton;
 use Proton\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($app->getContainer() instanceof Container);
         $this->assertTrue($app->getRouter() instanceof RouteCollection);
         $this->assertTrue($app->getEventEmitter() instanceof Emitter);
+
+        $logger = $app->getLogger();
+        $this->assertTrue($logger instanceof Logger);
+        $this->assertEquals($logger, $app->getLogger('default'));
     }
 
     public function testArrayAccessContainer()
