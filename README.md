@@ -12,7 +12,7 @@ Under the hood it uses [League\Route](https://github.com/thephpleague/route) for
 
 ## Installation
 
-Just add `"alexbilbie/proton": "~1.2"` to your `composer.json` file.
+Just add `"alexbilbie/proton": "~1.3"` to your `composer.json` file.
 
 ## Setup
 
