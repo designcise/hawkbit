@@ -108,6 +108,14 @@ By default Proton runs with debug options disabled. To enable debugging add
 $app['debug'] = true;
 ```
 
+Proton has built in support for Monolog. To access a channel call:
+
+```php
+$app->getLogger('channel name');
+```
+
+For more information about channels read this guide - [https://github.com/Seldaek/monolog/blob/master/doc/usage.md#leveraging-channels](https://github.com/Seldaek/monolog/blob/master/doc/usage.md#leveraging-channels).
+
 ## Custom exception decoration
 
 ```php
