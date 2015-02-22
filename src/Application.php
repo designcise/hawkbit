@@ -360,7 +360,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function offsetExists($key)
     {
-        return $this->getContainer()->isRegistered($key);
+        return $this->getContainer()->isRegistered($key) || $this->getContainer()->isSingleton($key);
     }
 
     /**
