@@ -364,6 +364,16 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
+     * Register a new service provider
+     *
+     * @param $serviceProvider
+     */
+    public function register($serviceProvider)
+    {
+        $this->getContainer()->addServiceProvider($serviceProvider);
+    }
+
+    /**
      * Set a config item
      *
      * @param string $key
