@@ -6,6 +6,7 @@ use League\Container\Container;
 use League\Event\Emitter;
 use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
+use Monolog\Logger;
 use Proton;
 use Proton\Application;
 use Symfony\Component\HttpFoundation\Request;
@@ -19,6 +20,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($app->getContainer() instanceof Container);
         $this->assertTrue($app->getRouter() instanceof RouteCollection);
         $this->assertTrue($app->getEventEmitter() instanceof Emitter);
+
+        $logger = $app->getLogger();
+        $this->assertTrue($logger instanceof Logger);
+        $this->assertEquals($logger, $app->getLogger('default'));
     }
 
     public function testArrayAccessContainer()
@@ -36,8 +41,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
-        $app->subscribe('request.received', function ($event) {
-            $this->assertTrue($event->getRequest() instanceof Request);
+        $app->subscribe('request.received', function ($event, $request) {
+            $this->assertInstanceOf('League\Event\Event', $event);
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
         });
 
         $reflected = new \ReflectionProperty($app, 'emitter');
@@ -46,7 +52,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($emitter->hasListeners('request.received'));
 
         $foo = null;
-        $app->subscribe('response.before', function () use (&$foo) {
+        $app->subscribe('response.created', function ($event, $request, $response) use (&$foo) {
             $foo = 'bar';
         });
 
@@ -61,8 +67,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
-        $app->subscribe('response.after', function ($event) {
-            $this->assertTrue($event->getRequest() instanceof Request);
+        $app->subscribe('response.sent', function ($event, $request, $response) {
+            $this->assertInstanceOf('League\Event\Event', $event);
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Response', $response);
         });
 
         $request = Request::createFromGlobals();
@@ -127,7 +135,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::createFromGlobals();
 
-        $app->subscribe('request.received', function ($event) {
+        $app->subscribe('request.received', function ($event, $request, $response) {
             throw new \Exception('A test exception');
         });
 
@@ -143,7 +151,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::createFromGlobals();
 
-        $app->subscribe('request.received', function ($event) {
+        $app->subscribe('request.received', function ($event, $request, $response) {
             throw new \Exception('A test exception');
         });
 
@@ -172,7 +180,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = Request::createFromGlobals();
 
-        $app->subscribe('request.received', function ($event) {
+        $app->subscribe('request.received', function ($event, $request, $response) {
             throw new \Exception('A test exception');
         });
 
@@ -201,11 +209,14 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
-        $app->subscribe('request.received', function ($event) {
-            $this->assertTrue($event->getRequest() instanceof Request);
+        $app->subscribe('request.received', function ($event, $request) {
+            $this->assertInstanceOf('League\Event\Event', $event);
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
         });
-        $app->subscribe('response.after', function ($event) {
-            $this->assertTrue($event->getResponse() instanceof Response);
+        $app->subscribe('response.sent', function ($event, $request, $response) {
+            $this->assertInstanceOf('League\Event\Event', $event);
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
+            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Response', $response);
         });
 
         ob_start();

@@ -17,9 +17,9 @@ use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
+use Monolog\Logger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Proton\Events;
 
 /**
  * Proton Application Class.
@@ -43,6 +43,11 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * @var array
      */
     protected $config = [];
+    
+    /**
+     * @var array
+     */
+    protected $loggers = [];
 
     /**
      * New Application.
@@ -51,8 +56,6 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function __construct($debug = true)
     {
-        $this->setContainer(new Container);
-
         $this->setConfig('debug', $debug);
 
         $this->setExceptionDecorator(function (\Exception $e) {
@@ -85,7 +88,21 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     {
         $this->container = $container;
         $this->container->singleton('app', $this);
-        $this->router = new RouteCollection($this->container);
+        $this->router = null;
+    }
+
+    /**
+     * Get the container.
+     *
+     * @return \League\Container\ContainerInterface
+     */
+    public function getContainer()
+    {
+        if (!isset($this->container)) {
+            $this->setContainer(new Container);
+        }
+
+        return $this->container;
     }
 
     /**
@@ -95,6 +112,10 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function getRouter()
     {
+        if (!isset($this->router)) {
+            $this->router = new RouteCollection($this->getContainer());
+        }
+
         return $this->router;
     }
 
@@ -106,6 +127,23 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     public function getEventEmitter()
     {
         return $this->getEmitter();
+    }
+    
+    /**
+     * Return a logger
+     *
+     * @param string $name
+     * @return \Monolog\Logger
+     */
+    public function getLogger($name = 'default')
+    {
+        if (isset($this->loggers[$name])) {
+            return $this->loggers[$name];
+        }
+        
+        $logger = new Logger($name);
+        $this->loggers[$name] = $logger;
+        return $logger;
     }
 
     /**
@@ -130,7 +168,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function get($route, $action)
     {
-        $this->router->addRoute('GET', $route, $action);
+        $this->getRouter()->addRoute('GET', $route, $action);
     }
 
     /**
@@ -143,7 +181,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function post($route, $action)
     {
-        $this->router->addRoute('POST', $route, $action);
+        $this->getRouter()->addRoute('POST', $route, $action);
     }
 
     /**
@@ -156,7 +194,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function put($route, $action)
     {
-        $this->router->addRoute('PUT', $route, $action);
+        $this->getRouter()->addRoute('PUT', $route, $action);
     }
 
     /**
@@ -169,7 +207,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function delete($route, $action)
     {
-        $this->router->addRoute('DELETE', $route, $action);
+        $this->getRouter()->addRoute('DELETE', $route, $action);
     }
 
     /**
@@ -182,7 +220,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function patch($route, $action)
     {
-        $this->router->addRoute('PATCH', $route, $action);
+        $this->getRouter()->addRoute('PATCH', $route, $action);
     }
 
     /**
@@ -200,23 +238,19 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
         // Passes the request to the container
-        $this->container->add('Symfony\Component\HttpFoundation\Request', $request);
+        $this->getContainer()->add('Symfony\Component\HttpFoundation\Request', $request);
 
         try {
 
-            $this->emit(
-                (new Events\RequestReceivedEvent($request))
-            );
+            $this->emit('request.received', $request);
 
-            $dispatcher = $this->router->getDispatcher();
+            $dispatcher = $this->getRouter()->getDispatcher();
             $response = $dispatcher->dispatch(
                 $request->getMethod(),
                 $request->getPathInfo()
             );
 
-            $this->emit(
-                (new Events\ResponseBeforeEvent($request, $response))
-            );
+            $this->emit('response.created', $request, $response);
 
             return $response;
 
@@ -231,9 +265,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
                 throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
             }
 
-            $this->emit(
-                (new Events\ResponseBeforeEvent($request, $response))
-            );
+            $this->emit('response.created', $request, $response);
 
             return $response;
         }
@@ -249,9 +281,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function terminate(Request $request, Response $response)
     {
-        $this->emit(
-            (new Events\ResponseAfterEvent($request, $response))
-        );
+        $this->emit('response.sent', $request, $response);
     }
 
     /**
@@ -294,7 +324,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function offsetGet($key)
     {
-        return $this->container->get($key);
+        return $this->getContainer()->get($key);
     }
 
     /**
@@ -307,7 +337,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function offsetSet($key, $value)
     {
-        $this->container->singleton($key, $value);
+        $this->getContainer()->singleton($key, $value);
     }
 
     /**
@@ -319,7 +349,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function offsetUnset($key)
     {
-        $this->container->offsetUnset($key);
+        $this->getContainer()->offsetUnset($key);
     }
 
     /**
@@ -331,7 +361,17 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function offsetExists($key)
     {
-        return $this->container->isRegistered($key);
+        return $this->getContainer()->isRegistered($key) || $this->getContainer()->isSingleton($key);
+    }
+
+    /**
+     * Register a new service provider
+     *
+     * @param $serviceProvider
+     */
+    public function register($serviceProvider)
+    {
+        $this->getContainer()->addServiceProvider($serviceProvider);
     }
 
     /**

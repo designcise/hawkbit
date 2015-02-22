@@ -1,5 +1,14 @@
 # Proton Changelog
 
+## 1.4.0 (2015-02-22)
+
+* Replaces domain events with built-in league event (#21)
+* Added new `register` method to register service providers with the container
+
+## 1.3.0 (2015-02-12)
+
+* Added Monolog support
+
 ## 1.2.1 (2015-01-30)
 
 * Fixed RouteCollection being set twice

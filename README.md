@@ -1,7 +1,7 @@
 # Proton
 
 [![Latest Version](http://img.shields.io/packagist/v/alexbilbie/proton.svg?style=flat-square)](https://github.com/alexbilbie/proton/releases)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)<br />
+[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
 [![Build Status](https://img.shields.io/travis/alexbilbie/Proton/master.svg?style=flat-square)](https://travis-ci.org/alexbilbie/Proton)
 [![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton/code-structure)
 [![Quality Score](https://img.shields.io/scrutinizer/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton)
@@ -12,7 +12,7 @@ Under the hood it uses [League\Route](https://github.com/thephpleague/route) for
 
 ## Installation
 
-Just add `"alexbilbie/proton": "1.1.*"` to your `composer.json` file.
+Just add `"alexbilbie/proton": "~1.4"` to your `composer.json` file.
 
 ## Setup
 
@@ -108,6 +108,14 @@ By default Proton runs with debug options disabled. To enable debugging add
 $app['debug'] = true;
 ```
 
+Proton has built in support for Monolog. To access a channel call:
+
+```php
+$app->getLogger('channel name');
+```
+
+For more information about channels read this guide - [https://github.com/Seldaek/monolog/blob/master/doc/usage.md#leveraging-channels](https://github.com/Seldaek/monolog/blob/master/doc/usage.md#leveraging-channels).
+
 ## Custom exception decoration
 
 ```php
@@ -133,10 +141,10 @@ $app->subscribe('request.received', function ($event) {
 
 This event is fired when a request is received but before it has been processed by the router.
 
-### response.before
+### response.created
 
 ```php
-$app->subscribe('response.before', function ($event) {
+$app->subscribe('response.created', function ($event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 })
@@ -144,10 +152,10 @@ $app->subscribe('response.before', function ($event) {
 
 This event is fired when a response has been created but before it has been output.
 
-### response.after
+### response.sent
 
 ```php
-$app->subscribe('response.after', function ($event) {
+$app->subscribe('response.sent', function ($event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 })
@@ -217,13 +225,22 @@ $app->getContainer()->singleton('db', function () {
 });
 ```
 
-multitons can be added using the `add` method on the container:
+Multitons can be added using the `add` method on the container:
 
 ```php
 $app->getContainer()->add('foo', function () {
         return new Foo();
 });
 ```
+
+Service providers can be registered using the `register` method on the Proton app or `addServiceProvider` on the container:
+
+```php
+$app->register('\My\Service\Provider');
+$app->getContainer()->addServiceProvider('\My\Service\Provider');
+```
+
+For more information about service providers check out this page - [http://container.thephpleague.com/service-providers/](http://container.thephpleague.com/service-providers/).
 
 For easy testing down the road it is recommended you embrace constructor injection:
 
