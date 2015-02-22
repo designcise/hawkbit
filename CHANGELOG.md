@@ -3,6 +3,7 @@
 ## 1.4.0 (2015-02-22)
 
 * Replaces domain events with built-in league event (#21)
+* Added new `register` method to register service providers with the container
 
 ## 1.3.0 (2015-02-12)
 
