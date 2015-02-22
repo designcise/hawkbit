@@ -130,7 +130,8 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     
     /**
      * Return a logger
-     * 
+     *
+     * @param string $name
      * @return \Monolog\Logger
      */
     public function getLogger($name = 'default')
