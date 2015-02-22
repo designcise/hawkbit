@@ -19,7 +19,6 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Proton\Events;
 
 /**
  * Proton Application Class.
@@ -241,9 +240,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
 
         try {
 
-            $this->emit(
-                (new Events\RequestReceivedEvent($request))
-            );
+            $this->emit('request.received', $request);
 
             $dispatcher = $this->getRouter()->getDispatcher();
             $response = $dispatcher->dispatch(
@@ -251,9 +248,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 $request->getPathInfo()
             );
 
-            $this->emit(
-                (new Events\ResponseBeforeEvent($request, $response))
-            );
+            $this->emit('response.created', $request, $response);
 
             return $response;
 
@@ -268,9 +263,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
             }
 
-            $this->emit(
-                (new Events\ResponseBeforeEvent($request, $response))
-            );
+            $this->emit('response.created', $request, $response);
 
             return $response;
         }
@@ -286,9 +279,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      */
     public function terminate(Request $request, Response $response)
     {
-        $this->emit(
-            (new Events\ResponseAfterEvent($request, $response))
-        );
+        $this->emit('response.sent', $request, $response);
     }
 
     /**
