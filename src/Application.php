@@ -1,40 +1,38 @@
 <?php
 /**
- * The Proton Micro Framework
+ * The Proton Micro Framework.
  *
  * @author  Alex Bilbie <hello@alexbilbie.com>
  * @license MIT
  */
+
 namespace Proton;
 
+use League\Container\ContainerAwareInterface;
+use League\Container\ContainerAwareTrait;
+use League\Container\ContainerInterface;
+use League\Event\EmitterTrait;
+use League\Event\ListenerAcceptorInterface;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
-use Orno\Di\Container;
-use Orno\Route\RouteCollection;
-use League\Event\Emitter as EventEmitter;
+use League\Container\Container;
+use League\Route\RouteCollection;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Proton\Events;
 
 /**
- * Proton Application Class
+ * Proton Application Class.
  */
-class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
+class Application implements HttpKernelInterface, TerminableInterface, ContainerAwareInterface, ListenerAcceptorInterface, \ArrayAccess
 {
+    use EmitterTrait;
+    use ContainerAwareTrait;
+
     /**
-     * @var \Orno\Route\RouteCollection
+     * @var \League\Route\RouteCollection
      */
     protected $router;
-
-    /**
-     * @var \League\Event\Emitter
-     */
-    protected $eventEmitter;
-
-    /**
-     * @var \Orno\Di\Container
-     */
-    protected $container;
 
     /**
      * @var \callable
@@ -42,48 +40,58 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     protected $exceptionDecorator;
 
     /**
-     * New Application
-     * @return void
+     * @var array
      */
-    public function __construct()
+    protected $config = [];
+
+    /**
+     * New Application.
+     *
+     * @param bool $debug Enable debug mode
+     */
+    public function __construct($debug = true)
     {
-        $this->container = new Container;
-        $this->container->add('debug', false);
-        $this->router = new RouteCollection($this->container);
-        $this->eventEmitter = new EventEmitter;
+        $this->setContainer(new Container);
+
+        $this->setConfig('debug', $debug);
 
         $this->setExceptionDecorator(function (\Exception $e) {
-
             $response = new Response;
             $response->setStatusCode(method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
+            $response->headers->add(['Content-Type' => 'application/json']);
 
             $return = [
-                'error' =>  [
-                    'message'   =>  $e->getMessage()
+                'error' => [
+                    'message' => $e->getMessage()
                 ]
             ];
 
-            if ($this['debug'] === true) {
+            if ($this->getConfig('debug', true) === true) {
                 $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
             }
 
             $response->setContent(json_encode($return));
+
             return $response;
         });
     }
 
     /**
-     * Returns the DI container
-     * @return \Orno\Di\Container
+     * Set a container.
+     *
+     * @param \League\Container\ContainerInterface $container
      */
-    public function getContainer()
+    public function setContainer(ContainerInterface $container)
     {
-        return $this->container;
+        $this->container = $container;
+        $this->container->singleton('app', $this);
+        $this->router = new RouteCollection($this->container);
     }
 
     /**
-     * Return the router
-     * @return \Orno\Route\RouteCollection
+     * Return the router.
+     *
+     * @return \League\Route\RouteCollection
      */
     public function getRouter()
     {
@@ -91,17 +99,20 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Return the event emitter
+     * Return the event emitter.
+     *
      * @return \League\Event\Emitter
      */
     public function getEventEmitter()
     {
-        return $this->eventEmitter;
+        return $this->getEmitter();
     }
 
     /**
-     * Set the exception decorator
+     * Set the exception decorator.
+     *
      * @param callable $func
+     *
      * @return void
      */
     public function setExceptionDecorator(callable $func)
@@ -110,9 +121,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Add a GET route
+     * Add a GET route.
+     *
      * @param string $route
-     * @param mixed $action
+     * @param mixed  $action
+     *
      * @return void
      */
     public function get($route, $action)
@@ -121,9 +134,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Add a POST route
+     * Add a POST route.
+     *
      * @param string $route
-     * @param mixed $action
+     * @param mixed  $action
+     *
      * @return void
      */
     public function post($route, $action)
@@ -132,9 +147,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Add a PUT route
+     * Add a PUT route.
+     *
      * @param string $route
-     * @param mixed $action
+     * @param mixed  $action
+     *
      * @return void
      */
     public function put($route, $action)
@@ -143,9 +160,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Add a DELETE route
+     * Add a DELETE route.
+     *
      * @param string $route
-     * @param mixed $action
+     * @param mixed  $action
+     *
      * @return void
      */
     public function delete($route, $action)
@@ -154,9 +173,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Add a PATCH route
+     * Add a PATCH route.
+     *
      * @param string $route
-     * @param mixed $action
+     * @param mixed  $action
+     *
      * @return void
      */
     public function patch($route, $action)
@@ -165,20 +186,25 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Handle the request
-     * @param  \Symfony\Component\HttpFoundation\Request $request
-     * @param  int $type
-     * @param  boolean $catch
+     * Handle the request.
+     *
+     * @param \Symfony\Component\HttpFoundation\Request $request
+     * @param int                                       $type
+     * @param bool                                      $catch
+     *
+     * @throws \Exception
+     * @throws \LogicException
+     *
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
-        // Overwrite the Request object that Orno\Route uses by default
-        $this->container->add('Orno\Http\Request', $request);
+        // Passes the request to the container
+        $this->container->add('Symfony\Component\HttpFoundation\Request', $request);
 
         try {
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\RequestReceivedEvent($request))
             );
 
@@ -188,7 +214,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 $request->getPathInfo()
             );
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\ResponseBeforeEvent($request, $response))
             );
 
@@ -205,7 +231,7 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
                 throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
             }
 
-            $this->eventEmitter->emit(
+            $this->emit(
                 (new Events\ResponseBeforeEvent($request, $response))
             );
 
@@ -214,19 +240,26 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * (@inheritdoc)
+     * Terminates a request/response cycle.
+     *
+     * @param \Symfony\Component\HttpFoundation\Request  $request
+     * @param \Symfony\Component\HttpFoundation\Response $response
+     *
+     * @return void
      */
     public function terminate(Request $request, Response $response)
     {
-        $this->eventEmitter->emit(
+        $this->emit(
             (new Events\ResponseAfterEvent($request, $response))
         );
     }
 
     /**
-     * Run the application
-     * @param  \Symfony\Component\HttpFoundation\Request $request
-     * @return string
+     * Run the application.
+     *
+     * @param \Symfony\Component\HttpFoundation\Request|null $request
+     *
+     * @return void
      */
     public function run(Request $request = null)
     {
@@ -241,19 +274,22 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Subscribe to an event
-     * @param  string $event
-     * @param  callable $listener
-     * @return void
+     * Subscribe to an event.
+     *
+     * @param string   $event
+     * @param callable $listener
+     * @param int      $priority
      */
-    public function subscribe($event, $listener)
+    public function subscribe($event, $listener, $priority = ListenerAcceptorInterface::P_NORMAL)
     {
-        $this->eventEmitter->addListener($event, $listener);
+        $this->addListener($event, $listener, $priority);
     }
 
     /**
-     * Array Access get
-     * @param  string $key
+     * Array Access get.
+     *
+     * @param string $key
+     *
      * @return mixed
      */
     public function offsetGet($key)
@@ -262,9 +298,11 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Array Access set
-     * @param  string $key
-     * @param  mixed  $value
+     * Array Access set.
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
      * @return void
      */
     public function offsetSet($key, $value)
@@ -273,8 +311,10 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Array Access unset
-     * @param  string $key
+     * Array Access unset.
+     *
+     * @param string $key
+     *
      * @return void
      */
     public function offsetUnset($key)
@@ -283,12 +323,40 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
     }
 
     /**
-     * Array Access isset
-     * @param  string $key
-     * @return boolean
+     * Array Access isset.
+     *
+     * @param string $key
+     *
+     * @return bool
      */
     public function offsetExists($key)
     {
         return $this->container->isRegistered($key);
+    }
+
+    /**
+     * Set a config item
+     *
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @internal param bool $debug
+     */
+    public function setConfig($key, $value)
+    {
+        $this->config[$key] = $value;
+    }
+
+    /**
+     * Get a config key's value
+     *
+     * @param string $key
+     * @param mixed  $default
+     *
+     * @return mixed
+     */
+    public function getConfig($key, $default = null)
+    {
+        return isset($this->config[$key]) ? $this->config[$key] : $default;
     }
 }
