@@ -12,7 +12,7 @@ Under the hood it uses [League\Route](https://github.com/thephpleague/route) for
 
 ## Installation
 
-Just add `"alexbilbie/proton": "~1.3"` to your `composer.json` file.
+Just add `"alexbilbie/proton": "~1.4"` to your `composer.json` file.
 
 ## Setup
 
@@ -141,10 +141,10 @@ $app->subscribe('request.received', function ($event) {
 
 This event is fired when a request is received but before it has been processed by the router.
 
-### response.before
+### response.created
 
 ```php
-$app->subscribe('response.before', function ($event) {
+$app->subscribe('response.created', function ($event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 })
@@ -152,10 +152,10 @@ $app->subscribe('response.before', function ($event) {
 
 This event is fired when a response has been created but before it has been output.
 
-### response.after
+### response.sent
 
 ```php
-$app->subscribe('response.after', function ($event) {
+$app->subscribe('response.sent', function ($event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 })
@@ -225,13 +225,22 @@ $app->getContainer()->singleton('db', function () {
 });
 ```
 
-multitons can be added using the `add` method on the container:
+Multitons can be added using the `add` method on the container:
 
 ```php
 $app->getContainer()->add('foo', function () {
         return new Foo();
 });
 ```
+
+Service providers can be registered using the `register` method on the Proton app or `addServiceProvider` on the container:
+
+```php
+$app->register('\My\Service\Provider');
+$app->getContainer()->addServiceProvider('\My\Service\Provider');
+```
+
+For more information about service providers check out this page - [http://container.thephpleague.com/service-providers/](http://container.thephpleague.com/service-providers/).
 
 For easy testing down the road it is recommended you embrace constructor injection:
 
