@@ -133,14 +133,14 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * Return a logger
      *
      * @param string $name
-     * @return \Monolog\Logger
+     * @return \Psr\Log\LoggerInterface
      */
     public function getLogger($name = 'default')
     {
         if (isset($this->loggers[$name])) {
             return $this->loggers[$name];
         }
-        
+
         $logger = new Logger($name);
         $this->loggers[$name] = $logger;
         return $logger;
