@@ -1,5 +1,9 @@
 # Proton Changelog
 
+## 1.4.1 (2015-03-26)
+
+* Remove bad docblock
+
 ## 1.4.0 (2015-02-22)
 
 * Replaces domain events with built-in league event (#21)

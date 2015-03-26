@@ -8,6 +8,7 @@
 
 namespace Proton;
 
+use League\Container\ContainerAwareInterface;
 use League\Container\ContainerAwareTrait;
 use League\Container\ContainerInterface;
 use League\Event\EmitterTrait;
@@ -23,7 +24,7 @@ use Symfony\Component\HttpFoundation\Response;
 /**
  * Proton Application Class.
  */
-class Application implements HttpKernelInterface, TerminableInterface, \ArrayAccess
+class Application implements HttpKernelInterface, TerminableInterface, ContainerAwareInterface, ListenerAcceptorInterface, \ArrayAccess
 {
     use EmitterTrait;
     use ContainerAwareTrait;
@@ -378,8 +379,6 @@ class Application implements HttpKernelInterface, TerminableInterface, \ArrayAcc
      *
      * @param string $key
      * @param mixed  $value
-     *
-     * @internal param bool $debug
      */
     public function setConfig($key, $value)
     {
