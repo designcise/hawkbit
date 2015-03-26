@@ -379,8 +379,6 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      *
      * @param string $key
      * @param mixed  $value
-     *
-     * @internal param bool $debug
      */
     public function setConfig($key, $value)
     {
