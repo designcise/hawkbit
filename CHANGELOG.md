@@ -1,5 +1,19 @@
 # Proton Changelog
 
+## 2.0.0 (2016-03-04)
+
+### Added
+
+- `Proton\Psr7\HttpKernelInterface` and `Proton\Psr7\TerminableInterface` port of symfony HttpKernelInterface for PSR-7 compatibility
+- Add `zend/diactoros` for PSR-7 http support
+- provide compatibility with adapter `Proton\Symfony\HttpKernelAdapter` for StackPHP and other Symfony HttpKernelInterface implementations
+
+### Altered
+
+ - upgrade `league/container` to latest version 2 and add interopt compatibility
+ - upgrade `league/route` to latest version 2 (currently under development)
+ - replace symfony request and response with diacoros request and response 
+
 ## 1.4.1 (2015-03-26)
 
 * Remove bad docblock

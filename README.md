@@ -1,4 +1,4 @@
-# Proton
+# Proton 2
 
 [![Latest Version](http://img.shields.io/packagist/v/alexbilbie/proton.svg?style=flat-square)](https://github.com/alexbilbie/proton/releases)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
@@ -6,13 +6,13 @@
 [![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton/code-structure)
 [![Quality Score](https://img.shields.io/scrutinizer/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton)
 
-Proton is a [StackPHP](http://stackphp.com/) compatible micro framework.
+Proton 2 is a advanced derivate of [Proton by Alex Bilbie](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
 
-Under the hood it uses [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
+Proton 2 uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
 ## Installation
 
-Just add `"alexbilbie/proton": "~1.4"` to your `composer.json` file.
+Just add `"phpthinktank/proton": "~2.0"` to your `composer.json` file.
 
 ## Setup
 
@@ -27,12 +27,12 @@ require __DIR__.'/../vendor/autoload.php';
 $app = new Proton\Application();
 
 $app->get('/', function ($request, $response) {
-    $response->setContent('<h1>It works!</h1>');
+    $response->getBody()->write('<h1>It works!</h1>');
     return $response;
 });
 
 $app->get('/hello/{name}', function ($request, $response, $args) {
-    $response->setContent(
+    $response->getBody()->write(
         sprintf('<h1>Hello, %s!</h1>', $args['name'])
     );
     return $response;
@@ -64,14 +64,14 @@ $app->run();
 // HomeController.php
 <?php
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class HomeController
 {
-    public function index(Request $request, Response $response, array $args)
+    public function index(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
-        $response->setContent('<h1>It works!</h1>');
+        $response->getBody()->write('<h1>It works!</h1>');
         return $response;
     }
 }
@@ -91,13 +91,15 @@ $app->get('/', function ($request, $response) {
     return $response;
 });
 
+$httpKernel = new Proton\Symfony\HttpKernelAdapter($app);
+
 $stack = (new Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
     ->push('Some/MiddleWare') // This will execute second
     ->push('Some/MiddleWare'); // This will execute third
 
-$app = $stack->resolve($app);
-Stack\run($app); // The app will run after all the middlewares have run
+$app = $stack->resolve($httpKernel);
+Stack\run($httpKernel); // The app will run after all the middlewares have run
 ```
 
 ## Debugging
@@ -120,10 +122,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ```php
 $app->setExceptionDecorator(function (\Exception $e) {
-    $response = new \Symfony\Component\HttpFoundation\Response;
-    $response->setStatusCode(500);
-    $response->setContent('Epic fail!');
-    return $response;
+    return new TextResponse('Fail', 500);
 });
 ```
 
