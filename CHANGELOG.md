@@ -1,5 +1,12 @@
 # Proton Changelog
 
+## 2.0.0 (2016-03-04)
+
+### Added
+
+ - upgrade league/container to latest version 2 and add interopt compatibility
+ -  
+
 ## 1.4.1 (2015-03-26)
 
 * Remove bad docblock

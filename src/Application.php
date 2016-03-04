@@ -3,31 +3,35 @@
  * The Proton Micro Framework.
  *
  * @author  Alex Bilbie <hello@alexbilbie.com>
+ * @author  Marco Bunge <marco_bunge@web.de>
+ *
  * @license MIT
  */
 
 namespace Proton;
 
 use League\Container\ContainerAwareInterface;
-use League\Container\ContainerAwareTrait;
 use League\Container\ContainerInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
-use Symfony\Component\HttpKernel\HttpKernelInterface;
-use Symfony\Component\HttpKernel\TerminableInterface;
+use Proton\Psr7\HttpKernelInterface;
+use Proton\Psr7\TerminableInterface;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
 use Monolog\Logger;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Zend\Diactoros\Response;
+use Zend\Diactoros\Response\HtmlResponse;
+use Zend\Diactoros\Response\JsonResponse;
+use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * Proton Application Class.
  */
-class Application implements HttpKernelInterface, TerminableInterface, ContainerAwareInterface, ListenerAcceptorInterface, \ArrayAccess
+class Application implements ContainerAwareInterface, HttpKernelInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
 {
     use EmitterTrait;
-    use ContainerAwareTrait;
 
     /**
      * @var \League\Route\RouteCollection
@@ -43,11 +47,23 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * @var array
      */
     protected $config = [];
-    
+
     /**
      * @var array
      */
     protected $loggers = [];
+
+    /**
+     * @var ContainerInterface
+     */
+    protected $container;
+
+
+    /**
+     * @var \Zend\Diactoros\Response\EmitterInterface
+     */
+    protected $responseEmitter;
+
 
     /**
      * New Application.
@@ -59,21 +75,20 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
         $this->setConfig('debug', $debug);
 
         $this->setExceptionDecorator(function (\Exception $e) {
-            $response = new Response;
-            $response->setStatusCode(method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
-            $response->headers->add(['Content-Type' => 'application/json']);
 
-            $return = [
+            $body = [
                 'error' => [
                     'message' => $e->getMessage()
                 ]
             ];
 
             if ($this->getConfig('debug', true) === true) {
-                $return['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
+                $body['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
             }
 
-            $response->setContent(json_encode($return));
+            $response = new JsonResponse($body, method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500, [
+                'Content-Type' => 'application/json'
+            ]);
 
             return $response;
         });
@@ -87,7 +102,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     public function setContainer(ContainerInterface $container)
     {
         $this->container = $container;
-        $this->container->singleton('app', $this);
+        $this->container->share('app', $this);
         $this->router = null;
     }
 
@@ -128,7 +143,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     {
         return $this->getEmitter();
     }
-    
+
     /**
      * Return a logger
      *
@@ -147,6 +162,29 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     }
 
     /**
+     * Get response emitter
+     *
+     * @return \Zend\Diactoros\Response\EmitterInterface
+     */
+    public function getResponseEmitter()
+    {
+        if(null === $this->responseEmitter){
+            $this->responseEmitter = new Response\SapiEmitter();
+        }
+        return $this->responseEmitter;
+    }
+
+    /**
+     * Set response emitter
+     *
+     * @param \Zend\Diactoros\Response\EmitterInterface $responseEmitter
+     */
+    public function setResponseEmitter($responseEmitter)
+    {
+        $this->responseEmitter = $responseEmitter;
+    }
+
+    /**
      * Set the exception decorator.
      *
      * @param callable $func
@@ -162,97 +200,95 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * Add a GET route.
      *
      * @param string $route
-     * @param mixed  $action
+     * @param mixed $action
      *
      * @return void
      */
     public function get($route, $action)
     {
-        $this->getRouter()->addRoute('GET', $route, $action);
+        $this->getRouter()->map('GET', $route, $action);
     }
 
     /**
      * Add a POST route.
      *
      * @param string $route
-     * @param mixed  $action
+     * @param mixed $action
      *
      * @return void
      */
     public function post($route, $action)
     {
-        $this->getRouter()->addRoute('POST', $route, $action);
+        $this->getRouter()->map('POST', $route, $action);
     }
 
     /**
      * Add a PUT route.
      *
      * @param string $route
-     * @param mixed  $action
+     * @param mixed $action
      *
      * @return void
      */
     public function put($route, $action)
     {
-        $this->getRouter()->addRoute('PUT', $route, $action);
+        $this->getRouter()->map('PUT', $route, $action);
     }
 
     /**
      * Add a DELETE route.
      *
      * @param string $route
-     * @param mixed  $action
+     * @param mixed $action
      *
      * @return void
      */
     public function delete($route, $action)
     {
-        $this->getRouter()->addRoute('DELETE', $route, $action);
+        $this->getRouter()->map('DELETE', $route, $action);
     }
 
     /**
      * Add a PATCH route.
      *
      * @param string $route
-     * @param mixed  $action
+     * @param mixed $action
      *
      * @return void
      */
     public function patch($route, $action)
     {
-        $this->getRouter()->addRoute('PATCH', $route, $action);
+        $this->getRouter()->map('PATCH', $route, $action);
     }
 
     /**
      * Handle the request.
      *
-     * @param \Symfony\Component\HttpFoundation\Request $request
-     * @param int                                       $type
-     * @param bool                                      $catch
+     * @param ServerRequestInterface $request
+     * @param int $type
+     * @param bool $catch
      *
      * @throws \Exception
      * @throws \LogicException
      *
-     * @return \Symfony\Component\HttpFoundation\Response
+     * @return ResponseInterface
      */
-    public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
+    public function handle(ServerRequestInterface $request, $type = self::MASTER_REQUEST, $catch = true)
     {
+
         // Passes the request to the container
-        $this->getContainer()->add('Symfony\Component\HttpFoundation\Request', $request);
+        $this->getContainer()->add(ServerRequestInterface::class, $request);
 
         try {
 
             $this->emit('request.received', $request);
 
-            $dispatcher = $this->getRouter()->getDispatcher();
-            $response = $dispatcher->dispatch(
-                $request->getMethod(),
-                $request->getPathInfo()
+            $response = $this->getRouter()->dispatch(
+                $request,
+                new HtmlResponse('')
             );
 
             $this->emit('response.created', $request, $response);
-
-            return $response;
 
         } catch (\Exception $e) {
 
@@ -261,44 +297,45 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
             }
 
             $response = call_user_func($this->exceptionDecorator, $e);
-            if (!$response instanceof Response) {
-                throw new \LogicException('Exception decorator did not return an instance of Symfony\Component\HttpFoundation\Response');
+            if (!$response instanceof ResponseInterface) {
+                throw new \LogicException('Exception decorator did not return an instance of ' . ResponseInterface::class);
             }
 
             $this->emit('response.created', $request, $response);
 
-            return $response;
         }
+
+        return $response;
     }
 
     /**
      * Terminates a request/response cycle.
      *
-     * @param \Symfony\Component\HttpFoundation\Request  $request
-     * @param \Symfony\Component\HttpFoundation\Response $response
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
      *
      * @return void
      */
-    public function terminate(Request $request, Response $response)
+    public function terminate(ServerRequestInterface $request, ResponseInterface $response)
     {
         $this->emit('response.sent', $request, $response);
     }
 
     /**
-     * Run the application.
+     * Run the application end execute final handler.
      *
-     * @param \Symfony\Component\HttpFoundation\Request|null $request
+     * @param ServerRequestInterface|null $request
      *
-     * @return void
+     * @throws \Exception
      */
-    public function run(Request $request = null)
+    public function run(ServerRequestInterface $request = null)
     {
         if (null === $request) {
-            $request = Request::createFromGlobals();
+            $request = ServerRequestFactory::fromGlobals();
         }
 
         $response = $this->handle($request);
-        $response->send();
+        $this->getResponseEmitter()->emit($response);
 
         $this->terminate($request, $response);
     }
@@ -306,9 +343,9 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
     /**
      * Subscribe to an event.
      *
-     * @param string   $event
+     * @param string $event
      * @param callable $listener
-     * @param int      $priority
+     * @param int $priority
      */
     public function subscribe($event, $listener, $priority = ListenerAcceptorInterface::P_NORMAL)
     {
@@ -331,17 +368,20 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * Array Access set.
      *
      * @param string $key
-     * @param mixed  $value
+     * @param mixed $value
      *
      * @return void
      */
     public function offsetSet($key, $value)
     {
-        $this->getContainer()->singleton($key, $value);
+        $this->getContainer()->share($key, $value);
     }
 
     /**
      * Array Access unset.
+     *
+     * Does nothing since support for unset
+     * shares is disabled in league/container 2
      *
      * @param string $key
      *
@@ -349,7 +389,6 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function offsetUnset($key)
     {
-        $this->getContainer()->offsetUnset($key);
     }
 
     /**
@@ -361,7 +400,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      */
     public function offsetExists($key)
     {
-        return $this->getContainer()->isRegistered($key) || $this->getContainer()->isSingleton($key);
+        return $this->getContainer()->has($key);
     }
 
     /**
@@ -378,7 +417,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * Set a config item
      *
      * @param string $key
-     * @param mixed  $value
+     * @param mixed $value
      */
     public function setConfig($key, $value)
     {
@@ -389,7 +428,7 @@ class Application implements HttpKernelInterface, TerminableInterface, Container
      * Get a config key's value
      *
      * @param string $key
-     * @param mixed  $default
+     * @param mixed $default
      *
      * @return mixed
      */

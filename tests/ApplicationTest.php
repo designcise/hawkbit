@@ -9,11 +9,14 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Proton;
 use Proton\Application;
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\TextResponse;
+use Zend\Diactoros\ServerRequestFactory;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
+
     public function testSetGet()
     {
         $app = new Application();
@@ -33,8 +36,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertSame('bar', $app['foo']);
         $this->assertTrue(isset($app['foo']));
-        unset($app['foo']);
-        $this->assertFalse(isset($app['foo']));
     }
 
     public function testSubscribe()
@@ -43,7 +44,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app->subscribe('request.received', function ($event, $request) {
             $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
         });
 
         $reflected = new \ReflectionProperty($app, 'emitter');
@@ -56,7 +57,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $foo = 'bar';
         });
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
         $response = $app->handle($request);
 
         $this->assertEquals('bar', $foo);
@@ -69,11 +70,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app->subscribe('response.sent', function ($event, $request, $response) {
             $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Response', $response);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
         });
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
         $response = $app->handle($request);
 
         $app->terminate($request, $response);
@@ -83,43 +84,33 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
-        $app->get('/', function ($request, $response) {
-            $response->setContent('<h1>It works!</h1>');
+        $action = function ($request, ResponseInterface $response) {
+            $response->getBody()->write('<h1>It works!</h1>');
             return $response;
-        });
+        };
+        $app->get('/', $action);
 
-        $app->post('/', function ($request, $response) {
-            $response->setContent('<h1>It works!</h1>');
-            return $response;
-        });
+        $app->post('/', $action);
 
-        $app->put('/', function ($request, $response) {
-            $response->setContent('<h1>It works!</h1>');
-            return $response;
-        });
+        $app->put('/', $action);
 
-        $app->delete('/', function ($request, $response) {
-            $response->setContent('<h1>It works!</h1>');
-            return $response;
-        });
+        $app->delete('/', $action);
 
-        $app->patch('/', function ($request, $response) {
-            $response->setContent('<h1>It works!</h1>');
-            return $response;
-        });
+        $app->patch('/', $action);
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
 
         $response = $app->handle($request, 1, true);
 
-        $this->assertEquals('<h1>It works!</h1>', $response->getContent());
+        $content = $response->getBody();
+        $this->assertEquals('<h1>It works!</h1>', $content);
     }
 
     public function testHandleFailThrowException()
     {
         $app = new Application();
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
 
         try {
             $app->handle($request, 1, false);
@@ -133,7 +124,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app = new Application();
         $app['debug'] = true;
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
 
         $app->subscribe('request.received', function ($event, $request, $response) {
             throw new \Exception('A test exception');
@@ -149,23 +140,20 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app = new Application();
         $app['debug'] = true;
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
 
         $app->subscribe('request.received', function ($event, $request, $response) {
             throw new \Exception('A test exception');
         });
 
         $app->setExceptionDecorator(function ($e) {
-            $response = new Response;
-            $response->setStatusCode(500);
-            $response->setContent('Fail');
-            return $response;
+            return new TextResponse('Fail', 500);
         });
 
         $response = $app->handle($request);
 
         $this->assertEquals(500, $response->getStatusCode());
-        $this->assertEquals('Fail', $response->getContent());
+        $this->assertEquals('Fail', $response->getBody());
     }
 
     /**
@@ -178,7 +166,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return true;
         });
 
-        $request = Request::createFromGlobals();
+        $request = ServerRequestFactory::fromGlobals();
 
         $app->subscribe('request.received', function ($event, $request, $response) {
             throw new \Exception('A test exception');
@@ -204,19 +192,19 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
-        $app->get('/', function ($request, $response) {
-            $response->setContent('<h1>It works!</h1>');
+        $app->get('/', function ($request, ResponseInterface $response) {
+            $response->getBody()->write('<h1>It works!</h1>');
             return $response;
         });
 
         $app->subscribe('request.received', function ($event, $request) {
             $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
         });
         $app->subscribe('response.sent', function ($event, $request, $response) {
             $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Request', $request);
-            $this->assertInstanceOf('Symfony\Component\HttpFoundation\Response', $response);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
         });
 
         ob_start();

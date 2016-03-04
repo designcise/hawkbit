@@ -1,33 +1,40 @@
 {
-	"name": "alexbilbie/proton",
+	"name": "phpthinktank/proton",
 	"type": "library",
 	"description": "Micro PHP framework",
 	"keywords": [
 		"framework",
 		"StackPHP",
 		"HttpKernelInterface",
+		"PSR-7",
 		"middleware",
 		"micro",
 		"proton"
 	],
-	"homepage": "https://github.com/alexbilbie/proton",
+	"homepage": "https://github.com/phpthinktank/proton",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "Alex Bilbie",
 			"email": "hello@alexbilbie.com"
+		},
+		{
+			"name": "Marco Bunge",
+			"email": "marco_bunge@web.de"
 		}
 	],
 	"require": {
-		"php": ">=5.4.0",
-		"symfony/http-kernel": "~2.5.12|~2.6.8|~2.7",
-		"league/route": "~1.0",
-		"league/container": "~1.0",
+		"php": ">=5.5.0",
+		"league/route": "dev-develop",
+		"league/container": "~2.0",
 		"league/event": "~2.1",
 		"monolog/monolog": "~1.12"
 	},
 	"require-dev": {
-		"phpunit/phpunit": "~4.0"
+		"phpunit/phpunit": "~4.8",
+		"symfony/http-kernel": "~2.7|~3.0",
+		"symfony/psr-http-message-bridge": "*",
+		"zendframework/zend-diactoros": "~1.3"
 	},
 	"autoload": {
 		"psr-4": {
@@ -37,11 +44,15 @@
 	"autoload-dev": {
 		"psr-4": {
 			"ProtonTests\\": "tests/"
-		}
+		},
+		"files": [
+			"tests/TestAsset/Functions.php",
+			"tests/TestAsset/SapiResponse.php"
+		]
 	},
 	"extra": {
 		"branch-alias": {
-			"dev-master": "1.5-dev"
+			"dev-master": "master"
 		}
 	}
 }
