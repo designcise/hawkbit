@@ -6,7 +6,7 @@
 [![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton/code-structure)
 [![Quality Score](https://img.shields.io/scrutinizer/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton)
 
-Proton 2 is a advanced derivate of [Proton by Alex Bilbie](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
+Proton 2 is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
 
 Proton 2 uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
@@ -254,3 +254,31 @@ $app->getContainer()->add('Foo', function () use ($app) {
         );
 });
 ```
+
+## Change log
+
+Please see [CHANGELOG](CHANGELOG.md) for more information what has changed recently.
+
+## Testing
+
+``` bash
+$ composer test
+```
+
+## Contributing
+
+Please see [CONTRIBUTING](CONTRIBUTING.md) for details.
+
+## Security
+
+If you discover any security related issues, please email <mjls@web.de> instead of using the issue tracker.
+
+## Credits
+
+- [Alex Bilbie](https://github.com/alexbilbie)
+- [Marco Bunge](https://github.com/mbunge)
+- [All contributors](https://github.com/alexbilbie/Proton/graphs/contributors)
+
+## License
+
+The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
