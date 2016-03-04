@@ -64,12 +64,12 @@ $app->run();
 // HomeController.php
 <?php
 
-use Symfony\Component\HttpFoundation\Request;
-use Symfony\Component\HttpFoundation\Response;
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
 
 class HomeController
 {
-    public function index(Request $request, Response $response, array $args)
+    public function index(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
         $response->setContent('<h1>It works!</h1>');
         return $response;
@@ -91,13 +91,15 @@ $app->get('/', function ($request, $response) {
     return $response;
 });
 
+$httpKernel = new Proton\Symfony\HttpKernelAdapter($app);
+
 $stack = (new Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
     ->push('Some/MiddleWare') // This will execute second
     ->push('Some/MiddleWare'); // This will execute third
 
-$app = $stack->resolve($app);
-Stack\run($app); // The app will run after all the middlewares have run
+$app = $stack->resolve($httpKernel);
+Stack\run($httpKernel); // The app will run after all the middlewares have run
 ```
 
 ## Debugging
@@ -120,10 +122,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ```php
 $app->setExceptionDecorator(function (\Exception $e) {
-    $response = new \Symfony\Component\HttpFoundation\Response;
-    $response->setStatusCode(500);
-    $response->setContent('Epic fail!');
-    return $response;
+    return new TextResponse('Fail', 500);
 });
 ```
 
