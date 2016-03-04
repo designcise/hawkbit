@@ -6,7 +6,7 @@
 [![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton/code-structure)
 [![Quality Score](https://img.shields.io/scrutinizer/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton)
 
-Proton 2 is a port of [Proton by Alex Bilbie](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
+Proton 2 is a advanced derivate of [Proton by Alex Bilbie](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
 
 Proton 2 uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
@@ -27,12 +27,12 @@ require __DIR__.'/../vendor/autoload.php';
 $app = new Proton\Application();
 
 $app->get('/', function ($request, $response) {
-    $response->setContent('<h1>It works!</h1>');
+    $response->getBody()->write('<h1>It works!</h1>');
     return $response;
 });
 
 $app->get('/hello/{name}', function ($request, $response, $args) {
-    $response->setContent(
+    $response->getBody()->write(
         sprintf('<h1>Hello, %s!</h1>', $args['name'])
     );
     return $response;
@@ -71,7 +71,7 @@ class HomeController
 {
     public function index(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
-        $response->setContent('<h1>It works!</h1>');
+        $response->getBody()->write('<h1>It works!</h1>');
         return $response;
     }
 }
