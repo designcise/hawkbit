@@ -11,11 +11,11 @@
  *
  */
 
-namespace Proton\Symfony;
+namespace Electron\Symfony;
 
 
 
-use Proton\Application;
+use Electron\Application;
 use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Component\HttpFoundation\Request;

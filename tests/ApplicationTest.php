@@ -1,16 +1,16 @@
 <?php
 
-namespace ProtonTests;
+namespace ElectronTests;
 
 use League\Container\Container;
 use League\Event\Emitter;
 use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
 use Monolog\Logger;
-use Proton;
-use Proton\Application;
-use ProtonTests\TestAsset\SharedTestController;
-use ProtonTests\TestAsset\TestController;
+use Electron;
+use Electron\Application;
+use ElectronTests\TestAsset\SharedTestController;
+use ElectronTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\TextResponse;

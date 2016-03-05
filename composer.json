@@ -1,5 +1,5 @@
 {
-  "name": "phpthinktank/proton",
+  "name": "phpthinktank/electron",
   "type": "library",
   "description": "Micro PHP framework",
   "keywords": [
@@ -9,18 +9,18 @@
     "PSR-7",
     "middleware",
     "micro",
-    "proton"
+    "electron"
   ],
-  "homepage": "https://github.com/phpthinktank/proton",
+  "homepage": "https://github.com/phpthinktank/electron",
   "license": "MIT",
   "authors": [
     {
-      "name": "Alex Bilbie",
-      "email": "hello@alexbilbie.com"
-    },
-    {
       "name": "Marco Bunge",
       "email": "marco_bunge@web.de"
+    },
+    {
+      "name": "Alex Bilbie",
+      "email": "hello@alexbilbie.com"
     }
   ],
   "require": {

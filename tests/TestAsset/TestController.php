@@ -10,7 +10,7 @@
 * Time: 23:26
 */
 
-namespace ProtonTests\TestAsset;
+namespace ElectronTests\TestAsset;
 
 
 use Psr\Http\Message\ResponseInterface;

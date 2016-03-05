@@ -10,11 +10,11 @@
 * Time: 23:26
 */
 
-namespace ProtonTests\TestAsset;
+namespace ElectronTests\TestAsset;
 
 
-use Proton\Application;
-use Proton\ApplicationInterface;
+use Electron\Application;
+use Electron\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

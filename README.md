@@ -1,18 +1,16 @@
-# Proton 2
+# Electron 2
 
-[![Latest Version](http://img.shields.io/packagist/v/alexbilbie/proton.svg?style=flat-square)](https://github.com/alexbilbie/proton/releases)
+[![Latest Version](http://img.shields.io/packagist/v/alexbilbie/Electron.svg?style=flat-square)](https://github.com/phpthinktank/Electron/releases)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Build Status](https://img.shields.io/travis/alexbilbie/Proton/master.svg?style=flat-square)](https://travis-ci.org/alexbilbie/Proton)
-[![Coverage Status](https://img.shields.io/scrutinizer/coverage/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton/code-structure)
-[![Quality Score](https://img.shields.io/scrutinizer/g/alexbilbie/proton.svg?style=flat-square)](https://scrutinizer-ci.com/g/alexbilbie/proton)
+[![Build Status](https://img.shields.io/travis/alexbilbie/Electron/master.svg?style=flat-square)](https://travis-ci.org/phpthinktank/Electron)
 
-Proton 2 is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
+Electron is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
 
-Proton 2 uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
+Electron uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
 ## Installation
 
-Just add `"phpthinktank/proton": "~2.0"` to your `composer.json` file.
+Just add `"phpthinktank/electron": "~1.0"` to your `composer.json` file.
 
 ## Setup
 
@@ -24,7 +22,7 @@ Basic usage with anonymous functions:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Proton\Application();
+$app = new Electron\Application();
 
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
@@ -49,7 +47,7 @@ Basic usage with controllers:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Proton\Application();
+$app = new Electron\Application();
 
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
@@ -81,7 +79,7 @@ Constructor injections of controllers
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Proton\Application();
+$app = new Electron\Application();
 
 $app->share('App\CustomService', new App\CustomService)
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
@@ -137,14 +135,14 @@ Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 <?php
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Proton\Application();
+$app = new Electron\Application();
 
 $app->get('/', function ($request, $response) {
     $response->setContent('<h1>It works!</h1>');
     return $response;
 });
 
-$httpKernel = new Proton\Symfony\HttpKernelAdapter($app);
+$httpKernel = new Electron\Symfony\HttpKernelAdapter($app);
 
 $stack = (new Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
@@ -168,13 +166,13 @@ $app->setConfig('routes', function ($router, $app) {
 
 ## Debugging
 
-By default Proton runs with debug options disabled. To enable debugging add
+By default Electron runs with debug options disabled. To enable debugging add
 
 ```php
 $app->setConfig('debug', true);
 ```
 
-Proton has built in support for Monolog. To access a channel call:
+Electron has built in support for Monolog. To access a channel call:
 
 ```php
 $app->getLogger('channel name');
@@ -255,7 +253,7 @@ $app->setConfig('events', function ($emitter, $app) {
 
 ## Dependency Injection Container
 
-Proton uses `League/Container` as its dependency injection container.
+Electron uses `League/Container` as its dependency injection container.
 
 You can bind singleton objects into the container from the main application object using ArrayAccess:
 
@@ -310,7 +308,7 @@ $app->getContainer()->add('foo', function () {
 });
 ```
 
-Service providers can be registered using the `register` method on the Proton app or `addServiceProvider` on the container:
+Service providers can be registered using the `register` method on the Electron app or `addServiceProvider` on the container:
 
 ```php
 $app->register('\My\Service\Provider');
@@ -366,9 +364,9 @@ If you discover any security related issues, please email <mjls@web.de> instead 
 
 ## Credits
 
-- [Alex Bilbie](https://github.com/alexbilbie)
 - [Marco Bunge](https://github.com/mbunge)
-- [All contributors](https://github.com/alexbilbie/Proton/graphs/contributors)
+- [Alex Bilbie](https://github.com/alexbilbie) (Proton)
+- [All contributors](https://github.com/phpthinktank/Electron/graphs/contributors)
 
 ## License
 

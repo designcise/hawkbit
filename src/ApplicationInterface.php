@@ -10,7 +10,7 @@
 * Time: 00:00
 */
 
-namespace Proton;
+namespace Electron;
 
 
 interface ApplicationInterface

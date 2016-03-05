@@ -8,7 +8,7 @@
  * @license MIT
  */
 
-namespace Proton;
+namespace Electron;
 
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerInterface;
@@ -18,9 +18,9 @@ use League\Event\EmitterInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
 use League\Route\Strategy\RequestResponseStrategy;
-use Proton\Psr7\HttpKernelInterface;
-use Proton\Psr7\TerminableInterface;
-use Proton\Route\Strategy\WireableStrategy;
+use Electron\Psr7\HttpKernelInterface;
+use Electron\Psr7\TerminableInterface;
+use Electron\Route\Strategy\WireableStrategy;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use League\Container\Container;
