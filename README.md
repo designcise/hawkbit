@@ -1,8 +1,8 @@
 # Electron 2
 
-[![Latest Version](http://img.shields.io/packagist/v/alexbilbie/Electron.svg?style=flat-square)](https://github.com/phpthinktank/Electron/releases)
+[![Latest Version](http://img.shields.io/packagist/v/phpthinktank/Electron.svg?style=flat-square)](https://github.com/phpthinktank/Electron/releases)
 [![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Build Status](https://img.shields.io/travis/alexbilbie/Electron/master.svg?style=flat-square)](https://travis-ci.org/phpthinktank/Electron)
+[![Build Status](https://img.shields.io/travis/phpthinktank/Electron/master.svg?style=flat-square)](https://travis-ci.org/phpthinktank/Electron)
 
 Electron is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
 
