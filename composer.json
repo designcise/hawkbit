@@ -38,12 +38,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Proton\\": "src/"
+      "Electron\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "ProtonTests\\": "tests/"
+      "ElectronTests\\": "tests/"
     },
     "files": [
       "tests/TestAsset/Functions.php",
