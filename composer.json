@@ -50,11 +50,6 @@
       "tests/TestAsset/SapiResponse.php"
     ]
   },
-  "extra": {
-    "branch-alias": {
-      "dev-master": "master"
-    }
-  },
   "provide": {
     "container-interop/container-interop-implementation": "^1.1",
     "psr/http-message-implementation": "~1.0",
