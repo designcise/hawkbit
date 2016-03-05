@@ -1,7 +1,7 @@
 {
   "name": "phpthinktank/electron",
   "type": "library",
-  "description": "Micro PHP framework",
+  "description": "PSR-7 Micro PHP framework",
   "keywords": [
     "framework",
     "StackPHP",
@@ -56,8 +56,9 @@
     }
   },
   "provide": {
+    "container-interop/container-interop-implementation": "^1.1",
     "psr/http-message-implementation": "~1.0",
-    "container-interop/container-interop-implementation": "^1.1"
+    "psr/log-implementation": "~1.0"
   },
   "suggest": {
     "symfony/http-kernel": "Need for symfony http foundation adapter",
