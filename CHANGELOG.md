@@ -12,7 +12,10 @@
 
  - upgrade `league/container` to latest version 2 and add interopt compatibility
  - upgrade `league/route` to latest version 2 (currently under development)
- - replace symfony request and response with diacoros request and response 
+ - replace symfony request and response with diacoros request and response
+ - enable auto wiring of container configurable and enable by default
+ - 
+ - events, routes and services configurable by callables 
 
 ## 1.4.1 (2015-03-26)
 

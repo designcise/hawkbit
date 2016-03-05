@@ -9,6 +9,8 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Proton;
 use Proton\Application;
+use ProtonTests\TestAsset\SharedTestController;
+use ProtonTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\TextResponse;
@@ -100,10 +102,49 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, true);
+        $response = $app->handle($request, 1, false);
 
         $content = $response->getBody();
         $this->assertEquals('<h1>It works!</h1>', $content);
+    }
+
+    public function testHandleControllerActionSuccess()
+    {
+        $app = new Application();
+
+        $action = [TestController::class, 'getIndex'];
+
+        $app->get('/', $action);
+        $app->post('/', $action);
+        $app->put('/', $action);
+        $app->delete('/', $action);
+        $app->patch('/', $action);
+
+        $request = ServerRequestFactory::fromGlobals();
+
+        $response = $app->handle($request, 1, true);
+
+        $content = $response->getBody()->__toString();
+        $this->assertEquals('getIndex', $content);
+    }
+
+    public function testHandleAutoWiringControllerActionSuccess()
+    {
+        $app = new Application();
+        $action = SharedTestController::class . '::getIndex';
+
+        $app->get('/', $action);
+        $app->post('/', $action);
+        $app->put('/', $action);
+        $app->delete('/', $action);
+        $app->patch('/', $action);
+
+        $request = ServerRequestFactory::fromGlobals();
+
+        $response = $app->handle($request, 1, true);
+
+        $content = $response->getBody();
+        $this->assertEquals($app->getConfig('customValueFromController'), $content);
     }
 
     public function testHandleFailThrowException()

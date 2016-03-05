@@ -12,10 +12,15 @@ namespace Proton;
 
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerInterface;
+use League\Container\ReflectionContainer;
+use League\Event\Emitter;
+use League\Event\EmitterInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
+use League\Route\Strategy\RequestResponseStrategy;
 use Proton\Psr7\HttpKernelInterface;
 use Proton\Psr7\TerminableInterface;
+use Proton\Route\Strategy\WireableStrategy;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use League\Container\Container;
@@ -29,7 +34,7 @@ use Zend\Diactoros\ServerRequestFactory;
 /**
  * Proton Application Class.
  */
-class Application implements ContainerAwareInterface, HttpKernelInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
+class Application implements ApplicationInterface, ContainerAwareInterface, HttpKernelInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
 {
     use EmitterTrait;
 
@@ -64,6 +69,21 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      */
     protected $responseEmitter;
 
+    /**
+     * @var bool
+     */
+    private $eventsDefined = false;
+
+    /**
+     * @var bool
+     */
+    private $routesDefined = false;
+
+    /**
+     * @var bool
+     */
+    private $servicesDefined = false;
+
 
     /**
      * New Application.
@@ -86,9 +106,7 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
                 $body['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
             }
 
-            $response = new JsonResponse($body, method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500, [
-                'Content-Type' => 'application/json'
-            ]);
+            $response = new JsonResponse($body, method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
 
             return $response;
         });
@@ -98,12 +116,22 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * Set a container.
      *
      * @param \League\Container\ContainerInterface $container
+     * @return $this
      */
     public function setContainer(ContainerInterface $container)
     {
+
+        $container->share(ApplicationInterface::class, $this);
+        if ($this->getConfig('container.autoWiring', true) && $container instanceof Container) {
+            $container->delegate(
+                new ReflectionContainer
+            );
+        }
+
         $this->container = $container;
-        $this->container->share('app', $this);
         $this->router = null;
+
+        return $this;
     }
 
     /**
@@ -114,7 +142,14 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
     public function getContainer()
     {
         if (!isset($this->container)) {
-            $this->setContainer(new Container);
+            $this->setContainer($this->getConfig('container.instance', new Container));
+        }
+
+        $definitions = $this->getConfig('services');
+
+        if(false === $this->servicesDefined && is_callable($definitions)){
+            call_user_func($definitions, $this->container, $this);
+            $this->routesDefined = true;
         }
 
         return $this->container;
@@ -128,10 +163,38 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
     public function getRouter()
     {
         if (!isset($this->router)) {
-            $this->router = new RouteCollection($this->getContainer());
+            $this->router = (new RouteCollection($this->getContainer()));
+        }
+
+        $definitions = $this->getConfig('routes');
+
+        if(false === $this->routesDefined && is_callable($definitions)){
+            call_user_func($definitions, $this->router, $this);
+            $this->routesDefined = true;
         }
 
         return $this->router;
+    }
+
+    /**
+     * Get the Emitter.
+     *
+     * @return EmitterInterface
+     */
+    public function getEmitter()
+    {
+        if (! $this->emitter) {
+            $this->emitter = new Emitter();
+        }
+
+        $definitions = $this->getConfig('events');
+
+        if(false === $this->eventsDefined && is_callable($definitions)){
+            call_user_func($definitions, $this->emitter, $this);
+            $this->eventsDefined = true;
+        }
+
+        return $this->emitter;
     }
 
     /**
@@ -158,6 +221,7 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
 
         $logger = new Logger($name);
         $this->loggers[$name] = $logger;
+
         return $logger;
     }
 
@@ -168,9 +232,10 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      */
     public function getResponseEmitter()
     {
-        if(null === $this->responseEmitter){
+        if (null === $this->responseEmitter) {
             $this->responseEmitter = new Response\SapiEmitter();
         }
+
         return $this->responseEmitter;
     }
 
@@ -178,22 +243,27 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * Set response emitter
      *
      * @param \Zend\Diactoros\Response\EmitterInterface $responseEmitter
+     * @return $this
      */
     public function setResponseEmitter($responseEmitter)
     {
         $this->responseEmitter = $responseEmitter;
+
+        return $this;
     }
 
     /**
      * Set the exception decorator.
      *
-     * @param callable $func
+     * @param callable $callback
      *
-     * @return void
+     * @return $this
      */
-    public function setExceptionDecorator(callable $func)
+    public function setExceptionDecorator(callable $callback)
     {
-        $this->exceptionDecorator = $func;
+        $this->exceptionDecorator = $callback;
+
+        return $this;
     }
 
     /**
@@ -202,11 +272,13 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * @param string $route
      * @param mixed $action
      *
-     * @return void
+     * @return $this
      */
     public function get($route, $action)
     {
         $this->getRouter()->map('GET', $route, $action);
+
+        return $this;
     }
 
     /**
@@ -215,11 +287,13 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * @param string $route
      * @param mixed $action
      *
-     * @return void
+     * @return $this
      */
     public function post($route, $action)
     {
         $this->getRouter()->map('POST', $route, $action);
+
+        return $this;
     }
 
     /**
@@ -228,11 +302,13 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * @param string $route
      * @param mixed $action
      *
-     * @return void
+     * @return $this
      */
     public function put($route, $action)
     {
         $this->getRouter()->map('PUT', $route, $action);
+
+        return $this;
     }
 
     /**
@@ -241,11 +317,13 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * @param string $route
      * @param mixed $action
      *
-     * @return void
+     * @return $this
      */
     public function delete($route, $action)
     {
         $this->getRouter()->map('DELETE', $route, $action);
+
+        return $this;
     }
 
     /**
@@ -254,11 +332,13 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
      * @param string $route
      * @param mixed $action
      *
-     * @return void
+     * @return $this
      */
     public function patch($route, $action)
     {
         $this->getRouter()->map('PATCH', $route, $action);
+
+        return $this;
     }
 
     /**
@@ -322,7 +402,7 @@ class Application implements ContainerAwareInterface, HttpKernelInterface, Liste
     }
 
     /**
-     * Run the application end execute final handler.
+     * Run the application end.
      *
      * @param ServerRequestInterface|null $request
      *

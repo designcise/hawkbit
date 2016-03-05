@@ -51,10 +51,6 @@ require __DIR__.'/../vendor/autoload.php';
 
 $app = new Proton\Application();
 
-$app['HomeController'] = function () {
-    return new HomeController();
-};
-
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
 $app->run();
@@ -72,6 +68,63 @@ class HomeController
     public function index(ServerRequestInterface $request, ResponseInterface $response, array $args)
     {
         $response->getBody()->write('<h1>It works!</h1>');
+        return $response;
+    }
+}
+```
+
+Constructor injections of controllers
+
+```php
+// index.php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+$app = new Proton\Application();
+
+$app->share('App\CustomService', new App\CustomService)
+$app->get('/', 'HomeController::index'); // calls index method on HomeController class
+
+$app->run();
+```
+
+```php
+// HomeController.php
+<?php
+
+use Psr\Http\Message\ServerRequestInterface;
+use Psr\Http\Message\ResponseInterface;
+
+class HomeController
+{
+    /**
+     * @var App\CustomService
+     */
+    private $service;
+
+    /**
+     * @param App\CustomService $application
+     */
+    public function __construct(App\CustomService $service = null)
+    {
+        $this->service = $service;
+    }
+
+    /**
+     * @return App\CustomService
+     */
+    public function getService()
+    {
+        return $this->service;
+    }
+    
+    public function index(ServerRequestInterface $request, ResponseInterface $response, array $args)
+    {
+        //do somehing with service
+        $service = $this->getService();
+    
+        $response->getBody()->write();
         return $response;
     }
 }
@@ -102,12 +155,23 @@ $app = $stack->resolve($httpKernel);
 Stack\run($httpKernel); // The app will run after all the middlewares have run
 ```
 
+### Routes from configuration
+
+You can add routes from configuration  
+
+```php
+//configure
+$app->setConfig('routes', function ($router, $app) {
+    $router->get('/blog/', 'App\BlogController::getIndex');
+});
+```
+
 ## Debugging
 
 By default Proton runs with debug options disabled. To enable debugging add
 
 ```php
-$app['debug'] = true;
+$app->setConfig('debug', true);
 ```
 
 Proton has built in support for Monolog. To access a channel call:
@@ -176,6 +240,19 @@ $app->subscribe('custom.event', function ($event, $time) {
 $app->getEventEmitter()->emit('custom.event', time());
 ```
 
+### Events from configuration
+
+You can add configured events from configuration  
+
+```php
+//configure
+$app->setConfig('events', function ($emitter, $app) {
+    $emitter->addListener('custom.event', function ($event, $time) {
+        return 'the time is '.$time;
+    });
+});
+```
+
 ## Dependency Injection Container
 
 Proton uses `League/Container` as its dependency injection container.
@@ -205,7 +282,7 @@ $app['db'] = function () {
 or by accessing the container directly:
 
 ```php
-$app->getContainer()->singleton('db', function () {
+$app->getContainer()->share('db', function () {
     $manager = new Illuminate\Database\Capsule\Manager;
 
     $manager->addConnection([
@@ -227,8 +304,9 @@ $app->getContainer()->singleton('db', function () {
 Multitons can be added using the `add` method on the container:
 
 ```php
+//callback
 $app->getContainer()->add('foo', function () {
-        return new Foo();
+    return new Foo();
 });
 ```
 
@@ -252,6 +330,19 @@ $app->getContainer()->add('Foo', function () use ($app) {
         return new Foo(
             $app->getContainer()->get('Bar')
         );
+});
+```
+
+### Services from configuration
+
+You can add service from configuration  
+
+```php
+//configure
+$app->setConfig('services', function ($container, $app) {
+    $container->add('foo', function () {
+        return new Foo();
+    });;
 });
 ```
 
