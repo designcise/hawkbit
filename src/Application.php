@@ -324,14 +324,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
 
         try {
 
-            $this->emit('request.received', $request);
-
-            $response = $this->getRouter()->dispatch(
-                $request,
-                new HtmlResponse('')
-            );
-
-            $this->emit('response.created', $request, $response);
+            $response = $this->handleRequest($request);
 
         } catch (\Exception $e) {
 
@@ -339,12 +332,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
                 throw $e;
             }
 
-            $response = call_user_func($this->exceptionDecorator, $e);
-            if (!$response instanceof ResponseInterface) {
-                throw new \LogicException('Exception decorator did not return an instance of ' . ResponseInterface::class);
-            }
-
-            $this->emit('response.created', $request, $response);
+            $response = $this->handleError($request, $e);
 
         }
 
@@ -478,5 +466,39 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     public function getConfig($key, $default = null)
     {
         return isset($this->config[$key]) ? $this->config[$key] : $default;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function handleRequest(ServerRequestInterface $request)
+    {
+        $this->emit('request.received', $request);
+
+        $response = $this->getRouter()->dispatch(
+            $request,
+            new HtmlResponse('')
+        );
+
+        $this->emit('response.created', $request, $response);
+        return $response;
+    }
+
+    /**
+     * @param ServerRequestInterface $request
+     * @param $e
+     * @return mixed
+     * @throws
+     */
+    public function handleError(ServerRequestInterface $request, $e)
+    {
+        $response = call_user_func($this->exceptionDecorator, $e);
+        if (!$response instanceof ResponseInterface) {
+            throw new \LogicException('Exception decorator did not return an instance of ' . ResponseInterface::class);
+        }
+
+        $this->emit('response.created', $request, $response);
+        return $response;
     }
 }
