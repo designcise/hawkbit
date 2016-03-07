@@ -1,5 +1,5 @@
 {
-  "name": "phpthinktank/electron",
+  "name": "blast/turbine",
   "type": "library",
   "description": "PSR-7 Micro PHP framework",
   "keywords": [
@@ -11,7 +11,7 @@
     "micro",
     "electron"
   ],
-  "homepage": "https://github.com/phpthinktank/electron",
+  "homepage": "https://github.com/phpthinktank/blast-turbine",
   "license": "MIT",
   "authors": [
     {
