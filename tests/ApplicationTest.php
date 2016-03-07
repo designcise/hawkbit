@@ -13,6 +13,7 @@ use TurbineTests\TestAsset\SharedTestController;
 use TurbineTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -213,7 +214,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             throw new \Exception('A test exception');
         });
 
-        $response = $app->handle($request);
+        $app->handle($request);
     }
 
     public function testCustomEvents()
@@ -227,6 +228,30 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app->getEventEmitter()->emit('custom.event', time());
         $this->assertTrue($time !== null);
+    }
+
+    public function testSetResponseEmitter()
+    {
+        $app = new Application();
+
+        $app->get('/', function ($request, ResponseInterface $response) {
+            $response->getBody()->write('<h1>It works!</h1>');
+            return $response;
+        });
+
+        $app->setResponseEmitter(new SapiStreamEmitter());
+
+        $app->subscribe('request.received', function ($event, $request) {
+            $this->assertInstanceOf('League\Event\Event', $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+        });
+        $app->subscribe('response.sent', function ($event, $request, $response) {
+            $this->assertInstanceOf('League\Event\Event', $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+        });
+
+        $app->handle(ServerRequestFactory::fromGlobals());
     }
 
     public function testRun()

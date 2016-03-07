@@ -16,6 +16,9 @@ namespace TurbineTests\TestAsset;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 class TestController
 {
     public function getIndex(ServerRequestInterface $request, ResponseInterface $response, array $args = [])

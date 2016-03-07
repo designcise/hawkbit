@@ -18,6 +18,9 @@ use Turbine\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
+/**
+ * @codeCoverageIgnore
+ */
 class SharedTestController
 {
     /**

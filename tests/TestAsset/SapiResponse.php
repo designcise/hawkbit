@@ -23,6 +23,7 @@ use ZendTest\Diactoros\TestAsset\HeaderStack;
 /**
  * Have headers been sent?
  *
+ * @codeCoverageIgnore
  * @return false
  */
 function headers_sent()
@@ -32,6 +33,7 @@ function headers_sent()
 /**
  * Emit a header, without creating actual output artifacts
  *
+ * @codeCoverageIgnore
  * @param string $value
  */
 function header($value)

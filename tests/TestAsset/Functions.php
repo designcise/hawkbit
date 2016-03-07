@@ -21,6 +21,8 @@
 namespace ZendTest\Diactoros\TestAsset;
 /**
  * Store output artifacts
+ *
+ * @codeCoverageIgnore
  */
 class HeaderStack
 {

@@ -70,22 +70,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     protected $responseEmitter;
 
     /**
-     * @var bool
-     */
-    private $eventsDefined = false;
-
-    /**
-     * @var bool
-     */
-    private $routesDefined = false;
-
-    /**
-     * @var bool
-     */
-    private $servicesDefined = false;
-
-
-    /**
      * New Application.
      *
      * @param bool $debug Enable debug mode
@@ -122,7 +106,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     {
 
         $container->share(ApplicationInterface::class, $this);
-        if ($this->getConfig('container.autoWiring', true) && $container instanceof Container) {
+        if ($container instanceof Container) {
             $container->delegate(
                 new ReflectionContainer
             );
@@ -145,13 +129,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
             $this->setContainer($this->getConfig('container.instance', new Container));
         }
 
-        $definitions = $this->getConfig('services');
-
-        if(false === $this->servicesDefined && is_callable($definitions)){
-            call_user_func($definitions, $this->container, $this);
-            $this->routesDefined = true;
-        }
-
         return $this->container;
     }
 
@@ -166,13 +143,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
             $this->router = (new RouteCollection($this->getContainer()));
         }
 
-        $definitions = $this->getConfig('routes');
-
-        if(false === $this->routesDefined && is_callable($definitions)){
-            call_user_func($definitions, $this->router, $this);
-            $this->routesDefined = true;
-        }
-
         return $this->router;
     }
 
@@ -185,13 +155,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     {
         if (! $this->emitter) {
             $this->emitter = new Emitter();
-        }
-
-        $definitions = $this->getConfig('events');
-
-        if(false === $this->eventsDefined && is_callable($definitions)){
-            call_user_func($definitions, $this->emitter, $this);
-            $this->eventsDefined = true;
         }
 
         return $this->emitter;
