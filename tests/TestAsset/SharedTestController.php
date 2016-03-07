@@ -10,11 +10,11 @@
 * Time: 23:26
 */
 
-namespace ElectronTests\TestAsset;
+namespace TurbineTests\TestAsset;
 
 
-use Electron\Application;
-use Electron\ApplicationInterface;
+use Turbine\Application;
+use Turbine\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

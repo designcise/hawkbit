@@ -1,16 +1,18 @@
-# Electron 2
+# Blast Turbine
 
-[![Latest Version](http://img.shields.io/packagist/v/phpthinktank/Electron.svg?style=flat-square)](https://github.com/phpthinktank/Electron/releases)
-[![Software License](https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square)](LICENSE.md)
-[![Build Status](https://img.shields.io/travis/phpthinktank/Electron/master.svg?style=flat-square)](https://travis-ci.org/phpthinktank/Electron)
+[![Latest Version on Packagist][ico-version]][link-packagist]
+[![Software License][ico-license]](LICENSE.md)
+[![Build Status][ico-travis]][link-travis]
+[![Total Downloads][ico-downloads]][link-downloads]
+[![Coverage Status][ico-coveralls]][link-coveralls]
 
-Electron is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
+Turbine is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
 
-Electron uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
+Turbine uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
 ## Installation
 
-Just add `"phpthinktank/electron": "~1.0"` to your `composer.json` file.
+Just add `"blast/turbine": "~1.0"` to your `composer.json` file.
 
 ## Setup
 
@@ -22,7 +24,7 @@ Basic usage with anonymous functions:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Electron\Application();
+$app = new Turbine\Application();
 
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
@@ -47,7 +49,7 @@ Basic usage with controllers:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Electron\Application();
+$app = new Turbine\Application();
 
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
@@ -79,7 +81,7 @@ Constructor injections of controllers
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Electron\Application();
+$app = new Turbine\Application();
 
 $app->share('App\CustomService', new App\CustomService)
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
@@ -135,14 +137,14 @@ Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 <?php
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Electron\Application();
+$app = new Turbine\Application();
 
 $app->get('/', function ($request, $response) {
     $response->setContent('<h1>It works!</h1>');
     return $response;
 });
 
-$httpKernel = new Electron\Symfony\HttpKernelAdapter($app);
+$httpKernel = new Turbine\Symfony\HttpKernelAdapter($app);
 
 $stack = (new Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
@@ -166,13 +168,13 @@ $app->setConfig('routes', function ($router, $app) {
 
 ## Debugging
 
-By default Electron runs with debug options disabled. To enable debugging add
+By default Turbine runs with debug options disabled. To enable debugging add
 
 ```php
 $app->setConfig('debug', true);
 ```
 
-Electron has built in support for Monolog. To access a channel call:
+Turbine has built in support for Monolog. To access a channel call:
 
 ```php
 $app->getLogger('channel name');
@@ -253,7 +255,7 @@ $app->setConfig('events', function ($emitter, $app) {
 
 ## Dependency Injection Container
 
-Electron uses `League/Container` as its dependency injection container.
+Turbine uses `League/Container` as its dependency injection container.
 
 You can bind singleton objects into the container from the main application object using ArrayAccess:
 
@@ -308,7 +310,7 @@ $app->getContainer()->add('foo', function () {
 });
 ```
 
-Service providers can be registered using the `register` method on the Electron app or `addServiceProvider` on the container:
+Service providers can be registered using the `register` method on the Turbine app or `addServiceProvider` on the container:
 
 ```php
 $app->register('\My\Service\Provider');
@@ -366,8 +368,21 @@ If you discover any security related issues, please email <mjls@web.de> instead 
 
 - [Marco Bunge](https://github.com/mbunge)
 - [Alex Bilbie](https://github.com/alexbilbie) (Proton)
-- [All contributors](https://github.com/phpthinktank/Electron/graphs/contributors)
+- [All contributors](https://github.com/phpthinktank/Turbine/graphs/contributors)
 
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
+
+[ico-version]: https://img.shields.io/packagist/v/blast/turbine.svg?style=flat-square
+[ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
+[ico-travis]: https://img.shields.io/travis/phpthinktank/blast-turbine/master.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/blast/turbine.svg?style=flat-square
+[ico-coveralls]: https://img.shields.io/coveralls/phpthinktank/blast-turbine/master.svg?style=flat-square)](https://coveralls.io/github/phpthinktank/blast-turbine?branch=1.0.x-dev
+
+[link-packagist]: https://packagist.org/packages/blast/turbine
+[link-travis]: https://travis-ci.org/phpthinktank/blast-turbine
+[link-downloads]: https://packagist.org/packages/blast/turbine
+[link-author]: https://github.com/mbunge
+[link-contributors]: ../../contributors
+[link-coveralls]: https://coveralls.io/github/phpthinktank/blast-turbine

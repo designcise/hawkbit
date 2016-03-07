@@ -11,7 +11,7 @@
  *
  */
 
-namespace Electron\Psr7;
+namespace Turbine\Psr7;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

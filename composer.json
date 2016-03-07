@@ -38,12 +38,12 @@
   },
   "autoload": {
     "psr-4": {
-      "Electron\\": "src/"
+      "Turbine\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "ElectronTests\\": "tests/"
+      "TurbineTests\\": "tests/"
     },
     "files": [
       "tests/TestAsset/Functions.php",
@@ -59,5 +59,11 @@
     "symfony/http-kernel": "Need for symfony http foundation adapter",
     "symfony/psr-http-message-bridge": "Need for symfony http foundation adapter",
     "zendframework/zend-diactoros": "Need for symfony http foundation adapter"
+  },
+  "scripts": {
+    "test": [
+      "cd vendor/phpunit/phpunit",
+      "phpunit --configuration phpunit.xml"
+    ]
   }
 }

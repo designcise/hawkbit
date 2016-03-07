@@ -11,11 +11,11 @@
  *
  */
 
-namespace ElectronTests\Symfony;
+namespace TurbineTests\Symfony;
 
 
-use Electron\Application;
-use Electron\Symfony\HttpKernelAdapter;
+use Turbine\Application;
+use Turbine\Symfony\HttpKernelAdapter;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
