@@ -9,7 +9,7 @@
     "PSR-7",
     "middleware",
     "micro",
-    "electron"
+    "blast"
   ],
   "homepage": "https://github.com/phpthinktank/blast-turbine",
   "license": "MIT",
