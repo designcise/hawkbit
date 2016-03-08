@@ -14,12 +14,14 @@
 namespace TurbineTests\Symfony;
 
 
+use League\Route\Http\Exception\NotFoundException;
 use Turbine\Application;
 use Turbine\Symfony\HttpKernelAdapter;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
 use Symfony\Component\HttpKernel\TerminableInterface;
+use Zend\Diactoros\ServerRequestFactory;
 
 class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
 {
@@ -83,6 +85,14 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals($adapter->getHttpFoundationFactory()->createRequest($capturedRequest)->getUri(), $request->getUri());
         $this->assertEquals($adapter->getHttpFoundationFactory()->createResponse($capturedResponse)->getContent(), $response->getContent());
+    }
+
+    public function testNotFoundException()
+    {
+        $this->setExpectedException(NotFoundException::class);
+
+        $adapter = new HttpKernelAdapter(new Application());
+        $adapter->handle(Request::create('/'), 1, false);
     }
 
 }
