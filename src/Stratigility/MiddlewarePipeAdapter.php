@@ -20,12 +20,17 @@ use Turbine\Application;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Stratigility\MiddlewarePipe;
 
-class MiddlewareAdapter extends MiddlewarePipe
+class MiddlewarePipeAdapter extends MiddlewarePipe
 {
     /**
      * @var Application
      */
     private $application;
+
+    /**
+     * @var bool
+     */
+    private $catchErrors = true;
 
     /**
      * MiddlewareAdapter constructor.
@@ -35,6 +40,25 @@ class MiddlewareAdapter extends MiddlewarePipe
     {
         parent::__construct();
         $this->application = $application;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function canCatchErrors()
+    {
+        return $this->catchErrors;
+    }
+
+    /**
+     * @param boolean $catchErrors
+     * @return MiddlewarePipeAdapter
+     */
+    public function setCatchErrors($catchErrors)
+    {
+        $this->catchErrors = $catchErrors;
+
+        return $this;
     }
 
     /**
@@ -50,31 +74,16 @@ class MiddlewareAdapter extends MiddlewarePipe
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
-     * @param callable|null $next
+     * @param callable|null $out
      * @return ResponseInterface|void
      */
-    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $next = null){
-
+    public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $out = null){
+        $response = parent::__invoke($request, $response, $out);
         $application = $this->getApplication();
-
-        // Passes the request to the container
-        $application->getContainer()->add(ServerRequestInterface::class, $request);
-
-        try {
-
-            //process request
-            $application->emit('request.received', $request);
-            $response = parent::__invoke($request, $application->getRouter()->dispatch(
-                $request,
-                new HtmlResponse('')
-            ), $next);
-            $application->emit('response.created', $request, $response);
-
-        } catch (\Exception $e) {
-
-            //process errors
-            $response = parent::__invoke($request, $response, $e);
-            $application->emit('response.created', $request, $response, $e);
+        try{
+            $response = $application->handleRequest($request, $response);
+        }catch(\Exception $exception){
+            $response = $application->handleError($request, $exception, $this->canCatchErrors());
         }
 
         return $response;
