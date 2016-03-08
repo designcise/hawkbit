@@ -13,6 +13,7 @@ use TurbineTests\TestAsset\SharedTestController;
 use TurbineTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequestFactory;
@@ -55,6 +56,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $emitter = $reflected->getValue($app);
         $this->assertTrue($emitter->hasListeners('request.received'));
 
+        $app->get('/', function(){});
+
         $foo = null;
         $app->subscribe('response.created', function ($event, $request, $response) use (&$foo) {
             $foo = 'bar';
@@ -64,7 +67,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals('bar', $foo);
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testTerminate()
@@ -177,45 +180,34 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(500, $response->getStatusCode());
     }
 
-    public function testCustomExceptionDecorator()
+    public function testExceptionHandling()
     {
         $app = new Application();
-        $app['debug'] = true;
+        $app->setConfig('error', false);
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->subscribe('request.received', function ($event, $request, $response) {
-            throw new \Exception('A test exception');
-        });
-
-        $app->setExceptionDecorator(function ($e) {
-            return new TextResponse('Fail', 500);
+        $app->subscribe('response.error', function ($event, $request, ResponseInterface $response) use ($app) {
+            $response->getBody()->write('Fail');
         });
 
         $response = $app->handle($request);
 
         $this->assertEquals(500, $response->getStatusCode());
-        $this->assertEquals('Fail', $response->getBody());
+        $toString = $response->getBody()->__toString();
+        $this->assertEquals('Fail', $toString);
     }
 
-    /**
-     * @expectedException \LogicException
-     */
-    public function testExceptionDecoratorDoesntReturnResponseObject()
+    public function testNotFoundException()
     {
+        $this->setExpectedException(NotFoundException::class);
+
         $app = new Application();
-        $app->setExceptionDecorator(function ($e) {
-            return true;
-        });
-
         $request = ServerRequestFactory::fromGlobals();
-
-        $app->subscribe('request.received', function ($event, $request, $response) {
-            throw new \Exception('A test exception');
-        });
-
-        $app->handle($request);
+        $app->handle($request, $app::MASTER_REQUEST, false);
     }
+
+
 
     public function testCustomEvents()
     {
@@ -239,7 +231,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
-        $app->setResponseEmitter(new SapiStreamEmitter());
+        $app->getContainer()->add(EmitterInterface::class, new SapiStreamEmitter());
 
         $app->subscribe('request.received', function ($event, $request) {
             $this->assertInstanceOf('League\Event\Event', $event);
@@ -276,5 +268,25 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         ob_start();
         $app->run();
         ob_get_clean();
+    }
+
+    public function testEnvironment()
+    {
+        $app = new Application();
+        $this->assertFalse($app->isHttp());
+        $this->assertFalse($app->isAjax());
+        $this->assertTrue($app->isCli());
+    }
+
+    public function testConfiguration(){
+        $app = new Application(['foo' => 'bar']);
+
+        $this->assertInternalType('array',$app->getConfig());
+        $this->assertArrayHasKey('foo',$app->getConfig());
+        $this->assertEquals('bar', $app->getConfig('foo'));
+        $app->setConfig(['baz' => 'far']);
+        $this->assertEquals('far', $app->getConfig('baz'));
+        $app->setConfig('bar', 'foo');
+        $this->assertEquals('foo', $app->getConfig('bar'));
     }
 }
