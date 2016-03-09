@@ -52,7 +52,15 @@ interface ApplicationInterface
 
     const KEY_ERROR_CATCH = 'error.catch';
     const KEY_ERROR = 'error';
-    const DEFAULT_ERROR = true;
+
+    /**
+     * Show or hide errors
+     */
+    const DEFAULT_ERROR = false;
+
+    /**
+     * catch or throw errors
+     */
     const DEFAULT_ERROR_CATCH = true;
 
     /**

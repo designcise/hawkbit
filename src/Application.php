@@ -23,6 +23,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
 use Monolog\Logger;
+use Psr\Log\LoggerInterface;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -275,6 +276,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             return $this->loggers[$name];
         }
 
+        if (!$this->getContainer()->has(LoggerInterface::class)) {
+            $this->getContainer()->add(Response\EmitterInterface::class, new Response\SapiEmitter());
+        }
+
+        return $this->getContainer()->get(Response\EmitterInterface::class);
+
         $logger = new Logger($name);
         $this->loggers[$name] = $logger;
 
@@ -354,11 +361,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getResponseEmitter()
     {
-        if (null === $this->responseEmitter) {
-            $this->responseEmitter = new Response\SapiEmitter();
+        if (!$this->getContainer()->has(Response\EmitterInterface::class)) {
+            $this->getContainer()->share(Response\EmitterInterface::class, new Response\SapiEmitter());
         }
 
-        return $this->responseEmitter;
+        return $this->getContainer()->get(Response\EmitterInterface::class);
     }
 
     /*******************************************

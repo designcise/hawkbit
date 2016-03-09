@@ -16,15 +16,88 @@ Just add `"blast/turbine": "~1.0"` to your `composer.json` file.
 
 ## Setup
 
+Create a new app
+
+```php
+<?php
+
+require __DIR__.'/../vendor/autoload.php';
+
+$app = new \Turbine\Application();
+```
+
+Create a new app with configuration
+
+```php
+$config = [
+    'key' => 'value'
+];
+$app = new \Turbine\Application($config);
+```
+
+Add routes
+
+```php
+$app->get('/', function ($request, $response) {
+    $response->getBody()->write('<h1>It works!</h1>');
+    return $response;
+});
+
+$app->get('/hello/{name}', function ($request, $response, $args) {
+    $response->getBody()->write(
+        sprintf('<h1>Hello, %s!</h1>', $args['name'])
+    );
+    return $response;
+});
+```
+
+Run application
+
+```php
+$app->run();
+```
+
+## Configuration
+
+Extend configuration of an existing instance
+
+```php
+//add many values
+$app->setConfig([
+    'database' => 'mysql://root:root@localhost/acmedb',
+    'services' => [
+        'Acme\Services\ViewProvider',
+    ]
+]);
+
+//add a single value
+$app->setConfig('baseurl' => 'localhost/');
+```
+
+Access configuration
+
+```php
+//access all configuration
+$app->getConfig();
+
+//get one configuration item
+$app->getConfig('database');
+```
+
+## IoC
+
+Turbine allows access to most used services.
+
+
+
+
+### Routing
+
 Basic usage with anonymous functions:
 
 ```php
 // index.php
 <?php
-
-require __DIR__.'/../vendor/autoload.php';
-
-$app = new Turbine\Application();
 
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
@@ -130,6 +203,10 @@ class HomeController
 }
 ```
 
+## Middleware integrations
+
+### StackPHP
+
 Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 
 ```php
@@ -140,7 +217,7 @@ require __DIR__.'/../vendor/autoload.php';
 $app = new Turbine\Application();
 
 $app->get('/', function ($request, $response) {
-    $response->setContent('<h1>It works!</h1>');
+    $response->setContent('<h1>Hello World</h1>');
     return $response;
 });
 
@@ -155,24 +232,55 @@ $app = $stack->resolve($httpKernel);
 Stack\run($httpKernel); // The app will run after all the middlewares have run
 ```
 
-### Routes from configuration
+### Zend Stratigility
 
-You can add routes from configuration  
+Basic usage with Stratigility (using `Zend\Stratigility\MiddlewarePipe`):
 
 ```php
-//configure
-$app->setConfig('routes', function ($router, $app) {
-    $router->get('/blog/', 'App\BlogController::getIndex');
+$application = new Application();
+$application->get('/', function($request, ResponseInterface $response){
+    $response->getBody()->write('Hello World');
 });
+$middleware = new MiddlewarePipeAdapter($application);
+
+//wrap html heading
+$middleware->pipe('/', function($request, ResponseInterface $response, $next){
+    $response->getBody()->write('<h1>');
+
+    $response = $next($request, $response);
+
+    $response->getBody()->write('</h1>');
+});
+
+$response = $middleware(ServerRequestFactory::fromGlobals(), $application->getResponse());
+
+echo $response->getBody(); //prints <h1>Hello World</h1>
+
 ```
 
-## Debugging
+## Error handling
 
-By default Turbine runs with debug options disabled. To enable debugging add
+Turbine is using Whoops error handling framework and determines the error handler by request content type.
+
+Set your own handler:
 
 ```php
-$app->setConfig('debug', true);
+$app->getErrorHandler()->push(new Acme\ErrorResponseHandler);
 ```
+
+By default Turbine runs with error options disabled. To enable debugging add
+
+```php
+$app->setConfig('error', true);
+```
+
+By default Turbine is catching all errors. To disable error catching add
+
+```php
+$app->setConfig('error.catch', false);
+```
+
+## Logging
 
 Turbine has built in support for Monolog. To access a channel call:
 
@@ -182,14 +290,6 @@ $app->getLogger('channel name');
 
 For more information about channels read this guide - [https://github.com/Seldaek/monolog/blob/master/doc/usage.md#leveraging-channels](https://github.com/Seldaek/monolog/blob/master/doc/usage.md#leveraging-channels).
 
-## Custom exception decoration
-
-```php
-$app->setExceptionDecorator(function (\Exception $e) {
-    return new TextResponse('Fail', 500);
-});
-```
-
 ## Events
 
 You can intercept requests and responses at three points during the lifecycle:
@@ -197,9 +297,9 @@ You can intercept requests and responses at three points during the lifecycle:
 ### request.received
 
 ```php
-$app->subscribe('request.received', function ($event) {
-    // access the request using $event->getRequest()
-})
+$app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
+    // manipulate request
+});
 ```
 
 This event is fired when a request is received but before it has been processed by the router.
@@ -207,10 +307,9 @@ This event is fired when a request is received but before it has been processed 
 ### response.created
 
 ```php
-$app->subscribe('response.created', function ($event) {
-    // access the request using $event->getRequest()
-    // access the response using $event->getResponse()
-})
+$app->subscribe($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
+    //manipulate request or response
+});
 ```
 
 This event is fired when a response has been created but before it has been output.
@@ -218,29 +317,40 @@ This event is fired when a response has been created but before it has been outp
 ### response.sent
 
 ```php
-$app->subscribe('response.sent', function ($event) {
-    // access the request using $event->getRequest()
-    // access the response using $event->getResponse()
-})
+$app->subscribe($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
+    //manipulate request and response
+});
 ```
 
-This event is fired when an error occurs but before .
+This event is fired when a response has been output and before the application lifecycle is completed.
+
+### runtime.error
+
+```php
+$app->subscribe($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
+    //process exception
+});
+```
+
+This event is always fired when an error occurs.
 
 ### lifecycle.error
 
+`$errorResponse` is used as default response
+
 ```php
-$app->subscribe('response.sent', function ($event) {
-    // access the request using $event->getRequest()
-    // access the response using $event->getResponse()
-})
+$app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $errorResponse, $request, $response) {
+    //manipulate $errorResponse and process exception
+});
 ```
 
-This event is fired when an error occurs.
+This event is fired only when an error occurs while handling request/response lifecycle. 
+This event is fired after runtime.error
 
-### lifecycle.error
+### lifecycle.complete
 
 ```php
-$app->subscribe('response.sent', function ($event) {
+$app->subscribe($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 })

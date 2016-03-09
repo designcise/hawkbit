@@ -65,7 +65,10 @@ class MiddlewarePipeAdapter extends MiddlewarePipe
             }
             return $response;
         };
-        return $application->handle($request, parent::__invoke($request, $response, $finalHandler));
+        $this->pipe(function(ServerRequestInterface $request, ResponseInterface $response, $next = null) use ($application){
+            $application->handle($request, $response);
+        });
+        return parent::__invoke($request, $response, $finalHandler);
     }
 
 }

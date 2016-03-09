@@ -27,26 +27,29 @@ class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testFunctionalPiping()
     {
-        $app = new Application();
-        $app->get('/', function($request, ResponseInterface $response){
+        $application = new Application();
+        $application->get('/', function($request, ResponseInterface $response){
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
             $this->assertInstanceOf(ResponseInterface::class, $response);
-            $response->getBody()->write('World');
+            $response->getBody()->write('Hello World');
         });
-        $middleware = new MiddlewarePipeAdapter($app);
+        $middleware = new MiddlewarePipeAdapter($application);
 
         $middleware->pipe('/', function($request, ResponseInterface $response, $next){
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
             $this->assertInstanceOf(ResponseInterface::class, $response);
             $this->assertTrue(is_callable($next));
 
-            $response->getBody()->write('Hello ');
+            $response->getBody()->write('<h1>');
+
+            $response = $next($request, $response);
+
+            $response->getBody()->write('</h1>');
         });
 
-        $response = $middleware->__invoke(ServerRequestFactory::fromGlobals(), $app->getResponse());
+        $response = $middleware(ServerRequestFactory::fromGlobals(), $application->getResponse());
 
-        $content = $response->getBody()->__toString();
-        $this->assertEquals('Hello World', $content);
+        $this->assertEquals('<h1>Hello World</h1>', $response->getBody());
 
     }
 
