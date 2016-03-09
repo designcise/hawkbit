@@ -14,6 +14,7 @@
 namespace Turbine\Stratigility;
 
 
+use League\Route\Http\Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Turbine\Application;
@@ -28,11 +29,6 @@ class MiddlewarePipeAdapter extends MiddlewarePipe
     private $application;
 
     /**
-     * @var bool
-     */
-    private $catchErrors = true;
-
-    /**
      * MiddlewareAdapter constructor.
      * @param Application $application
      */
@@ -40,25 +36,6 @@ class MiddlewarePipeAdapter extends MiddlewarePipe
     {
         parent::__construct();
         $this->application = $application;
-    }
-
-    /**
-     * @return boolean
-     */
-    public function canCatchErrors()
-    {
-        return $this->catchErrors;
-    }
-
-    /**
-     * @param boolean $catchErrors
-     * @return MiddlewarePipeAdapter
-     */
-    public function setCatchErrors($catchErrors)
-    {
-        $this->catchErrors = $catchErrors;
-
-        return $this;
     }
 
     /**
@@ -78,15 +55,17 @@ class MiddlewarePipeAdapter extends MiddlewarePipe
      * @return ResponseInterface|void
      */
     public function __invoke(ServerRequestInterface $request, ResponseInterface $response, callable $out = null){
-        $response = parent::__invoke($request, $response, $out);
         $application = $this->getApplication();
-        try{
-            $response = $application->handleRequest($request, $response);
-        }catch(\Exception $exception){
-            $response = $application->handleError($request, $exception, $this->canCatchErrors());
-        }
 
-        return $response;
+        // handling errors by application with
+        // custom $finalHandler if $out is null
+        $finalHandler = $out ? $out : function (ServerRequestInterface $request, ResponseInterface $response, $err = null) use($application, $out){
+            if($err){
+                return $application->handleError($err, $request, $response);
+            }
+            return $response;
+        };
+        return $application->handle($request, parent::__invoke($request, $response, $finalHandler));
     }
 
 }
