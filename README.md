@@ -224,6 +224,28 @@ $app->subscribe('response.sent', function ($event) {
 })
 ```
 
+This event is fired when an error occurs but before .
+
+### lifecycle.error
+
+```php
+$app->subscribe('response.sent', function ($event) {
+    // access the request using $event->getRequest()
+    // access the response using $event->getResponse()
+})
+```
+
+This event is fired when an error occurs.
+
+### lifecycle.error
+
+```php
+$app->subscribe('response.sent', function ($event) {
+    // access the request using $event->getRequest()
+    // access the response using $event->getResponse()
+})
+```
+
 This event is fired when a response has been output and before the application lifecycle is completed.
 
 ### Custom Events

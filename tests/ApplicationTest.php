@@ -106,7 +106,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, false);
+        $response = $app->handle($request, null, false);
 
         $content = $response->getBody();
         $this->assertEquals('<h1>It works!</h1>', $content);
@@ -126,7 +126,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, true);
+        $response = $app->handle($request, null, true);
 
         $content = $response->getBody()->__toString();
         $this->assertEquals('getIndex', $content);
@@ -145,23 +145,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, true);
+        $response = $app->handle($request, null, false);
 
         $content = $response->getBody();
         $this->assertEquals($app->getConfig('customValueFromController'), $content);
-    }
-
-    public function testHandleFailThrowException()
-    {
-        $app = new Application();
-
-        $request = ServerRequestFactory::fromGlobals();
-
-        try {
-            $app->handle($request, 1, false);
-        } catch (\Exception $e) {
-            $this->assertTrue($e instanceof NotFoundException);
-        }
     }
 
     public function testHandleWithOtherException()
@@ -187,8 +174,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->subscribe('response.error', function ($event, $request, ResponseInterface $response) use ($app) {
-            $response->getBody()->write('Fail');
+        $app->subscribe('response.error', function ($event, $exception, $request, ResponseInterface $errorResponse) use ($app) {
+            $errorResponse->getBody()->write('Fail');
         });
 
         $response = $app->handle($request);
@@ -204,7 +191,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app = new Application();
         $request = ServerRequestFactory::fromGlobals();
-        $app->handle($request, $app::MASTER_REQUEST, false);
+        $app->handle($request, null, false);
     }
 
 
