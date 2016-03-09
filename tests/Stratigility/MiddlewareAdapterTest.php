@@ -45,7 +45,8 @@ class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase
 
         $response = $middleware->__invoke(ServerRequestFactory::fromGlobals(), $app->getResponse());
 
-        $this->assertEquals('Hello World', $response->getBody());
+        $content = $response->getBody()->__toString();
+        $this->assertEquals('Hello World', $content);
 
     }
 
