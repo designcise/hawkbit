@@ -31,9 +31,6 @@ use Whoops\Handler\PlainTextHandler;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Run;
 use Zend\Diactoros\Response;
-use Zend\Diactoros\Response\HtmlResponse;
-use Zend\Diactoros\Response\JsonResponse;
-use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
 /**
@@ -118,13 +115,14 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function setConfig($key, $value = null)
     {
+        $configurator = $this->getConfigurator();
         if (is_array($key) || $key instanceof \Traversable) {
             $config = $key;
             foreach ($config as $key => $value) {
                 $this->setConfig($key, $value);
             }
         } else {
-            $this->config[$key] = $value;
+            $configurator[$key] = $value;
         }
 
         return $this;
@@ -140,11 +138,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getConfig($key = null, $default = null)
     {
+        $configurator = $this->getConfigurator();
         if ($key === null) {
-            return $this->config;
+            return $configurator;
         }
 
-        return $this->hasConfig($key) ? $this->config[$key] : $default;
+        return $this->hasConfig($key) ? $configurator[$key] : $default;
     }
 
     /**
@@ -156,7 +155,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function hasConfig($key)
     {
-        return isset($this->config[$key]);
+        $configurator = $this->getConfigurator();
+
+        return isset($configurator[$key]);
     }
 
     /*******************************************
@@ -164,6 +165,18 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *           GETTER / SETTER
      *
      */
+
+    /**
+     * Get configuration container
+     *
+     * @return \ArrayAccess
+     */
+    public function getConfigurator(){
+        if (!$this->getContainer()->has(\ArrayAccess::class)) {
+            $this->getContainer()->share(\ArrayAccess::class, \ArrayObject::class);
+        }
+        return $this->getContainer()->get(\ArrayAccess::class);
+    }
 
     /**
      * Set a container.
@@ -277,15 +290,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         if (!$this->getContainer()->has(LoggerInterface::class)) {
-            $this->getContainer()->add(Response\EmitterInterface::class, new Response\SapiEmitter());
+            $this->getContainer()->add(LoggerInterface::class, Logger::class);
         }
 
-        return $this->getContainer()->get(Response\EmitterInterface::class);
+        $this->loggers[$name] = $this->getContainer()->get(LoggerInterface::class, [$name]);
 
-        $logger = new Logger($name);
-        $this->loggers[$name] = $logger;
-
-        return $logger;
+        return $this->loggers[$name];
     }
 
     /**
@@ -326,7 +336,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
         //transform content by environment and request type
         if ($this->isAjax()) {
-            if ($content instanceof JsonResponse) {
+            if ($content instanceof Response\JsonResponse) {
                 $content = json_decode($content->getBody());
             } elseif (!is_array($content)) {
                 $content = [$content];
@@ -340,12 +350,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
         if (!$this->getContainer()->has(ResponseInterface::class)) {
             if ($this->isCli()) {
-                $class = TextResponse::class;
+                $class = Response\TextResponse::class;
             } elseif ($this->isAjax()) {
-                $class = JsonResponse::class;
+                $class = Response\JsonResponse::class;
 
             } else {
-                $class = HtmlResponse::class;
+                $class = Response\HtmlResponse::class;
             }
             $this->getContainer()->add(ResponseInterface::class, $class);
         }

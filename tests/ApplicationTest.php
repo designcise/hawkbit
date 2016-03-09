@@ -23,6 +23,20 @@ use Zend\Diactoros\ServerRequestFactory;
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
 
+    public function testConfiguration(){
+        $app = new Application(['foo' => 'bar']);
+
+        $c = $app->getConfigurator()->offsetExists('foo');
+
+        $this->assertInstanceOf(\ArrayAccess::class,$app->getConfig());
+        $this->assertTrue($app->hasConfig('foo'));
+        $this->assertEquals('bar', $app->getConfig('foo'));
+        $app->setConfig(['baz' => 'far']);
+        $this->assertEquals('far', $app->getConfig('baz'));
+        $app->setConfig('bar', 'foo');
+        $this->assertEquals('foo', $app->getConfig('bar'));
+    }
+
     public function testSetGet()
     {
         $app = new Application();
@@ -280,17 +294,5 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($app->isHttp());
         $this->assertFalse($app->isAjax());
         $this->assertTrue($app->isCli());
-    }
-
-    public function testConfiguration(){
-        $app = new Application(['foo' => 'bar']);
-
-        $this->assertInternalType('array',$app->getConfig());
-        $this->assertArrayHasKey('foo',$app->getConfig());
-        $this->assertEquals('bar', $app->getConfig('foo'));
-        $app->setConfig(['baz' => 'far']);
-        $this->assertEquals('far', $app->getConfig('baz'));
-        $app->setConfig('bar', 'foo');
-        $this->assertEquals('foo', $app->getConfig('bar'));
     }
 }

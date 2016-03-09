@@ -86,10 +86,95 @@ $app->getConfig('database');
 
 ## IoC
 
-Turbine allows access to most used services.
+Turbine allows access to most used services by contract.
 
+### Container
 
+Set your own container needs an instance of `\League\Container\ContainerInterface`
 
+```php
+$app->setContainer($container);
+```
+
+Get container
+
+```php
+$app->getContainer($container);
+```
+
+### Configurator
+
+Uses in `Application::setConfig()`,`Application::getConfig()` and `Application::hasConfig()`
+
+```php
+$app->getConfigurator();
+``` 
+
+```php
+$app->getContainer()->share(\ArrayAccess::class, \ArrayObject::class)
+```
+
+### error handler
+
+```php
+$app->getContainer()->share(\Whoops\Run::class, new \Whoops\Run());
+```
+
+```php
+$app->getErrorHandler()
+``` 
+
+### error response handler
+
+```php
+$app->getContainer()->share(\Whoops\Handler\HandlerInterface::class, Acme\ErrorResponseHandler::class);
+```
+
+```php
+$app->getErrorResponseHandler()
+``` 
+
+### psr logger
+
+Get a new logger instance by channel name
+
+```php
+$app->getContainer()->add(\Psr\Log\LoggerInterface::class, \Monolog\Logger::class);
+```
+
+```php
+$app->getLogger('channel name');
+``` 
+
+### psr server request
+
+```php
+$app->getContainer()->share(\Psr\Http\Message\ServerRequestInterface::class, \Zend\Diactoros\ServerRequestFactory::fromGlobals());
+```
+
+```php
+$app->getRequest()
+``` 
+
+### psr response
+
+```php
+$app->getContainer()->add(\Psr\Http\Message\ResponseInterface::class, \Zend\Diactoros\Response::class);
+```
+
+```php
+$app->getRequest()
+``` 
+
+### response emitter
+
+```php
+$app->getContainer()->share(\Zend\Diactoros\Response\EmitterInterface::class, \Zend\Diactoros\Response\SapiEmitter::class);
+```
+
+```php
+$app->getResponseEmitter()
+``` 
 
 ### Routing
 
@@ -146,7 +231,7 @@ class HomeController
 }
 ```
 
-Constructor injections of controllers
+Automatic constructor injection of controllers:
 
 ```php
 // index.php
