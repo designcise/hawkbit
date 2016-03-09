@@ -63,10 +63,7 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
         $app = new Application();
 
         //is executed while terminate and should be similar
-        $app->subscribe('response.sent', function ($event, $request, $response) use(&$capturedRequest, &$capturedResponse) {
-            if(true){
-
-            }
+        $app->subscribe('response.created', function ($event, $request, $response) use(&$capturedRequest, &$capturedResponse) {
             $capturedRequest = $request;
             $capturedResponse = $response;
         });
@@ -81,10 +78,11 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
         $request = Request::create('/');
         $response = $adapter->handle($request);
 
-        $adapter->terminate($request, $response);
 
         $this->assertEquals($adapter->getHttpFoundationFactory()->createRequest($capturedRequest)->getUri(), $request->getUri());
         $this->assertEquals($adapter->getHttpFoundationFactory()->createResponse($capturedResponse)->getContent(), $response->getContent());
+
+        $adapter->terminate($request, $response);
     }
 
     public function testNotFoundException()

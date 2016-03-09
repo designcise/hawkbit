@@ -73,7 +73,7 @@ class HttpKernelAdapter implements HttpKernelInterface, TerminableInterface
      */
     public function handle(Request $request, $type = self::MASTER_REQUEST, $catch = true)
     {
-        $response = $this->getApplication()->handle($this->getDiactorosFactory()->createRequest($request), $type, $catch);
+        $response = $this->getApplication()->handle($this->getDiactorosFactory()->createRequest($request), null, $catch);
         return $this->getHttpFoundationFactory()->createResponse($response);
     }
 
@@ -88,7 +88,6 @@ class HttpKernelAdapter implements HttpKernelInterface, TerminableInterface
     public function terminate(Request $request, Response $response)
     {
         $diactorosFactory = $this->getDiactorosFactory();
-        ;
         $this->getApplication()->terminate($diactorosFactory->createRequest($this->recomposeSymfonyRequest($request)), $diactorosFactory->createResponse($response));
     }
 
@@ -119,7 +118,7 @@ class HttpKernelAdapter implements HttpKernelInterface, TerminableInterface
     }
 
     /**
-     * Avoid exception throw when request conetnt is null
+     * Avoid exception throw when request content is null
      *
      * @param Request $request
      * @return Request
