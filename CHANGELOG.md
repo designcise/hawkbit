@@ -15,6 +15,7 @@
  - remove possibilty to configure events, routes and services by callables
  - rename `Turbine\Psr7\TerminableInterface` to `Turbine\TerminableInterface`
  - rename debug config option to error
+ - change configuration engine from `array` to instance of `\ArrayAccess`
  - Signature changes of `Turbine\Application::handle`, `Turbine\Application::run`, `Turbine\Application::__construct`, `Turbine\Application::handleErrors` 
 
 ### Removed
