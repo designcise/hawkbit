@@ -60,6 +60,8 @@ class HeaderStack
  * Have headers been sent?
  *
  * @return false
+ *
+ * @codeCoverageIgnore
  */
 function headers_sent()
 {
@@ -69,6 +71,8 @@ function headers_sent()
  * Emit a header, without creating actual output artifacts
  *
  * @param string $value
+ *
+ * @codeCoverageIgnore
  */
 function header($value)
 {

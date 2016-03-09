@@ -4,21 +4,38 @@ namespace TurbineTests;
 
 use League\Container\Container;
 use League\Event\Emitter;
+use League\Event\Event;
 use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
 use Monolog\Logger;
 use Turbine;
 use Turbine\Application;
+use Turbine\ApplicationInterface;
 use TurbineTests\TestAsset\SharedTestController;
 use TurbineTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
+
+    public function testConfiguration(){
+        $app = new Application(['foo' => 'bar']);
+
+        $c = $app->getConfigurator()->offsetExists('foo');
+
+        $this->assertInstanceOf(\ArrayAccess::class,$app->getConfig());
+        $this->assertTrue($app->hasConfig('foo'));
+        $this->assertEquals('bar', $app->getConfig('foo'));
+        $app->setConfig(['baz' => 'far']);
+        $this->assertEquals('far', $app->getConfig('baz'));
+        $app->setConfig('bar', 'foo');
+        $this->assertEquals('foo', $app->getConfig('bar'));
+    }
 
     public function testSetGet()
     {
@@ -55,6 +72,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $emitter = $reflected->getValue($app);
         $this->assertTrue($emitter->hasListeners('request.received'));
 
+        $app->get('/', function(){});
+
         $foo = null;
         $app->subscribe('response.created', function ($event, $request, $response) use (&$foo) {
             $foo = 'bar';
@@ -64,7 +83,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals('bar', $foo);
-        $this->assertEquals(404, $response->getStatusCode());
+        $this->assertEquals(200, $response->getStatusCode());
     }
 
     public function testTerminate()
@@ -103,7 +122,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, false);
+        $response = $app->handle($request, null, false);
 
         $content = $response->getBody();
         $this->assertEquals('<h1>It works!</h1>', $content);
@@ -123,7 +142,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, true);
+        $response = $app->handle($request, null, true);
 
         $content = $response->getBody()->__toString();
         $this->assertEquals('getIndex', $content);
@@ -142,23 +161,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, 1, true);
+        $response = $app->handle($request, null, false);
 
         $content = $response->getBody();
         $this->assertEquals($app->getConfig('customValueFromController'), $content);
-    }
-
-    public function testHandleFailThrowException()
-    {
-        $app = new Application();
-
-        $request = ServerRequestFactory::fromGlobals();
-
-        try {
-            $app->handle($request, 1, false);
-        } catch (\Exception $e) {
-            $this->assertTrue($e instanceof NotFoundException);
-        }
     }
 
     public function testHandleWithOtherException()
@@ -168,7 +174,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->subscribe('request.received', function ($event, $request, $response) {
+        $app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request, $response) {
             throw new \Exception('A test exception');
         });
 
@@ -177,45 +183,38 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(500, $response->getStatusCode());
     }
 
-    public function testCustomExceptionDecorator()
+    public function testExceptionHandling()
     {
         $app = new Application();
-        $app['debug'] = true;
+        $app->setConfig('error', false);
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->subscribe('request.received', function ($event, $request, $response) {
-            throw new \Exception('A test exception');
+        $app->subscribe($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
+            $this->assertInstanceOf(\Exception::class, $exception);
         });
 
-        $app->setExceptionDecorator(function ($e) {
-            return new TextResponse('Fail', 500);
+        $app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $request, ResponseInterface $errorResponse) use ($app) {
+            $errorResponse->getBody()->write('Fail');
         });
 
         $response = $app->handle($request);
 
         $this->assertEquals(500, $response->getStatusCode());
-        $this->assertEquals('Fail', $response->getBody());
+        $toString = $response->getBody()->__toString();
+        $this->assertEquals('Fail', $toString);
     }
 
-    /**
-     * @expectedException \LogicException
-     */
-    public function testExceptionDecoratorDoesntReturnResponseObject()
+    public function testNotFoundException()
     {
+        $this->setExpectedException(NotFoundException::class);
+
         $app = new Application();
-        $app->setExceptionDecorator(function ($e) {
-            return true;
-        });
-
         $request = ServerRequestFactory::fromGlobals();
-
-        $app->subscribe('request.received', function ($event, $request, $response) {
-            throw new \Exception('A test exception');
-        });
-
-        $app->handle($request);
+        $app->handle($request, null, false);
     }
+
+
 
     public function testCustomEvents()
     {
@@ -239,19 +238,30 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
-        $app->setResponseEmitter(new SapiStreamEmitter());
+        $app->getContainer()->add(EmitterInterface::class, new SapiStreamEmitter());
 
-        $app->subscribe('request.received', function ($event, $request) {
-            $this->assertInstanceOf('League\Event\Event', $event);
+        $app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
+            $this->assertInstanceOf(Event::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
         });
-        $app->subscribe('response.sent', function ($event, $request, $response) {
-            $this->assertInstanceOf('League\Event\Event', $event);
+        $app->subscribe($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
+            $this->assertInstanceOf(Event::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+        });
+        $app->subscribe($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
+            $this->assertInstanceOf(Event::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+        });
+        $app->subscribe($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
+            $this->assertInstanceOf(Event::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
             $this->assertInstanceOf(ResponseInterface::class, $response);
         });
 
-        $app->handle(ServerRequestFactory::fromGlobals());
+        $response = $app->handle(ServerRequestFactory::fromGlobals());
+        $app->terminate($app->getRequest(), $response);
     }
 
     public function testRun()
@@ -276,5 +286,13 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         ob_start();
         $app->run();
         ob_get_clean();
+    }
+
+    public function testEnvironment()
+    {
+        $app = new Application();
+        $this->assertFalse($app->isHttp());
+        $this->assertFalse($app->isAjax());
+        $this->assertTrue($app->isCli());
     }
 }

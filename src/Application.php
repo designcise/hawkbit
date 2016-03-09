@@ -12,29 +12,31 @@ namespace Turbine;
 
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerInterface;
+use League\Container\Exception\NotFoundException;
 use League\Container\ReflectionContainer;
 use League\Event\Emitter;
 use League\Event\EmitterInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
-use League\Route\Strategy\RequestResponseStrategy;
-use Turbine\Psr7\HttpKernelInterface;
-use Turbine\Psr7\TerminableInterface;
-use Turbine\Route\Strategy\WireableStrategy;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
 use Monolog\Logger;
+use Psr\Log\LoggerInterface;
+use Whoops\Handler\Handler;
+use Whoops\Handler\HandlerInterface;
+use Whoops\Handler\JsonResponseHandler;
+use Whoops\Handler\PlainTextHandler;
+use Whoops\Handler\PrettyPageHandler;
+use Whoops\Run;
 use Zend\Diactoros\Response;
-use Zend\Diactoros\Response\HtmlResponse;
-use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
 /**
  * Proton Application Class.
  */
-class Application implements ApplicationInterface, ContainerAwareInterface, HttpKernelInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
+class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
 {
     use EmitterTrait;
 
@@ -70,30 +72,110 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     protected $responseEmitter;
 
     /**
+     * Set while handle exception.
+     * @var bool
+     */
+    private $error = false;
+
+    /**
+     * Flag which is forcing termination after handling request / response lifecycle
+     * @var bool
+     */
+    private $terminate = false;
+
+    /**
      * New Application.
      *
-     * @param bool $debug Enable debug mode
+     * @param bool|array $configuration Enable debug mode
      */
-    public function __construct($debug = true)
+    public function __construct($configuration = [])
     {
-        $this->setConfig('debug', $debug);
-
-        $this->setExceptionDecorator(function (\Exception $e) {
-
-            $body = [
-                'error' => [
-                    'message' => $e->getMessage()
-                ]
-            ];
-
-            if ($this->getConfig('debug', true) === true) {
-                $body['error']['trace'] = explode(PHP_EOL, $e->getTraceAsString());
+        if (is_bool($configuration)) {
+            $this->setConfig(self::KEY_ERROR, $configuration);
+        } elseif (is_array($configuration)) {
+            foreach ($configuration as $key => $value) {
+                $this->setConfig($key, $value);
             }
+        }
+    }
 
-            $response = new JsonResponse($body, method_exists($e, 'getStatusCode') ? $e->getStatusCode() : 500);
+    /*******************************************
+     *
+     *               CONFIG
+     *
+     */
 
-            return $response;
-        });
+    /**
+     * Set a config item. Add recursive if key is traversable.
+     *
+     * @param string|array|\Traversable $key
+     * @param mixed $value
+     *
+     * @return $this
+     */
+    public function setConfig($key, $value = null)
+    {
+        $configurator = $this->getConfigurator();
+        if (is_array($key) || $key instanceof \Traversable) {
+            $config = $key;
+            foreach ($config as $key => $value) {
+                $this->setConfig($key, $value);
+            }
+        } else {
+            $configurator[$key] = $value;
+        }
+
+        return $this;
+    }
+
+    /**
+     * Get a config key's value
+     *
+     * @param string $key
+     * @param mixed $default
+     *
+     * @return mixed
+     */
+    public function getConfig($key = null, $default = null)
+    {
+        $configurator = $this->getConfigurator();
+        if ($key === null) {
+            return $configurator;
+        }
+
+        return $this->hasConfig($key) ? $configurator[$key] : $default;
+    }
+
+    /**
+     * Check if key exists
+     *
+     * @param $key
+     *
+     * @return bool
+     */
+    public function hasConfig($key)
+    {
+        $configurator = $this->getConfigurator();
+
+        return isset($configurator[$key]);
+    }
+
+    /*******************************************
+     *
+     *           GETTER / SETTER
+     *
+     */
+
+    /**
+     * Get configuration container
+     *
+     * @return \ArrayAccess
+     */
+    public function getConfigurator(){
+        if (!$this->getContainer()->has(\ArrayAccess::class)) {
+            $this->getContainer()->share(\ArrayAccess::class, \ArrayObject::class);
+        }
+        return $this->getContainer()->get(\ArrayAccess::class);
     }
 
     /**
@@ -104,13 +186,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
      */
     public function setContainer(ContainerInterface $container)
     {
-
-        $container->share(ApplicationInterface::class, $this);
         if ($container instanceof Container) {
             $container->delegate(
                 new ReflectionContainer
             );
         }
+        $application = $this;
+        $container->share(ApplicationInterface::class, $application);
 
         $this->container = $container;
         $this->router = null;
@@ -121,29 +203,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     /**
      * Get the container.
      *
-     * @return \League\Container\ContainerInterface
+     * @return \League\Container\Container
      */
     public function getContainer()
     {
         if (!isset($this->container)) {
-            $this->setContainer($this->getConfig('container.instance', new Container));
+            $this->setContainer(new Container);
         }
 
         return $this->container;
-    }
-
-    /**
-     * Return the router.
-     *
-     * @return \League\Route\RouteCollection
-     */
-    public function getRouter()
-    {
-        if (!isset($this->router)) {
-            $this->router = (new RouteCollection($this->getContainer()));
-        }
-
-        return $this->router;
     }
 
     /**
@@ -153,11 +221,50 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
      */
     public function getEmitter()
     {
-        if (! $this->emitter) {
+        if (!$this->emitter) {
             $this->emitter = new Emitter();
         }
 
         return $this->emitter;
+    }
+
+    /**
+     * @return Run
+     */
+    public function getErrorHandler()
+    {
+        if (!$this->getContainer()->has(Run::class)) {
+            $errorHandler = new Run();
+            $errorHandler->pushHandler($this->getErrorResponseHandler());
+            $errorHandler->pushHandler(function ($exception) {
+                $this->emit(static::EVENT_RUNTIME_ERROR, [$exception]);
+                return Handler::DONE;
+            });
+            $errorHandler->register();
+            $this->getContainer()->share(Run::class, $errorHandler);
+        }
+        return $this->getContainer()->get(Run::class);
+    }
+
+    /**
+     * Get the error response handler
+     *
+     * @return HandlerInterface
+     */
+    public function getErrorResponseHandler()
+    {
+        if (!$this->getContainer()->has(HandlerInterface::class)) {
+            if ($this->isCli()) {
+                $class = PlainTextHandler::class;
+            } elseif ($this->isAjax()) {
+                $class = JsonResponseHandler::class;
+            } else {
+                $class = PrettyPageHandler::class;
+            }
+            $this->getContainer()->add(HandlerInterface::class, $class);
+        }
+
+        return $this->getContainer()->get(HandlerInterface::class);
     }
 
     /**
@@ -182,11 +289,80 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
             return $this->loggers[$name];
         }
 
-        $logger = new Logger($name);
-        $this->loggers[$name] = $logger;
+        if (!$this->getContainer()->has(LoggerInterface::class)) {
+            $this->getContainer()->add(LoggerInterface::class, Logger::class);
+        }
 
-        return $logger;
+        $this->loggers[$name] = $this->getContainer()->get(LoggerInterface::class, [$name]);
+
+        return $this->loggers[$name];
     }
+
+    /**
+     * Return the router.
+     *
+     * @return \League\Route\RouteCollection
+     */
+    public function getRouter()
+    {
+        if (!isset($this->router)) {
+            $this->router = (new RouteCollection($this->getContainer()));
+        }
+
+        return $this->router;
+    }
+
+    /**
+     * Get the request
+     *
+     * @return ServerRequestInterface
+     */
+    public function getRequest()
+    {
+        if (!$this->getContainer()->has(ServerRequestInterface::class)) {
+            $this->getContainer()->share(ServerRequestInterface::class, ServerRequestFactory::fromGlobals());
+        }
+
+        return $this->getContainer()->get(ServerRequestInterface::class);
+    }
+
+    /**
+     * Get the response
+     *
+     * @param string $content
+     * @return ResponseInterface
+     */
+    public function getResponse($content = '')
+    {
+        //transform content by environment and request type
+        if ($this->isAjax()) {
+            if ($content instanceof Response\JsonResponse) {
+                $content = json_decode($content->getBody());
+            } elseif (!is_array($content)) {
+                $content = [$content];
+            }
+        } else {
+            if (is_array($content)) {
+                $content = implode('', $content);
+            } elseif ($content instanceof ResponseInterface) {
+                $content = $content->getBody()->__toString();
+            }
+        }
+        if (!$this->getContainer()->has(ResponseInterface::class)) {
+            if ($this->isCli()) {
+                $class = Response\TextResponse::class;
+            } elseif ($this->isAjax()) {
+                $class = Response\JsonResponse::class;
+
+            } else {
+                $class = Response\HtmlResponse::class;
+            }
+            $this->getContainer()->add(ResponseInterface::class, $class);
+        }
+
+        return $this->getContainer()->get(ResponseInterface::class, [$content]);
+    }
+
 
     /**
      * Get response emitter
@@ -195,39 +371,82 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
      */
     public function getResponseEmitter()
     {
-        if (null === $this->responseEmitter) {
-            $this->responseEmitter = new Response\SapiEmitter();
+        if (!$this->getContainer()->has(Response\EmitterInterface::class)) {
+            $this->getContainer()->share(Response\EmitterInterface::class, new Response\SapiEmitter());
         }
 
-        return $this->responseEmitter;
+        return $this->getContainer()->get(Response\EmitterInterface::class);
+    }
+
+    /*******************************************
+     *
+     *               STATUS
+     *
+     */
+
+    /**
+     * Check if request is a ajax request
+     *
+     * @return bool
+     */
+    public function isAjax()
+    {
+        return
+            false !== strpos(
+                strtolower(ServerRequestFactory::getHeader('x-requested-with', $this->getRequest()->getHeaders(), '')),
+                'xmlhttprequest'
+            ) && $this->isHttp();
     }
 
     /**
-     * Set response emitter
+     * Check server environment for cli
      *
-     * @param \Zend\Diactoros\Response\EmitterInterface $responseEmitter
-     * @return $this
+     * @return bool
      */
-    public function setResponseEmitter($responseEmitter)
+    public function isCli()
     {
-        $this->responseEmitter = $responseEmitter;
-
-        return $this;
+        return php_sapi_name() === 'cli';
     }
 
     /**
-     * Set the exception decorator.
-     *
-     * @param callable $callback
-     *
-     * @return $this
+     * @return boolean
      */
-    public function setExceptionDecorator(callable $callback)
+    public function isError()
     {
-        $this->exceptionDecorator = $callback;
-
-        return $this;
+        return $this->error;
     }
+
+    /**
+     * Check server environment for http
+     *
+     * @return bool
+     */
+    public function isHttp()
+    {
+        return !$this->isCli();
+    }
+
+    /**
+     * @return boolean
+     */
+    public function canTerminate()
+    {
+        return $this->terminate;
+    }
+
+    /**
+     * @param boolean $terminate
+     */
+    public function setCanTerminate($terminate)
+    {
+        $this->terminate = $terminate;
+    }
+
+    /*******************************************
+     *
+     *               ROUTER
+     *
+     */
 
     /**
      * Add a GET route.
@@ -304,84 +523,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
         return $this;
     }
 
-    /**
-     * Handle the request.
+    /*******************************************
      *
-     * @param ServerRequestInterface $request
-     * @param int $type
-     * @param bool $catch
+     *                Events
      *
-     * @throws \Exception
-     * @throws \LogicException
-     *
-     * @return ResponseInterface
      */
-    public function handle(ServerRequestInterface $request, $type = self::MASTER_REQUEST, $catch = true)
-    {
-
-        // Passes the request to the container
-        $this->getContainer()->add(ServerRequestInterface::class, $request);
-
-        try {
-
-            $this->emit('request.received', $request);
-
-            $response = $this->getRouter()->dispatch(
-                $request,
-                new HtmlResponse('')
-            );
-
-            $this->emit('response.created', $request, $response);
-
-        } catch (\Exception $e) {
-
-            if (!$catch) {
-                throw $e;
-            }
-
-            $response = call_user_func($this->exceptionDecorator, $e);
-            if (!$response instanceof ResponseInterface) {
-                throw new \LogicException('Exception decorator did not return an instance of ' . ResponseInterface::class);
-            }
-
-            $this->emit('response.created', $request, $response);
-
-        }
-
-        return $response;
-    }
-
-    /**
-     * Terminates a request/response cycle.
-     *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
-     *
-     * @return void
-     */
-    public function terminate(ServerRequestInterface $request, ResponseInterface $response)
-    {
-        $this->emit('response.sent', $request, $response);
-    }
-
-    /**
-     * Run the application end.
-     *
-     * @param ServerRequestInterface|null $request
-     *
-     * @throws \Exception
-     */
-    public function run(ServerRequestInterface $request = null)
-    {
-        if (null === $request) {
-            $request = ServerRequestFactory::fromGlobals();
-        }
-
-        $response = $this->handle($request);
-        $this->getResponseEmitter()->emit($response);
-
-        $this->terminate($request, $response);
-    }
 
     /**
      * Subscribe to an event.
@@ -394,6 +540,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
     {
         $this->addListener($event, $listener, $priority);
     }
+
+    /*******************************************
+     *
+     *                IoC
+     *
+     */
 
     /**
      * Array Access get.
@@ -456,27 +608,257 @@ class Application implements ApplicationInterface, ContainerAwareInterface, Http
         $this->getContainer()->addServiceProvider($serviceProvider);
     }
 
-    /**
-     * Set a config item
+    /*******************************************
      *
-     * @param string $key
-     * @param mixed $value
+     *         EXCEPTION
+     *
      */
-    public function setConfig($key, $value)
+
+    /**
+     * @param $exception
+     * @throws
+     */
+    public function throwException($exception)
     {
-        $this->config[$key] = $value;
+        $this->cleanUp();
+        throw $exception;
+    }
+
+    /*******************************************
+     *
+     *         LIFECYCLE INVOCATION
+     *
+     */
+
+    /**
+     * Handle the request.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param bool $catch
+     *
+     * @return ResponseInterface
+     *
+     * @throws \Throwable
+     */
+    public function handle(ServerRequestInterface $request, ResponseInterface $response = null, $catch = self::DEFAULT_ERROR_CATCH)
+    {
+
+        // Passes the request to the container
+        $this->getContainer()->share(ServerRequestInterface::class, $request);
+
+        if ($response === null) {
+            $response = $this->getResponse();
+        }
+
+        try {
+            $response = $this->handleRequest($request, $response);
+        } catch (\Exception $exception) {
+
+            $response = $this->handleError($exception, $request, $response, $catch)
+                ->withStatus($exception instanceof NotFoundException ? 404 : 500);
+        }
+
+        return $response;
     }
 
     /**
-     * Get a config key's value
-     *
-     * @param string $key
-     * @param mixed $default
-     *
-     * @return mixed
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @return ResponseInterface
      */
-    public function getConfig($key, $default = null)
+    public function handleRequest(ServerRequestInterface $request, ResponseInterface $response)
     {
-        return isset($this->config[$key]) ? $this->config[$key] : $default;
+        $this->emit(self::EVENT_REQUEST_RECEIVED, $request);
+
+        $response = $this->getRouter()->dispatch(
+            $request,
+            $response
+        );
+
+        $this->emit(self::EVENT_RESPONSE_CREATED, $request, $response);
+
+        return $response;
+    }
+
+    /**
+     * @param \Throwable|\Exception $exception
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param bool $catch
+     *
+     * @return ResponseInterface
+     *
+     * @throws string
+     */
+    public function handleError($exception, ServerRequestInterface $request, ResponseInterface $response, $catch = self::DEFAULT_ERROR_CATCH)
+    {
+        $exception = $this->decorateException($exception);
+        $errorHandler = $this->getErrorHandler();
+
+        //if delivered value of $catch, then configured value, then default value
+        $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::KEY_ERROR_CATCH, $catch);
+
+        if (
+            false === $this->getConfig(self::KEY_ERROR_CATCH, $catch)
+            && false === $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR)
+        ) {
+            $this->throwException($exception);
+        }
+
+        $message = $this->determineErrorMessage($exception, $errorHandler);
+
+        return $this->determineErrorResponse($exception, $message, $response, $request);
+    }
+
+    /**
+     * Handle response / request lifecycle
+     *
+     * When $callable is a valid callable, callable will executed before emit response
+     *
+     * @param ServerRequestInterface $request A Request instance
+     * @param ResponseInterface $response A response instance
+     *
+     * @return $this
+     *
+     */
+    public function run(ServerRequestInterface $request = null, ResponseInterface $response = null)
+    {
+        if ($request === null) {
+            $request = $this->getRequest();
+        }
+
+        if ($response === null) {
+            $response = $this->getResponse();
+        }
+
+        $response = $this->handle($request, $response);
+
+        $this->emitResponse($request,$response);
+
+        if($this->canTerminate()){
+            $this->terminate($request,$response);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Emit a response
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     */
+    public function emitResponse(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        $this->getResponseEmitter()->emit($response);
+        $this->emit(self::EVENT_RESPONSE_SENT, $request, $response);
+    }
+
+    /**
+     * Terminates a request/response cycle.
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     *
+     * @return void
+     */
+    public function terminate(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        $this->emit(self::EVENT_LIFECYCLE_COMPLETE, $request, $response);
+
+        $body = $response->getBody();
+        if ($body->isReadable()) {
+            $body->close();
+        }
+
+        $this->cleanUp();
+    }
+
+    private function cleanUp()
+    {
+        if (!gc_enabled()) {
+            gc_enable();
+        }
+        gc_collect_cycles();
+    }
+
+    /**
+     * Convert any type into an exception
+     *
+     * @param $error
+     * @return \Exception|string
+     */
+    private function decorateException($error)
+    {
+
+        if (is_callable($error)) {
+            $error = $this->getContainer()->call($error, [$this->getRequest(), $this->getResponse()]);
+        }
+
+        if (is_object($error) && !($error instanceof \Exception)) {
+            $error = method_exists($error, '__toString') ? $error->__toString() : 'Error with object ' . get_class($error);
+        }
+
+        if (is_resource($error)) {
+            $error = 'Error with resource type ' . get_resource_type($error);
+        }
+
+        if (is_array($error)) {
+            $error = implode("\n", $error);
+        }
+
+        if (!($error instanceof \Exception)) {
+            $error = new \Exception(is_scalar($error) ? $error : 'Error with ' . gettype($error));
+        }
+
+        return $error;
+    }
+
+    /**
+     * @param \Throwable $exception
+     * @param \Whoops\Run $errorHandler
+     *
+     * @return string
+     * @throws
+     */
+    private function determineErrorMessage($exception, $errorHandler)
+    {
+        if (false === $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR)) {
+            $message = $exception->getMessage();
+        } else {
+            $errorHandler->allowQuit($this->error);
+
+            $method = $errorHandler::EXCEPTION_HANDLER;
+            ob_start();
+            $errorHandler->$method($exception);
+            $message = ob_get_clean();
+        }
+        return $message;
+    }
+
+    /**
+     * @param \Throwable $exception
+     * @param string $message
+     * @param ResponseInterface $response
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    private function determineErrorResponse($exception, $message, ResponseInterface $response, ServerRequestInterface $request)
+    {
+        $errorResponse = $this->getResponse();
+        $this->emit(self::EVENT_LIFECYCLE_ERROR, $exception, $request, $errorResponse, $response);
+        $this->error = true;
+
+        if (!$errorResponse->getBody()->isWritable()) {
+            return $errorResponse;
+        }
+
+        $content = $errorResponse->getBody()->__toString();
+        if (empty($content)) {
+            $errorResponse->getBody()->write($message);
+        }
+
+        return $errorResponse;
     }
 }
