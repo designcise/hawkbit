@@ -4,11 +4,13 @@ namespace TurbineTests;
 
 use League\Container\Container;
 use League\Event\Emitter;
+use League\Event\Event;
 use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
 use Monolog\Logger;
 use Turbine;
 use Turbine\Application;
+use Turbine\ApplicationInterface;
 use TurbineTests\TestAsset\SharedTestController;
 use TurbineTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
@@ -158,7 +160,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->subscribe('request.received', function ($event, $request, $response) {
+        $app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request, $response) {
             throw new \Exception('A test exception');
         });
 
@@ -174,7 +176,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->subscribe('response.error', function ($event, $exception, $request, ResponseInterface $errorResponse) use ($app) {
+        $app->subscribe($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
+            $this->assertInstanceOf(\Exception::class, $exception);
+        });
+
+        $app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $request, ResponseInterface $errorResponse) use ($app) {
             $errorResponse->getBody()->write('Fail');
         });
 
@@ -220,17 +226,28 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app->getContainer()->add(EmitterInterface::class, new SapiStreamEmitter());
 
-        $app->subscribe('request.received', function ($event, $request) {
-            $this->assertInstanceOf('League\Event\Event', $event);
+        $app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
+            $this->assertInstanceOf(Event::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
         });
-        $app->subscribe('response.sent', function ($event, $request, $response) {
-            $this->assertInstanceOf('League\Event\Event', $event);
+        $app->subscribe($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
+            $this->assertInstanceOf(Event::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+        });
+        $app->subscribe($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
+            $this->assertInstanceOf(Event::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+        });
+        $app->subscribe($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
+            $this->assertInstanceOf(Event::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
             $this->assertInstanceOf(ResponseInterface::class, $response);
         });
 
-        $app->handle(ServerRequestFactory::fromGlobals());
+        $response = $app->handle(ServerRequestFactory::fromGlobals());
+        $app->terminate($app->getRequest(), $response);
     }
 
     public function testRun()

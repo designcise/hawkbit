@@ -23,6 +23,7 @@ use Psr\Http\Message\ServerRequestInterface;
 use League\Container\Container;
 use League\Route\RouteCollection;
 use Monolog\Logger;
+use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
 use Whoops\Handler\PlainTextHandler;
@@ -39,12 +40,7 @@ use Zend\Diactoros\ServerRequestFactory;
  */
 class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
 {
-    const CONFIG_KEY_ERROR_CATCH = 'error.catch';
-    const KEY_ERROR = 'error';
     use EmitterTrait;
-
-    const DEFAULT_ERROR = true;
-    const DEFAULT_ERROR_CATCH = true;
 
     /**
      * @var \League\Route\RouteCollection
@@ -223,16 +219,21 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getErrorHandler()
     {
-        if(!$this->getContainer()->has(Run::class)){
+        if (!$this->getContainer()->has(Run::class)) {
             $errorHandler = new Run();
             $errorHandler->pushHandler($this->getErrorResponseHandler());
+            $errorHandler->pushHandler(function ($exception) {
+                $this->emit(static::EVENT_RUNTIME_ERROR, [$exception]);
+                return Handler::DONE;
+            });
+            $errorHandler->register();
             $this->getContainer()->share(Run::class, $errorHandler);
         }
         return $this->getContainer()->get(Run::class);
     }
 
     /**
-     * Get the response
+     * Get the error response handler
      *
      * @return HandlerInterface
      */
@@ -592,6 +593,22 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
     /*******************************************
      *
+     *         EXCEPTION
+     *
+     */
+
+    /**
+     * @param $exception
+     * @throws
+     */
+    public function throwException($exception)
+    {
+        $this->cleanUp();
+        throw $exception;
+    }
+
+    /*******************************************
+     *
      *         LIFECYCLE INVOCATION
      *
      */
@@ -613,7 +630,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         // Passes the request to the container
         $this->getContainer()->share(ServerRequestInterface::class, $request);
 
-        if($response === null){
+        if ($response === null) {
             $response = $this->getResponse();
         }
 
@@ -635,14 +652,14 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function handleRequest(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $this->emit('request.received', $request);
+        $this->emit(self::EVENT_REQUEST_RECEIVED, $request);
 
         $response = $this->getRouter()->dispatch(
             $request,
             $response
         );
 
-        $this->emit('response.created', $request, $response);
+        $this->emit(self::EVENT_RESPONSE_CREATED, $request, $response);
 
         return $response;
     }
@@ -663,40 +680,62 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $errorHandler = $this->getErrorHandler();
 
         //if delivered value of $catch, then configured value, then default value
-        $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::CONFIG_KEY_ERROR_CATCH, $catch);
+        $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::KEY_ERROR_CATCH, $catch);
 
-        if (false === $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR)) {
-            $message = $exception->getMessage();
-        } else {
-            $errorHandler->allowQuit($this->error);
-
-            if (false === $this->getConfig(self::CONFIG_KEY_ERROR_CATCH, $catch)) {
-                $errorHandler->register();
-                $this->cleanUp();
-                throw $exception;
-            }
-
-            $method = Run::EXCEPTION_HANDLER;
-            ob_start();
-            $errorHandler->$method($exception);
-            $message = ob_get_clean();
+        if (
+            false === $this->getConfig(self::KEY_ERROR_CATCH, $catch)
+            && false === $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR)
+        ) {
+            $this->throwException($exception);
         }
 
+        $message = $this->determineErrorMessage($exception, $errorHandler);
 
-        $errorResponse = $this->getResponse();
-        $this->emit('response.error',$exception, $request, $errorResponse, $response);
-        $this->error = true;
+        return $this->determineErrorResponse($exception, $message, $response, $request);
+    }
 
-        if(!$errorResponse->getBody()->isWritable()){
-            return $errorResponse;
+    /**
+     * Handle response / request lifecycle
+     *
+     * When $callable is a valid callable, callable will executed before emit response
+     *
+     * @param ServerRequestInterface $request A Request instance
+     * @param ResponseInterface $response A response instance
+     *
+     * @return $this
+     *
+     */
+    public function run(ServerRequestInterface $request = null, ResponseInterface $response = null)
+    {
+        if ($request === null) {
+            $request = $this->getRequest();
         }
 
-        $content = $errorResponse->getBody()->__toString();
-        if(empty($content)){
-            $errorResponse->getBody()->write($message);
+        if ($response === null) {
+            $response = $this->getResponse();
         }
 
-        return $errorResponse;
+        $response = $this->handle($request, $response);
+
+        $this->emitResponse($request,$response);
+
+        if($this->canTerminate()){
+            $this->terminate($request,$response);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Emit a response
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     */
+    public function emitResponse(ServerRequestInterface $request, ResponseInterface $response)
+    {
+        $this->getResponseEmitter()->emit($response);
+        $this->emit(self::EVENT_RESPONSE_SENT, $request, $response);
     }
 
     /**
@@ -709,7 +748,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function terminate(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $this->emit('lifecycle.terminate', $request, $response);
+        $this->emit(self::EVENT_LIFECYCLE_COMPLETE, $request, $response);
 
         $body = $response->getBody();
         if ($body->isReadable()) {
@@ -717,41 +756,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         $this->cleanUp();
-    }
-
-    /**
-     * Handle response / request lifecycle
-     *
-     * When $callable is a valid callable, callable will executed before emit response
-     *
-     * @param ServerRequestInterface $request A Request instance
-     * @param ResponseInterface $response A response instance
-     * @param null|callable $callable Call a handler before response is terminated
-     * @return ResponseInterface
-     *
-     */
-    public function run(ServerRequestInterface $request = null, ResponseInterface $response = null, $callable = null)
-    {
-        if ($request === null) {
-            $request = $this->getRequest();
-        }
-
-        if ($response === null) {
-            $response = $this->getResponse();
-        }
-
-        $response = $this->handle($request, $response);
-
-        //call additional invokable or callable
-        if (null !== $callable) {
-            $response = $this->getContainer()->call($callable, [$request, $response]);
-        }
-
-        $this->emit('response.sent', $request, $response);
-
-        $this->getResponseEmitter()->emit($response);
-
-        return $response;
     }
 
     private function cleanUp()
@@ -779,7 +783,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $error = method_exists($error, '__toString') ? $error->__toString() : 'Error with object ' . get_class($error);
         }
 
-        if(is_resource($error)){
+        if (is_resource($error)) {
             $error = 'Error with resource type ' . get_resource_type($error);
         }
 
@@ -792,5 +796,52 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         return $error;
+    }
+
+    /**
+     * @param \Throwable $exception
+     * @param \Whoops\Run $errorHandler
+     *
+     * @return string
+     * @throws
+     */
+    private function determineErrorMessage($exception, $errorHandler)
+    {
+        if (false === $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR)) {
+            $message = $exception->getMessage();
+        } else {
+            $errorHandler->allowQuit($this->error);
+
+            $method = $errorHandler::EXCEPTION_HANDLER;
+            ob_start();
+            $errorHandler->$method($exception);
+            $message = ob_get_clean();
+        }
+        return $message;
+    }
+
+    /**
+     * @param \Throwable $exception
+     * @param string $message
+     * @param ResponseInterface $response
+     * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    private function determineErrorResponse($exception, $message, ResponseInterface $response, ServerRequestInterface $request)
+    {
+        $errorResponse = $this->getResponse();
+        $this->emit(self::EVENT_LIFECYCLE_ERROR, $exception, $request, $errorResponse, $response);
+        $this->error = true;
+
+        if (!$errorResponse->getBody()->isWritable()) {
+            return $errorResponse;
+        }
+
+        $content = $errorResponse->getBody()->__toString();
+        if (empty($content)) {
+            $errorResponse->getBody()->write($message);
+        }
+
+        return $errorResponse;
     }
 }

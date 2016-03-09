@@ -20,6 +20,42 @@ interface ApplicationInterface
 {
 
     /**
+     * This event is fired when a request is received but before it has been processed by the router.
+     */
+    const EVENT_REQUEST_RECEIVED = 'request.received';
+
+    /**
+     * This event is fired when a response has been created but before it has been output.
+     */
+    const EVENT_RESPONSE_CREATED = 'response.created';
+
+    /**
+     * This event is fired when a response has been output.
+     */
+    const EVENT_RESPONSE_SENT = 'response.sent';
+
+    /**
+     * This event is fired only when an error occurs while handling request/response lifecycle.
+     * This event is fired after `runtime.error`
+     */
+    const EVENT_LIFECYCLE_ERROR = 'lifecycle.error';
+
+    /**
+     * This event is always fired when an error occurs.
+     */
+    const EVENT_RUNTIME_ERROR = 'runtime.error';
+
+    /**
+     * This event is fired before completing application lifecycle.
+     */
+    const EVENT_LIFECYCLE_COMPLETE = 'lifecycle.complete';
+
+    const KEY_ERROR_CATCH = 'error.catch';
+    const KEY_ERROR = 'error';
+    const DEFAULT_ERROR = true;
+    const DEFAULT_ERROR_CATCH = true;
+
+    /**
      * Handles a Request to convert it to a Response.
      *
      * When $catch is true, the implementation must catch all exceptions
@@ -41,9 +77,9 @@ interface ApplicationInterface
      *
      * @param ServerRequestInterface $request A Request instance
      * @param ResponseInterface $response A response instance
-     * @param null|callable $callable Call a handler before response is terminated
+     *
      * @return ResponseInterface
      *
      */
-    public function run(ServerRequestInterface $request = null, ResponseInterface $response = null, $callable = null);
+    public function run(ServerRequestInterface $request = null, ResponseInterface $response = null);
 }

@@ -54,8 +54,9 @@ class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(NotFoundException::class);
 
-        $middleware = new MiddlewarePipeAdapter(new Application());
-        $middleware->setCatchErrors(false);
+        $application = new Application();
+        $application->setConfig($application::KEY_ERROR_CATCH, false);
+        $middleware = new MiddlewarePipeAdapter($application);
 
         $middleware->__invoke(ServerRequestFactory::fromGlobals(), $middleware->getApplication()->getResponse());
     }
