@@ -16,6 +16,7 @@ namespace TurbineTests\Stratigility;
 
 use League\Route\Http\Exception\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
 use Turbine\Application;
 use Turbine\Stratigility\MiddlewarePipeAdapter;
 use Zend\Diactoros\ServerRequestFactory;
@@ -28,17 +29,24 @@ class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
         $app->get('/', function($request, ResponseInterface $response){
-            $response->getBody()->write(' World');
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+            $response->getBody()->write('World');
         });
         $middleware = new MiddlewarePipeAdapter($app);
 
-        $middleware->pipe('/', function($request, $response, $next){
-            $response->getBody()->write('Hello');
+        $middleware->pipe('/', function($request, ResponseInterface $response, $next){
+            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+            $this->assertInstanceOf(ResponseInterface::class, $response);
+            $this->assertTrue(is_callable($next));
+
+            $response->getBody()->write('Hello ');
         });
 
         $response = $middleware->__invoke(ServerRequestFactory::fromGlobals(), $app->getResponse());
 
         $this->assertEquals('Hello World', $response->getBody());
+
     }
 
     public function testNotFoundException()
