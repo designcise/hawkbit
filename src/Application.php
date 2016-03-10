@@ -46,11 +46,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     protected $router;
 
     /**
-     * @var \callable
-     */
-    protected $exceptionDecorator;
-
-    /**
      * @var array
      */
     protected $config = [];
@@ -65,7 +60,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     protected $container;
 
-
     /**
      * @var \Zend\Diactoros\Response\EmitterInterface
      */
@@ -78,10 +72,14 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     private $error = false;
 
     /**
-     * Flag which is forcing termination after handling request / response lifecycle
+     * Flag which is forcing response termination after
+     * handling request / response lifecycle
+     *
+     * Response always destroyed before throwing exceptions!
+     *
      * @var bool
      */
-    private $terminate = false;
+    private $terminate = true;
 
     /**
      * New Application.
@@ -115,6 +113,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function setConfig($key, $value = null)
     {
+
         $configurator = $this->getConfigurator();
         if (is_array($key) || $key instanceof \Traversable) {
             $config = $key;
@@ -122,6 +121,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
                 $this->setConfig($key, $value);
             }
         } else {
+            $this->validateConfigKey($key);
             $configurator[$key] = $value;
         }
 
@@ -138,10 +138,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getConfig($key = null, $default = null)
     {
+
         $configurator = $this->getConfigurator();
         if ($key === null) {
             return $configurator;
         }
+
+        $this->validateConfigKey($key);
 
         return $this->hasConfig($key) ? $configurator[$key] : $default;
     }
@@ -155,6 +158,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function hasConfig($key)
     {
+        if(null === $key){
+            return false;
+        }
+
+        $this->validateConfigKey($key);
         $configurator = $this->getConfigurator();
 
         return isset($configurator[$key]);
@@ -193,9 +201,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
         $application = $this;
         $container->share(ApplicationInterface::class, $application);
+        $container->share(\Interop\Container\ContainerInterface::class, $container);
 
         $this->container = $container;
-        $this->router = null;
 
         return $this;
     }
@@ -217,19 +225,19 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Get the Emitter.
      *
-     * @return EmitterInterface
+     * @return \League\Event\EmitterInterface
      */
     public function getEmitter()
     {
-        if (!$this->emitter) {
-            $this->emitter = new Emitter();
+        if (!$this->getContainer()->has(EmitterInterface::class)) {
+            $this->getContainer()->share(EmitterInterface::class, new Emitter());
         }
 
-        return $this->emitter;
+        return $this->validateContract($this->getContainer()->get(EmitterInterface::class), EmitterInterface::class);
     }
 
     /**
-     * @return Run
+     * @return \Whoops\Run
      */
     public function getErrorHandler()
     {
@@ -243,20 +251,20 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $errorHandler->register();
             $this->getContainer()->share(Run::class, $errorHandler);
         }
-        return $this->getContainer()->get(Run::class);
+        return $this->validateContract($this->getContainer()->get(Run::class), Run::class);
     }
 
     /**
      * Get the error response handler
      *
-     * @return HandlerInterface
+     * @return \Whoops\Handler\HandlerInterface
      */
     public function getErrorResponseHandler()
     {
         if (!$this->getContainer()->has(HandlerInterface::class)) {
             if ($this->isCli()) {
                 $class = PlainTextHandler::class;
-            } elseif ($this->isAjax()) {
+            } elseif ($this->isAjaxRequest()) {
                 $class = JsonResponseHandler::class;
             } else {
                 $class = PrettyPageHandler::class;
@@ -264,7 +272,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->add(HandlerInterface::class, $class);
         }
 
-        return $this->getContainer()->get(HandlerInterface::class);
+        return $this->validateContract($this->getContainer()->get(HandlerInterface::class), HandlerInterface::class);
     }
 
     /**
@@ -295,7 +303,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
         $this->loggers[$name] = $this->getContainer()->get(LoggerInterface::class, [$name]);
 
-        return $this->loggers[$name];
+        return $this->validateContract($this->loggers[$name], LoggerInterface::class);
     }
 
     /**
@@ -308,14 +316,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if (!isset($this->router)) {
             $this->router = (new RouteCollection($this->getContainer()));
         }
-
-        return $this->router;
+        return $this->validateContract($this->router, RouteCollection::class);
     }
 
     /**
      * Get the request
      *
-     * @return ServerRequestInterface
+     * @return \Psr\Http\Message\ServerRequestInterface
      */
     public function getRequest()
     {
@@ -323,19 +330,19 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->share(ServerRequestInterface::class, ServerRequestFactory::fromGlobals());
         }
 
-        return $this->getContainer()->get(ServerRequestInterface::class);
+        return $this->validateContract($this->getContainer()->get(ServerRequestInterface::class), ServerRequestInterface::class);
     }
 
     /**
      * Get the response
      *
      * @param string $content
-     * @return ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      */
     public function getResponse($content = '')
     {
         //transform content by environment and request type
-        if ($this->isAjax()) {
+        if ($this->isAjaxRequest()) {
             if ($content instanceof Response\JsonResponse) {
                 $content = json_decode($content->getBody());
             } elseif (!is_array($content)) {
@@ -351,7 +358,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if (!$this->getContainer()->has(ResponseInterface::class)) {
             if ($this->isCli()) {
                 $class = Response\TextResponse::class;
-            } elseif ($this->isAjax()) {
+            } elseif ($this->isAjaxRequest()) {
                 $class = Response\JsonResponse::class;
 
             } else {
@@ -360,7 +367,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->add(ResponseInterface::class, $class);
         }
 
-        return $this->getContainer()->get(ResponseInterface::class, [$content]);
+        return $this->validateContract($this->getContainer()->get(ResponseInterface::class, [$content]), ResponseInterface::class);
     }
 
 
@@ -375,7 +382,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->share(Response\EmitterInterface::class, new Response\SapiEmitter());
         }
 
-        return $this->getContainer()->get(Response\EmitterInterface::class);
+        return $this->validateContract($this->getContainer()->get(Response\EmitterInterface::class), Response\EmitterInterface::class);
     }
 
     /*******************************************
@@ -389,13 +396,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @return bool
      */
-    public function isAjax()
+    public function isAjaxRequest()
     {
         return
             false !== strpos(
                 strtolower(ServerRequestFactory::getHeader('x-requested-with', $this->getRequest()->getHeaders(), '')),
                 'xmlhttprequest'
-            ) && $this->isHttp();
+            ) && $this->isHttpRequest();
     }
 
     /**
@@ -409,6 +416,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * Check if an error has been occurred
+     *
      * @return boolean
      */
     public function isError()
@@ -421,12 +430,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @return bool
      */
-    public function isHttp()
+    public function isHttpRequest()
     {
         return !$this->isCli();
     }
 
     /**
+     * Check that terminate the response request
+     * lifecycle is enabled
+     *
      * @return boolean
      */
     public function canTerminate()
@@ -435,6 +447,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * Set terminating flag
+     *
      * @param boolean $terminate
      */
     public function setCanTerminate($terminate)
@@ -573,10 +587,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
-     * Array Access unset.
-     *
-     * Does nothing since support for unset
-     * shares is disabled in league/container 2
+     * Removing services are not support by
+     * `league/container` 2.0 and greater
      *
      * @param string $key
      *
@@ -610,18 +622,61 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
     /*******************************************
      *
-     *         EXCEPTION
+     *         CONTRACTS
      *
      */
 
     /**
-     * @param $exception
-     * @throws
+     * throw a exception
+     *
+     * @param \Throwable|\Exception $exception
+     *
+     * @throws \Throwable|\Exception
      */
     public function throwException($exception)
     {
-        $this->cleanUp();
+        $this->finishRequest();
         throw $exception;
+    }
+
+    /**
+     * Validates that class is instance of contract
+     *
+     * @param $class
+     * @param $contract
+     *
+     * @return string|object
+     *
+     * @throws \InvalidArgumentException|\LogicException
+     */
+    public function validateContract($class, $contract){
+        $validateObject = function($object){
+            //does need trigger when calling *_exists with object
+            $condition = is_string($object) ? class_exists($object) || interface_exists($object) : is_object($object);
+            if(false === $condition){
+                $this->throwException(new \InvalidArgumentException('Class not exists ' . $object));
+            }
+        };
+
+        $convertClassToString = function($object){
+            if(is_object($object)){
+                $object = get_class($object);
+            }
+            return is_string($object) ? $object : false;
+        };
+
+        $validateObject($class);
+        $validateObject($contract);
+
+        if(!($class instanceof $contract)){
+
+            if(is_object($class)){
+                $class = get_class($class);
+            }
+            $this->throwException(new \LogicException($convertClassToString($class) . ' needs to be an instance of ' . $convertClassToString($contract)));
+        }
+
+        return $class;
     }
 
     /*******************************************
@@ -631,7 +686,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
 
     /**
-     * Handle the request.
+     * Convert request into response. If an error occurs, turbine tries
+     * to handle error as response.
      *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
@@ -663,6 +719,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * Convert request into response.
+     *
      * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @return ResponseInterface
@@ -682,12 +740,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * Handle error and return response of error message or throw
+     * error if error.catch is disabled.
+     *
      * @param \Throwable|\Exception $exception
-     * @param ServerRequestInterface $request
+     * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param ResponseInterface $response
      * @param bool $catch
      *
-     * @return ResponseInterface
+     * @return \Psr\Http\Message\ResponseInterface
      *
      * @throws string
      */
@@ -716,8 +777,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * When $callable is a valid callable, callable will executed before emit response
      *
-     * @param ServerRequestInterface $request A Request instance
-     * @param ResponseInterface $response A response instance
+     * @param \Psr\Http\Message\ServerRequestInterface $request A Request instance
+     * @param \Psr\Http\Message\ResponseInterface $response A response instance
      *
      * @return $this
      *
@@ -746,8 +807,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Emit a response
      *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
      */
     public function emitResponse(ServerRequestInterface $request, ResponseInterface $response)
     {
@@ -758,29 +819,91 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Terminates a request/response cycle.
      *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
+     * @param \Psr\Http\Message\ServerRequestInterface $request
+     * @param \Psr\Http\Message\ResponseInterface $response
      *
      * @return void
      */
     public function terminate(ServerRequestInterface $request, ResponseInterface $response)
     {
         $this->emit(self::EVENT_LIFECYCLE_COMPLETE, $request, $response);
+        $this->finishRequest($response);
+    }
 
-        $body = $response->getBody();
-        if ($body->isReadable()) {
-            $body->close();
-        }
-
+    /**
+     * Finish request. Collect garbage and terminate output buffering
+     *
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @return void
+     */
+    public function finishRequest($response = null)
+    {
+        $this->terminateOutputBuffering(0, $response);
         $this->cleanUp();
     }
 
-    private function cleanUp()
-    {
-        if (!gc_enabled()) {
-            gc_enable();
+    /**
+     * Close response stream and terminate output buffering
+     *
+     * @param int $level
+     * @param null|\Psr\Http\Message\ResponseInterface $response
+     */
+    public function terminateOutputBuffering($level = 0, $response = null){
+
+        // close response stream berfore terminating output buffer
+        // and only if response is an instance of
+        // \Psr\Http\ResponseInterface
+        if($response instanceof ResponseInterface){
+            $body = $response->getBody();
+            if ($body->isReadable()) {
+                $body->close();
+            }
         }
-        gc_collect_cycles();
+
+        // Command line output buffering is disabled in cli by default
+        if($this->isCli()){
+            return ;
+        }
+
+        // $level needs to be a numeric value
+        if(!is_numeric($level)){
+            $level = 0;
+        }
+
+        // force type casting to an integer value
+        if(!is_int($level)){
+            $level = (int) $level;
+        }
+
+        // avoid infinite loop on clearing
+        // output buffer by set level to 0
+        // if $level is smaller
+        if(-1 > $level){
+            $level = 0;
+        }
+
+        // terminate all output buffers until $level is 0 or desired level
+        while (ob_get_level() > $level)
+        {
+            ob_end_clean();
+        }
+    }
+
+    /**
+     * Perform garbage collection
+     */
+    public function cleanUp()
+    {
+        // try to enable garbage collection
+        if (!gc_enabled()) {
+            @gc_enable();
+        }
+
+        // collect garbage only if garbage
+        // collection is enabled
+        if(gc_enabled()){
+            gc_collect_cycles();
+        }
     }
 
     /**
@@ -816,11 +939,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * Determine error message by error configuration
+     *
      * @param \Throwable $exception
      * @param \Whoops\Run $errorHandler
      *
      * @return string
-     * @throws
+     *
      */
     private function determineErrorMessage($exception, $errorHandler)
     {
@@ -838,6 +963,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * Determines response for error. Emits `lifecycle.error` event.
+     *
      * @param \Throwable $exception
      * @param string $message
      * @param ResponseInterface $response
@@ -860,5 +987,18 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         return $errorResponse;
+    }
+
+    /**
+     * Validate that config key is scalar
+     *
+     * @param $key
+     * @throws \Throwable
+     */
+    private function validateConfigKey($key)
+    {
+        if (!is_scalar($key)) {
+            $this->throwException(new \InvalidArgumentException('Key needs to be a valid scalar!'));
+        }
     }
 }

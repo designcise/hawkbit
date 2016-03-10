@@ -29,6 +29,8 @@ $app = new \Turbine\Application();
 Create a new app with configuration
 
 ```php
+<?php
+
 $config = [
     'key' => 'value'
 ];
@@ -38,6 +40,8 @@ $app = new \Turbine\Application($config);
 Add routes
 
 ```php
+<?php
+
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
     return $response;
@@ -54,6 +58,8 @@ $app->get('/hello/{name}', function ($request, $response, $args) {
 Run application
 
 ```php
+<?php
+
 $app->run();
 ```
 
@@ -62,6 +68,8 @@ $app->run();
 Extend configuration of an existing instance
 
 ```php
+<?php
+
 //add many values
 $app->setConfig([
     'database' => 'mysql://root:root@localhost/acmedb',
@@ -77,6 +85,8 @@ $app->setConfig('baseurl' => 'localhost/');
 Access configuration
 
 ```php
+<?php
+
 //access all configuration
 $app->getConfig();
 
@@ -84,103 +94,13 @@ $app->getConfig();
 $app->getConfig('database');
 ```
 
-## IoC
-
-Turbine allows access to most used services by contract.
-
-### Container
-
-Set your own container needs an instance of `\League\Container\ContainerInterface`
-
-```php
-$app->setContainer($container);
-```
-
-Get container
-
-```php
-$app->getContainer($container);
-```
-
-### Configurator
-
-Uses in `Application::setConfig()`,`Application::getConfig()` and `Application::hasConfig()`
-
-```php
-$app->getConfigurator();
-``` 
-
-```php
-$app->getContainer()->share(\ArrayAccess::class, \ArrayObject::class)
-```
-
-### error handler
-
-```php
-$app->getContainer()->share(\Whoops\Run::class, new \Whoops\Run());
-```
-
-```php
-$app->getErrorHandler()
-``` 
-
-### error response handler
-
-```php
-$app->getContainer()->share(\Whoops\Handler\HandlerInterface::class, Acme\ErrorResponseHandler::class);
-```
-
-```php
-$app->getErrorResponseHandler()
-``` 
-
-### psr logger
-
-Get a new logger instance by channel name
-
-```php
-$app->getContainer()->add(\Psr\Log\LoggerInterface::class, \Monolog\Logger::class);
-```
-
-```php
-$app->getLogger('channel name');
-``` 
-
-### psr server request
-
-```php
-$app->getContainer()->share(\Psr\Http\Message\ServerRequestInterface::class, \Zend\Diactoros\ServerRequestFactory::fromGlobals());
-```
-
-```php
-$app->getRequest()
-``` 
-
-### psr response
-
-```php
-$app->getContainer()->add(\Psr\Http\Message\ResponseInterface::class, \Zend\Diactoros\Response::class);
-```
-
-```php
-$app->getRequest()
-``` 
-
-### response emitter
-
-```php
-$app->getContainer()->share(\Zend\Diactoros\Response\EmitterInterface::class, \Zend\Diactoros\Response\SapiEmitter::class);
-```
-
-```php
-$app->getResponseEmitter()
-``` 
-
-### Routing
+## Routing
 
 Basic usage with anonymous functions:
 
 ```php
+<?php
+
 // index.php
 <?php
 
@@ -202,6 +122,8 @@ $app->run();
 Basic usage with controllers:
 
 ```php
+<?php
+
 // index.php
 <?php
 
@@ -215,6 +137,8 @@ $app->run();
 ```
 
 ```php
+<?php
+
 // HomeController.php
 <?php
 
@@ -234,6 +158,8 @@ class HomeController
 Automatic constructor injection of controllers:
 
 ```php
+<?php
+
 // index.php
 <?php
 
@@ -248,6 +174,8 @@ $app->run();
 ```
 
 ```php
+<?php
+
 // HomeController.php
 <?php
 
@@ -295,6 +223,8 @@ class HomeController
 Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 
 ```php
+<?php
+
 // index.php
 <?php
 require __DIR__.'/../vendor/autoload.php';
@@ -322,6 +252,8 @@ Stack\run($httpKernel); // The app will run after all the middlewares have run
 Basic usage with Stratigility (using `Zend\Stratigility\MiddlewarePipe`):
 
 ```php
+<?php
+
 $application = new Application();
 $application->get('/', function($request, ResponseInterface $response){
     $response->getBody()->write('Hello World');
@@ -350,18 +282,24 @@ Turbine is using Whoops error handling framework and determines the error handle
 Set your own handler:
 
 ```php
+<?php
+
 $app->getErrorHandler()->push(new Acme\ErrorResponseHandler);
 ```
 
 By default Turbine runs with error options disabled. To enable debugging add
 
 ```php
+<?php
+
 $app->setConfig('error', true);
 ```
 
 By default Turbine is catching all errors. To disable error catching add
 
 ```php
+<?php
+
 $app->setConfig('error.catch', false);
 ```
 
@@ -370,6 +308,8 @@ $app->setConfig('error.catch', false);
 Turbine has built in support for Monolog. To access a channel call:
 
 ```php
+<?php
+
 $app->getLogger('channel name');
 ```
 
@@ -382,6 +322,8 @@ You can intercept requests and responses at three points during the lifecycle:
 ### request.received
 
 ```php
+<?php
+
 $app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
     // manipulate request
 });
@@ -392,6 +334,8 @@ This event is fired when a request is received but before it has been processed 
 ### response.created
 
 ```php
+<?php
+
 $app->subscribe($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
     //manipulate request or response
 });
@@ -402,6 +346,8 @@ This event is fired when a response has been created but before it has been outp
 ### response.sent
 
 ```php
+<?php
+
 $app->subscribe($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
     //manipulate request and response
 });
@@ -412,6 +358,8 @@ This event is fired when a response has been output and before the application l
 ### runtime.error
 
 ```php
+<?php
+
 $app->subscribe($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
     //process exception
 });
@@ -424,6 +372,8 @@ This event is always fired when an error occurs.
 `$errorResponse` is used as default response
 
 ```php
+<?php
+
 $app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $errorResponse, $request, $response) {
     //manipulate $errorResponse and process exception
 });
@@ -435,6 +385,8 @@ This event is fired after runtime.error
 ### lifecycle.complete
 
 ```php
+<?php
+
 $app->subscribe($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
@@ -448,6 +400,8 @@ This event is fired when a response has been output and before the application l
 You can fire custom events using the event emitter directly:
 
 ```php
+<?php
+
 // Subscribe
 $app->subscribe('custom.event', function ($event, $time) {
     return 'the time is '.$time;
@@ -457,19 +411,6 @@ $app->subscribe('custom.event', function ($event, $time) {
 $app->getEventEmitter()->emit('custom.event', time());
 ```
 
-### Events from configuration
-
-You can add configured events from configuration  
-
-```php
-//configure
-$app->setConfig('events', function ($emitter, $app) {
-    $emitter->addListener('custom.event', function ($event, $time) {
-        return 'the time is '.$time;
-    });
-});
-```
-
 ## Dependency Injection Container
 
 Turbine uses `League/Container` as its dependency injection container.
@@ -477,6 +418,8 @@ Turbine uses `League/Container` as its dependency injection container.
 You can bind singleton objects into the container from the main application object using ArrayAccess:
 
 ```php
+<?php
+
 $app['db'] = function () {
     $manager = new Illuminate\Database\Capsule\Manager;
 
@@ -499,6 +442,8 @@ $app['db'] = function () {
 or by accessing the container directly:
 
 ```php
+<?php
+
 $app->getContainer()->share('db', function () {
     $manager = new Illuminate\Database\Capsule\Manager;
 
@@ -521,6 +466,8 @@ $app->getContainer()->share('db', function () {
 Multitons can be added using the `add` method on the container:
 
 ```php
+<?php
+
 //callback
 $app->getContainer()->add('foo', function () {
     return new Foo();
@@ -530,6 +477,8 @@ $app->getContainer()->add('foo', function () {
 Service providers can be registered using the `register` method on the Turbine app or `addServiceProvider` on the container:
 
 ```php
+<?php
+
 $app->register('\My\Service\Provider');
 $app->getContainer()->addServiceProvider('\My\Service\Provider');
 ```
@@ -539,6 +488,8 @@ For more information about service providers check out this page - [http://conta
 For easy testing down the road it is recommended you embrace constructor injection:
 
 ```php
+<?php
+
 $app->getContainer()->add('Bar', function () {
         return new Bar();
 });
@@ -550,18 +501,130 @@ $app->getContainer()->add('Foo', function () use ($app) {
 });
 ```
 
-### Services from configuration
+### Container
 
-You can add service from configuration  
+Set your own container needs an instance of `\League\Container\ContainerInterface`
 
 ```php
-//configure
-$app->setConfig('services', function ($container, $app) {
-    $container->add('foo', function () {
-        return new Foo();
-    });;
-});
+<?php
+
+$app->setContainer($container);
 ```
+
+Get container
+
+```php
+<?php
+
+$app->getContainer($container);
+```
+
+## Services
+
+Turbine uses dependecy injection container to access it's services. Following integrations can be exchanged.
+
+### Configurator
+
+Uses in `Application::setConfig()`,`Application::getConfig()` and `Application::hasConfig()`
+
+```php
+<?php
+
+$app->getConfigurator();
+``` 
+
+```php
+<?php
+
+$app->getContainer()->share(\ArrayAccess::class, \ArrayObject::class)
+```
+
+### error handler
+
+```php
+<?php
+
+$app->getContainer()->share(\Whoops\Run::class, new \Whoops\Run());
+```
+
+```php
+<?php
+
+$app->getErrorHandler()
+``` 
+
+### error response handler
+
+```php
+<?php
+
+$app->getContainer()->share(\Whoops\Handler\HandlerInterface::class, Acme\ErrorResponseHandler::class);
+```
+
+```php
+<?php
+
+$app->getErrorResponseHandler()
+``` 
+
+### psr logger
+
+Get a new logger instance by channel name
+
+```php
+<?php
+
+$app->getContainer()->add(\Psr\Log\LoggerInterface::class, \Monolog\Logger::class);
+```
+
+```php
+<?php
+
+$app->getLogger('channel name');
+``` 
+
+### psr server request
+
+```php
+<?php
+
+$app->getContainer()->share(\Psr\Http\Message\ServerRequestInterface::class, \Zend\Diactoros\ServerRequestFactory::fromGlobals());
+```
+
+```php
+<?php
+
+$app->getRequest()
+``` 
+
+### psr response
+
+```php
+<?php
+
+$app->getContainer()->add(\Psr\Http\Message\ResponseInterface::class, \Zend\Diactoros\Response::class);
+```
+
+```php
+<?php
+
+$app->getRequest()
+``` 
+
+### response emitter
+
+```php
+<?php
+
+$app->getContainer()->share(\Zend\Diactoros\Response\EmitterInterface::class, \Zend\Diactoros\Response\SapiEmitter::class);
+```
+
+```php
+<?php
+
+$app->getResponseEmitter()
+``` 
+
 
 ## Change log
 
@@ -585,7 +648,7 @@ If you discover any security related issues, please email <mjls@web.de> instead 
 
 - [Marco Bunge](https://github.com/mbunge)
 - [Alex Bilbie](https://github.com/alexbilbie) (Proton)
-- [All contributors](https://github.com/phpthinktank/Turbine/graphs/contributors)
+- [All contributors](https://github.com/phpthinktank/blast-turbine/graphs/contributors)
 
 ## License
 

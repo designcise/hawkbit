@@ -10,14 +10,12 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Turbine;
 use Turbine\Application;
-use Turbine\ApplicationInterface;
 use TurbineTests\TestAsset\SharedTestController;
 use TurbineTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
-use Zend\Diactoros\Response\TextResponse;
 use Zend\Diactoros\ServerRequestFactory;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
@@ -25,9 +23,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     public function testConfiguration(){
         $app = new Application(['foo' => 'bar']);
-
-        $c = $app->getConfigurator()->offsetExists('foo');
-
         $this->assertInstanceOf(\ArrayAccess::class,$app->getConfig());
         $this->assertTrue($app->hasConfig('foo'));
         $this->assertEquals('bar', $app->getConfig('foo'));
@@ -67,10 +62,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
         });
 
-        $reflected = new \ReflectionProperty($app, 'emitter');
-        $reflected->setAccessible(true);
-        $emitter = $reflected->getValue($app);
-        $this->assertTrue($emitter->hasListeners('request.received'));
+        $this->assertTrue($app->getEmitter()->hasListeners('request.received'));
 
         $app->get('/', function(){});
 
@@ -291,8 +283,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testEnvironment()
     {
         $app = new Application();
-        $this->assertFalse($app->isHttp());
-        $this->assertFalse($app->isAjax());
+        $this->assertFalse($app->isHttpRequest());
+        $this->assertFalse($app->isAjaxRequest());
         $this->assertTrue($app->isCli());
     }
 }
