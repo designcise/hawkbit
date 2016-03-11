@@ -2,6 +2,12 @@
 
 ## 1.1.0
 
+### Altered
+
+ - Upgrade `league/route` from dev-develop to stable 2.x (`~2.0`) release
+
+## 1.1.0
+
 ### Added
 
  - Add `filp/whoops` as default error handler
