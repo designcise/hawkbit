@@ -14,7 +14,7 @@ Turbine uses latest versions of [League\Route](https://github.com/thephpleague/r
 
 ### Using Composer
 
-Plates is available on [Packagist](https://packagist.org/packages/blast/turbine) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
+Turbine is available on [Packagist](https://packagist.org/packages/blast/turbine) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
 
 ```bash
 composer require blast/turbine
