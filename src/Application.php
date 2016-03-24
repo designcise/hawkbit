@@ -478,7 +478,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function map($method, $route, $action)
     {
-        return $this->getRouter()->map($method, $route, $action);
+        return $this->getRouter()->map($method, $route, $this->bindClosureToInstance($action));
     }
 
     /**
@@ -491,7 +491,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function group($prefix, callable $group)
     {
-        return $this->getRouter()->group($prefix, \Closure::bind($group, $this, get_class($this)));
+        return $this->getRouter()->group($prefix, $this->bindClosureToInstance($group));
     }
 
     /*******************************************
@@ -960,5 +960,21 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if (!is_scalar($key)) {
             $this->throwException(new \InvalidArgumentException('Key needs to be a valid scalar!'));
         }
+    }
+
+    /**
+     * Bind any closure to application instance 
+     * 
+     * @param $closure
+     * 
+     * @return mixed
+     */
+    private function bindClosureToInstance($closure)
+    {
+        if ($closure instanceof \Closure) {
+            \Closure::bind($closure, $this, get_class($this));
+        }
+        
+        return $closure;
     }
 }

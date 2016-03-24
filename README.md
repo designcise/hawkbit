@@ -96,6 +96,8 @@ $app->getConfig('database');
 
 ## Routing
 
+Turbine is using routing integration of `league/route` and allows access to route collection methods directly.
+
 Basic usage with anonymous functions:
 
 ```php
@@ -119,12 +121,30 @@ $app->get('/hello/{name}', function ($request, $response, $args) {
 $app->run();
 ```
 
-Basic usage with controllers:
+#### Access app from anonymous function
+
+Turbine allows to access `Turbine\Application` from anonymous function through closure binding.
 
 ```php
 <?php
 
-// index.php
+$app->get('/hello/{name}', function ($request, $response, $args) {
+    
+    // access Turbine\Application
+    $app = $this
+    
+    $response->getBody()->write(
+        sprintf('<h1>Hello, %s!</h1>', $args['name'])
+    );
+    return $response;
+});
+
+```
+
+
+Basic usage with controllers:
+
+```php
 <?php
 
 require __DIR__.'/../vendor/autoload.php';
@@ -214,6 +234,33 @@ class HomeController
         return $response;
     }
 }
+```
+
+For more information about routes [read this guide](http://route.thephpleague.com/)
+
+### Route groups
+
+Turbine add support for route groups. 
+
+```php
+<?php
+
+$app->group('/admin', function ($route) {
+
+    //access app container (or any other method!)
+    $app = $this;
+    
+    $route->map('GET', '/acme/route1', 'AcmeController::actionOne');
+    $route->map('GET', '/acme/route2', 'AcmeController::actionTwo');
+    $route->map('GET', '/acme/route3', 'AcmeController::actionThree');
+});
+```
+
+#### Available vars
+
+- `$route` - `\League\Route\RouteGroup`
+- `$this` - `\Turbine\Application`
+
 ```
 
 ## Middleware integrations
