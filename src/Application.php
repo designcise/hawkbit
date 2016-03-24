@@ -10,6 +10,7 @@
 
 namespace Turbine;
 
+use League\Container\Container;
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerInterface;
 use League\Container\Exception\NotFoundException;
@@ -18,11 +19,12 @@ use League\Event\Emitter;
 use League\Event\EmitterInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
+use League\Route\RouteCollection;
+use League\Route\RouteCollectionInterface;
+use League\Route\RouteCollectionMapTrait;
+use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use League\Container\Container;
-use League\Route\RouteCollection;
-use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
@@ -36,9 +38,11 @@ use Zend\Diactoros\ServerRequestFactory;
 /**
  * Proton Application Class.
  */
-class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface, TerminableInterface, \ArrayAccess
+class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface, 
+    RouteCollectionInterface, TerminableInterface, \ArrayAccess
 {
     use EmitterTrait;
+    use RouteCollectionMapTrait;
 
     /**
      * @var \League\Route\RouteCollection
@@ -158,7 +162,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function hasConfig($key)
     {
-        if(null === $key){
+        if (null === $key) {
             return false;
         }
 
@@ -179,7 +183,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @return \ArrayAccess
      */
-    public function getConfigurator(){
+    public function getConfigurator()
+    {
         if (!$this->getContainer()->has(\ArrayAccess::class)) {
             $this->getContainer()->share(\ArrayAccess::class, \ArrayObject::class);
         }
@@ -463,78 +468,30 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
 
     /**
-     * Add a GET route.
+     * Add a route to the map.
      *
-     * @param string $route
-     * @param mixed $action
+     * @param $method
+     * @param $route
+     * @param $action
      *
-     * @return $this
+     * @return \League\Route\Route
      */
-    public function get($route, $action)
+    public function map($method, $route, $action)
     {
-        $this->getRouter()->map('GET', $route, $action);
-
-        return $this;
+        return $this->getRouter()->map($method, $route, $this->bindClosureToInstance($action));
     }
 
     /**
-     * Add a POST route.
+     * Add a group of routes to the collection. Binds $this to app instance
      *
-     * @param string $route
-     * @param mixed $action
+     * @param $prefix
+     * @param callable $group
      *
-     * @return $this
+     * @return \League\Route\RouteGroup
      */
-    public function post($route, $action)
+    public function group($prefix, callable $group)
     {
-        $this->getRouter()->map('POST', $route, $action);
-
-        return $this;
-    }
-
-    /**
-     * Add a PUT route.
-     *
-     * @param string $route
-     * @param mixed $action
-     *
-     * @return $this
-     */
-    public function put($route, $action)
-    {
-        $this->getRouter()->map('PUT', $route, $action);
-
-        return $this;
-    }
-
-    /**
-     * Add a DELETE route.
-     *
-     * @param string $route
-     * @param mixed $action
-     *
-     * @return $this
-     */
-    public function delete($route, $action)
-    {
-        $this->getRouter()->map('DELETE', $route, $action);
-
-        return $this;
-    }
-
-    /**
-     * Add a PATCH route.
-     *
-     * @param string $route
-     * @param mixed $action
-     *
-     * @return $this
-     */
-    public function patch($route, $action)
-    {
-        $this->getRouter()->map('PATCH', $route, $action);
-
-        return $this;
+        return $this->getRouter()->group($prefix, $this->bindClosureToInstance($group));
     }
 
     /*******************************************
@@ -549,6 +506,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * @param string $event
      * @param callable $listener
      * @param int $priority
+     *
+     * @deprecated
      */
     public function subscribe($event, $listener, $priority = ListenerAcceptorInterface::P_NORMAL)
     {
@@ -649,17 +608,18 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @throws \InvalidArgumentException|\LogicException
      */
-    public function validateContract($class, $contract){
-        $validateObject = function($object){
+    public function validateContract($class, $contract)
+    {
+        $validateObject = function ($object) {
             //does need trigger when calling *_exists with object
             $condition = is_string($object) ? class_exists($object) || interface_exists($object) : is_object($object);
-            if(false === $condition){
+            if (false === $condition) {
                 $this->throwException(new \InvalidArgumentException('Class not exists ' . $object));
             }
         };
 
-        $convertClassToString = function($object){
-            if(is_object($object)){
+        $convertClassToString = function ($object) {
+            if (is_object($object)) {
                 $object = get_class($object);
             }
             return is_string($object) ? $object : false;
@@ -668,9 +628,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $validateObject($class);
         $validateObject($contract);
 
-        if(!($class instanceof $contract)){
+        if (!($class instanceof $contract)) {
 
-            if(is_object($class)){
+            if (is_object($class)) {
                 $class = get_class($class);
             }
             $this->throwException(new \LogicException($convertClassToString($class) . ' needs to be an instance of ' . $convertClassToString($contract)));
@@ -795,10 +755,10 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
         $response = $this->handle($request, $response);
 
-        $this->emitResponse($request,$response);
+        $this->emitResponse($request, $response);
 
-        if($this->canTerminate()){
-            $this->terminate($request,$response);
+        if ($this->canTerminate()) {
+            $this->terminate($request, $response);
         }
 
         return $this;
@@ -848,12 +808,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * @param int $level
      * @param null|\Psr\Http\Message\ResponseInterface $response
      */
-    public function terminateOutputBuffering($level = 0, $response = null){
+    public function terminateOutputBuffering($level = 0, $response = null)
+    {
 
         // close response stream berfore terminating output buffer
         // and only if response is an instance of
         // \Psr\Http\ResponseInterface
-        if($response instanceof ResponseInterface){
+        if ($response instanceof ResponseInterface) {
             $body = $response->getBody();
             if ($body->isReadable()) {
                 $body->close();
@@ -861,30 +822,29 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         // Command line output buffering is disabled in cli by default
-        if($this->isCli()){
-            return ;
+        if ($this->isCli()) {
+            return;
         }
 
         // $level needs to be a numeric value
-        if(!is_numeric($level)){
+        if (!is_numeric($level)) {
             $level = 0;
         }
 
         // force type casting to an integer value
-        if(!is_int($level)){
-            $level = (int) $level;
+        if (!is_int($level)) {
+            $level = (int)$level;
         }
 
         // avoid infinite loop on clearing
         // output buffer by set level to 0
         // if $level is smaller
-        if(-1 > $level){
+        if (-1 > $level) {
             $level = 0;
         }
 
         // terminate all output buffers until $level is 0 or desired level
-        while (ob_get_level() > $level)
-        {
+        while (ob_get_level() > $level) {
             ob_end_clean();
         }
     }
@@ -901,7 +861,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
         // collect garbage only if garbage
         // collection is enabled
-        if(gc_enabled()){
+        if (gc_enabled()) {
             gc_collect_cycles();
         }
     }
@@ -1000,5 +960,21 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if (!is_scalar($key)) {
             $this->throwException(new \InvalidArgumentException('Key needs to be a valid scalar!'));
         }
+    }
+
+    /**
+     * Bind any closure to application instance 
+     * 
+     * @param $closure
+     * 
+     * @return mixed
+     */
+    private function bindClosureToInstance($closure)
+    {
+        if ($closure instanceof \Closure) {
+            \Closure::bind($closure, $this, get_class($this));
+        }
+        
+        return $closure;
     }
 }
