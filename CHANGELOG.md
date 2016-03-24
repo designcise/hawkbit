@@ -1,5 +1,18 @@
 # Blast Turbine Changelog
 
+## 1.1.2
+
+### Altered
+
+ - Replace applications [route collection methods](https://github.com/thephpleague/route/blob/master/src/RouteCollectionInterface.php) with `\League\Route\RouteCollectionMapTrait`
+ - Application implements `\League\Route\RouteCollectionInterface`
+ - add `\League\Route\RouteCollectionInterface::map()` 
+ - add `\Turbine\Application::group()` for creating route groups, see [documentation](http://route.thephpleague.com/route-groups/)
+
+### Deprecated
+
+ - `\Turbine\Application::subscribe()`
+
 ## 1.1.0
 
 ### Added
