@@ -298,8 +298,6 @@ $app->group('/admin', function ($route) {
 - `$route` - `\League\Route\RouteGroup`
 - `$this` - `\Turbine\Application`
 
-```
-
 ## Middleware integrations
 
 ### StackPHP
