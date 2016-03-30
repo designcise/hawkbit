@@ -38,7 +38,7 @@ use Zend\Diactoros\ServerRequestFactory;
 /**
  * Proton Application Class.
  */
-class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface, 
+class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface,
     RouteCollectionInterface, TerminableInterface, \ArrayAccess
 {
     use EmitterTrait;
@@ -94,10 +94,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
         if (is_bool($configuration)) {
             $this->setConfig(self::KEY_ERROR, $configuration);
-        } elseif (is_array($configuration)) {
-            foreach ($configuration as $key => $value) {
-                $this->setConfig($key, $value);
-            }
+        } elseif (
+            is_array($configuration) ||
+            ($configuration instanceof \ArrayAccess ||
+                $configuration instanceof \Traversable)
+        ) {
+            $this->setConfig($configuration);
         }
     }
 
@@ -119,10 +121,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
 
         $configurator = $this->getConfigurator();
-        if (is_array($key) || $key instanceof \Traversable) {
-            $config = $key;
-            foreach ($config as $key => $value) {
-                $this->setConfig($key, $value);
+        if (is_array($key) || $key instanceof \Traversable || $key instanceof \ArrayAccess) {
+            $iter = new \ArrayIterator($key);
+            while ($iter->valid()) {
+                $this->setConfig($iter->key(), $iter->current());
+                $iter->next();
             }
         } else {
             $this->validateConfigKey($key);
@@ -963,10 +966,10 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
-     * Bind any closure to application instance 
-     * 
+     * Bind any closure to application instance
+     *
      * @param $closure
-     * 
+     *
      * @return mixed
      */
     private function bindClosureToInstance($closure)
@@ -974,7 +977,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if ($closure instanceof \Closure) {
             \Closure::bind($closure, $this, get_class($this));
         }
-        
+
         return $closure;
     }
 }

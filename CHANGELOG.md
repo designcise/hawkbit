@@ -1,5 +1,11 @@
 # Blast Turbine Changelog
 
+## 1.1.3
+
+### Altered
+
+- Accept and process `\ArrayAccess` and `\Traversable` as configuration
+
 ## 1.1.2
 
 ### Altered
