@@ -1,5 +1,11 @@
 # Blast Turbine Changelog
 
+## 1.1.4
+
+### Fixes
+
+- #9 If class exists and is not part of container, `League\Container\Container::has` returns now false.
+
 ## 1.1.3
 
 ### Altered
