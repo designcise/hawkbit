@@ -4,7 +4,7 @@
 
 ### Fixes
 
-- #9 If class exists and is not part of container, `League\Container\Container::has` returns now false.
+- [\#9](../../issues/9) If class exists and is not part of container, `League\Container\Container::has` returns now false.
 
 ## 1.1.3
 
