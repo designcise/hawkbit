@@ -26,6 +26,7 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
+use Turbine\Application\ConfiguratorInterface;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -188,10 +189,10 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getConfigurator()
     {
-        if (!$this->getContainer()->has(\ArrayAccess::class)) {
-            $this->getContainer()->share(\ArrayAccess::class, \ArrayObject::class);
+        if (!$this->getContainer()->has(ConfiguratorInterface::class)) {
+            $this->getContainer()->share(ConfiguratorInterface::class, \ArrayObject::class);
         }
-        return $this->getContainer()->get(\ArrayAccess::class);
+        return $this->getContainer()->get(ConfiguratorInterface::class);
     }
 
     /**
