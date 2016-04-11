@@ -32,6 +32,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $app->getConfig('bar'));
     }
 
+
+
     public function testConfigurationFromArrayObject(){
         $app = new Application(new \ArrayObject(['foo' => 'bar']));
         $this->assertInstanceOf(\ArrayAccess::class,$app->getConfig());
@@ -297,5 +299,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($app->isHttpRequest());
         $this->assertFalse($app->isAjaxRequest());
         $this->assertTrue($app->isCli());
+    }
+
+    public function testContainerHasNotClass()
+    {
+        $app = new Application();
+
+        $this->assertFalse($app->getContainer()->has(\SplMaxHeap::class), 'Should not assert true, when class exists but is not part of container');
     }
 }
