@@ -1,5 +1,15 @@
 # Blast Turbine Changelog
 
+## 1.1.5
+
+### Added
+
+ - Add `\Turbine\Application\ConfiguratorInterface` 
+
+### Altered
+
+ - `Application::getConfigurator` is now bound to `\Turbine\Application\ConfiguratorInterface` contract
+
 ## 1.1.4
 
 ### Fixes

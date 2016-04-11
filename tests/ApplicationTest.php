@@ -8,12 +8,13 @@ use League\Event\Event;
 use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
 use Monolog\Logger;
-use Turbine;
-use Turbine\Application;
-use TurbineTests\TestAsset\SharedTestController;
-use TurbineTests\TestAsset\TestController;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Turbine;
+use Turbine\Application;
+use Turbine\Application\ConfiguratorInterface;
+use TurbineTests\TestAsset\SharedTestController;
+use TurbineTests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\ServerRequestFactory;
@@ -21,9 +22,10 @@ use Zend\Diactoros\ServerRequestFactory;
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
 
-    public function testConfiguration(){
+    public function testConfiguration()
+    {
         $app = new Application(['foo' => 'bar']);
-        $this->assertInstanceOf(\ArrayAccess::class,$app->getConfig());
+        $this->assertInstanceOf(\ArrayAccess::class, $app->getConfig());
         $this->assertTrue($app->hasConfig('foo'));
         $this->assertEquals('bar', $app->getConfig('foo'));
         $app->setConfig(['baz' => 'far']);
@@ -32,11 +34,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $app->getConfig('bar'));
     }
 
-
-
-    public function testConfigurationFromArrayObject(){
+    public function testConfigurationFromArrayObject()
+    {
         $app = new Application(new \ArrayObject(['foo' => 'bar']));
-        $this->assertInstanceOf(\ArrayAccess::class,$app->getConfig());
+        $this->assertInstanceOf(\ArrayAccess::class, $app->getConfig());
         $this->assertTrue($app->hasConfig('foo'));
         $this->assertEquals('bar', $app->getConfig('foo'));
         $app->setConfig(['baz' => 'far']);
@@ -77,7 +78,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($app->getEmitter()->hasListeners('request.received'));
 
-        $app->get('/', function(){});
+        $app->get('/', function () {
+        });
 
         $foo = null;
         $app->subscribe('response.created', function ($event, $request, $response) use (&$foo) {
@@ -218,7 +220,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $request = ServerRequestFactory::fromGlobals();
         $app->handle($request, null, false);
     }
-
 
 
     public function testCustomEvents()
