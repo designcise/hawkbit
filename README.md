@@ -399,7 +399,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ## Events
 
-You can intercept requests and responses at three points during the lifecycle:
+You can intercept requests and responses at six points during the lifecycle:
 
 ### request.received
 
@@ -456,7 +456,7 @@ This event is always fired when an error occurs.
 ```php
 <?php
 
-$app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $errorResponse, $request, $response) {
+$app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, \Exception $exception, ServerRequestInterface $request, ResponseInterface $errorResponse, ResponseInterface $response) {
     //manipulate $errorResponse and process exception
 });
 ```
