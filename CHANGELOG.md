@@ -5,10 +5,20 @@
 ### Added
 
  - Add vagrant development environment
+ - Add shutdown event
 
 ### Altered
 
  - Delegate request content type to response
+ - rename `Application::cleanUp` to `Application::collectGarbage`
+ - rename `Application::finishRequest` to `Application::shutdown`
+ - rename `Application::subscribe` to `Application::addListener`
+ 
+### Deprecated
+
+ - `Application::cleanUp`
+ - `Application::finishRequest`
+ - `Application::subscribe`
 
 
 ## 1.1.5

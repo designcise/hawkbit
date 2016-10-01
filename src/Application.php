@@ -613,7 +613,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function throwException($exception)
     {
-        $this->finishRequest();
+        $this->shutdown();
         throw $exception;
     }
 
@@ -788,6 +788,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->terminate($request, $response);
         }
 
+        $this->shutdown($response);
+
         return $this;
     }
 
@@ -814,7 +816,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function terminate(ServerRequestInterface $request, ResponseInterface $response)
     {
         $this->emit(self::EVENT_LIFECYCLE_COMPLETE, $request, $response);
-        $this->finishRequest($response);
+
     }
 
     /**
@@ -823,10 +825,22 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * @param \Psr\Http\Message\ResponseInterface $response
      * @return void
      */
+    public function shutdown($response = null)
+    {
+        $this->collectGarbage();
+        $this->emit(self::EVENT_SHUTDOWN, $response, $this->terminateOutputBuffering(1, $response));
+    }
+
+    /**
+     * Finish request. Collect garbage and terminate output buffering
+     *
+     * @param \Psr\Http\Message\ResponseInterface $response
+     * @deprecated
+     * @return void
+     */
     public function finishRequest($response = null)
     {
-        $this->terminateOutputBuffering(0, $response);
-        $this->cleanUp();
+        $this->shutdown($response);
     }
 
     /**
@@ -834,6 +848,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @param int $level
      * @param null|\Psr\Http\Message\ResponseInterface $response
+     * @return array
      */
     public function terminateOutputBuffering($level = 0, $response = null)
     {
@@ -850,7 +865,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
         // Command line output buffering is disabled in cli by default
         if ( $this->isCli() ) {
-            return;
+            return [];
         }
 
         // $level needs to be a numeric value
@@ -871,15 +886,18 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         // terminate all output buffers until $level is 0 or desired level
+        // collect all contents and return
+        $content = [];
         while (ob_get_level() > $level) {
-            ob_end_clean();
+            $content[] = ob_get_clean();
         }
+        return $content;
     }
 
     /**
      * Perform garbage collection
      */
-    public function cleanUp()
+    public function collectGarbage()
     {
         // try to enable garbage collection
         if ( ! gc_enabled() ) {
@@ -891,6 +909,14 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if ( gc_enabled() ) {
             gc_collect_cycles();
         }
+    }
+
+    /**
+     * Perform garbage collection
+     * @deprecated
+     */
+    public function cleanUp(){
+        return $this->collectGarbage();
     }
 
     /**

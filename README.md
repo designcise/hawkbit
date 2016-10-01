@@ -419,7 +419,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ## Events
 
-You can intercept requests and responses at six points during the lifecycle:
+You can intercept requests and responses at seven points during the lifecycle:
 
 ### request.received
 
@@ -496,6 +496,20 @@ $app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $r
 ```
 
 This event is fired when a response has been output and before the application lifecycle is completed.
+
+### shutdown
+
+```php
+<?php
+
+$app->addListener($app::EVENT_SHUTDOWN, function ($event, $response, $terminatedOutputBuffers = []) {
+    // access the response using $event->getResponse()
+    // access terminated output buffer contents
+    // or force application exit()
+});
+```
+
+This event is always fired after each operation is completed or failed.
 
 ### Custom Events
 
