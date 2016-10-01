@@ -146,7 +146,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             }
         } else {
             $this->validateConfigKey($key);
-            $configurator[$key] = $value;
+            $configurator->offsetSet($key, $value);
         }
 
         return $this;
