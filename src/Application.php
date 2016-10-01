@@ -22,6 +22,7 @@ use League\Event\ListenerAcceptorInterface;
 use League\Route\RouteCollection;
 use League\Route\RouteCollectionInterface;
 use League\Route\RouteCollectionMapTrait;
+use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -325,9 +326,26 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->add(LoggerInterface::class, Logger::class);
         }
 
-        $this->loggers[$name] = $this->getContainer()->get(LoggerInterface::class, [$name]);
+
+        /** @var Logger $logger */
+        $logger = $this->getContainer()->get(LoggerInterface::class, [$name]);
+
+        // by default silence all loggers.
+        $logger->pushHandler(new NullHandler());
+
+        $this->loggers[$name] = $logger;
 
         return $this->validateContract($this->loggers[$name], LoggerInterface::class);
+    }
+
+    /**
+     * Get a list of logger names
+     *
+     * @return string[]
+     */
+    public function getLoggerNames()
+    {
+        return array_keys($this->loggers);
     }
 
     /**

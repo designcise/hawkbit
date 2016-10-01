@@ -22,6 +22,9 @@ use Zend\Diactoros\ServerRequestFactory;
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
 
+    /**
+     *
+     */
     public function testConfiguration()
     {
         $app = new Application(['foo' => 'bar']);
@@ -34,6 +37,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $app->getConfig('bar'));
     }
 
+    /**
+     *
+     */
     public function testConfigurationFromArrayObject()
     {
         $app = new Application(new \ArrayObject(['foo' => 'bar']));
@@ -46,6 +52,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('foo', $app->getConfig('bar'));
     }
 
+    /**
+     *
+     */
     public function testSetGet()
     {
         $app = new Application();
@@ -58,6 +67,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($logger, $app->getLogger('default'));
     }
 
+    /**
+     *
+     */
     public function testArrayAccessContainer()
     {
         $app = new Application();
@@ -67,6 +79,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(isset($app['foo']));
     }
 
+    /**
+     *
+     */
     public function testaddListener()
     {
         $app = new Application();
@@ -93,6 +108,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(200, $response->getStatusCode());
     }
 
+    /**
+     *
+     */
     public function testTerminate()
     {
         $app = new Application();
@@ -109,6 +127,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app->terminate($request, $response);
     }
 
+    /**
+     *
+     */
     public function testHandleSuccess()
     {
         $app = new Application();
@@ -135,6 +156,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('<h1>It works!</h1>', $content);
     }
 
+    /**
+     *
+     */
     public function testHandleControllerActionSuccess()
     {
         $app = new Application();
@@ -155,6 +179,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('getIndex', $content);
     }
 
+    /**
+     *
+     */
     public function testHandleAutoWiringControllerActionSuccess()
     {
         $app = new Application();
@@ -174,6 +201,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($app->getConfig('customValueFromController'), $content);
     }
 
+    /**
+     *
+     */
     public function testHandleWithOtherException()
     {
         $app = new Application();
@@ -190,6 +220,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(500, $response->getStatusCode());
     }
 
+    /**
+     *
+     */
     public function testExceptionHandling()
     {
         $app = new Application();
@@ -212,6 +245,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals('Fail', $toString);
     }
 
+    /**
+     *
+     */
     public function testNotFoundException()
     {
         $this->setExpectedException(NotFoundException::class);
@@ -222,6 +258,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
 
+    /**
+     *
+     */
     public function testCustomEvents()
     {
         $app = new Application();
@@ -235,6 +274,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($time !== null);
     }
 
+    /**
+     *
+     */
     public function testSetResponseEmitter()
     {
         $app = new Application();
@@ -270,6 +312,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app->terminate($app->getRequest(), $response);
     }
 
+    /**
+     *
+     */
     public function testRun()
     {
         $app = new Application();
@@ -294,6 +339,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         ob_get_clean();
     }
 
+    /**
+     *
+     */
     public function testEnvironment()
     {
         $app = new Application();
@@ -302,6 +350,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($app->isCli());
     }
 
+    /**
+     *
+     */
     public function testContainerHasNotClass()
     {
         $app = new Application();
@@ -309,6 +360,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertFalse($app->getContainer()->has(\SplMaxHeap::class), 'Should not assert true, when class exists but is not part of container');
     }
 
+    /**
+     *
+     */
     public function testContentTypeDelegation()
     {
         $app = new Application();
@@ -325,5 +379,16 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($request->getHeader('content-type'), $response->getHeader('content-type'));
     }
 
+    public function testGetLoggers()
+    {
+        $app = new Application();
+        $app->getLogger()->info('Hello there');
+        $app->getLogger('another')->info('Hallo!');
+
+        $this->assertTrue(in_array('default', $app->getLoggerNames()));
+        $this->assertTrue(in_array('another', $app->getLoggerNames()));
+        $this->assertFalse(in_array('nope', $app->getLoggerNames()));
+
+    }
 
 }
