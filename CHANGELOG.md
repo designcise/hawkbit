@@ -1,10 +1,34 @@
 # Blast Turbine Changelog
 
+## 1.1.6
+
+### Added
+
+ - Add vagrant development environment
+ - Add shutdown event
+ - Add logic to force response emitting if headers already send
+
+### Altered
+
+ - Delegate request content type to response
+ - Rename `Application::cleanUp` to `Application::collectGarbage`
+ - Rename `Application::finishRequest` to `Application::shutdown`
+ - Rename `Application::subscribe` to `Application::addListener`
+ - Enhance error handling for different content types
+ - Log application errors correctly, logging is silenced by default.
+ 
+### Deprecated
+
+ - `Application::cleanUp`
+ - `Application::finishRequest`
+ - `Application::subscribe`
+
+
 ## 1.1.5
 
 ### Added
 
- - Add `\Turbine\Application\ConfiguratorInterface` 
+ - Add `\Turbine\Application\ConfiguratorInterface`
 
 ### Altered
 

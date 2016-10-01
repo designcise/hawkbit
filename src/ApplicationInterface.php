@@ -50,6 +50,11 @@ interface ApplicationInterface
      */
     const EVENT_LIFECYCLE_COMPLETE = 'lifecycle.complete';
 
+    /**
+     * This event is fired on each shutdown.
+     */
+    const EVENT_SHUTDOWN = 'shutdown';
+
     const KEY_ERROR_CATCH = 'error.catch';
     const KEY_ERROR = 'error';
 

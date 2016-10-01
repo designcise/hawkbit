@@ -51,6 +51,24 @@ The following versions of PHP are supported by this version.
 * PHP 7.0
 * HHVM
 
+### Vagrant
+
+Blast Turbine use scotch box with additional xdebug support, modified php setup and mailcatcher for development.
+
+Please read <a href="https://box.scotch.io/" target="_blank">scotch box documentation</a> for more information.
+
+#### Project development
+
+If your project ist depending on `blast/turbine`, you may use the box your project development. You
+just need to install your composer dependencies and run following commands within your project 
+folder.
+
+```
+cp ./vendor/blast/turbine/public .
+cp ./vendor/blast/turbine/Vagrantfile .
+cp ./vendor/blast/turbine/provision .
+```
+
 ## Setup
 
 Create a new app
@@ -79,6 +97,7 @@ Add routes
 ```php
 <?php
 
+/** @var Turbine\Application $app */
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
     return $response;
@@ -116,7 +135,7 @@ $app->setConfig([
 ]);
 
 //add a single value
-$app->setConfig('baseurl' => 'localhost/');
+$app->setConfig('baseurl', 'localhost/');
 ```
 
 Access configuration
@@ -139,9 +158,7 @@ Basic usage with anonymous functions:
 
 ```php
 <?php
-
 // index.php
-<?php
 
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
@@ -168,7 +185,7 @@ Turbine allows to access `Turbine\Application` from anonymous function through c
 $app->get('/hello/{name}', function ($request, $response, $args) {
     
     // access Turbine\Application
-    $app = $this
+    $app = $this;
     
     $response->getBody()->write(
         sprintf('<h1>Hello, %s!</h1>', $args['name'])
@@ -197,7 +214,6 @@ $app->run();
 <?php
 
 // HomeController.php
-<?php
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -218,13 +234,12 @@ Automatic constructor injection of controllers:
 <?php
 
 // index.php
-<?php
 
 require __DIR__.'/../vendor/autoload.php';
 
 $app = new Turbine\Application();
 
-$app->share('App\CustomService', new App\CustomService)
+$app->share('CustomService', new \CustomService);
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
 $app->run();
@@ -234,7 +249,6 @@ $app->run();
 <?php
 
 // HomeController.php
-<?php
 
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -242,20 +256,20 @@ use Psr\Http\Message\ResponseInterface;
 class HomeController
 {
     /**
-     * @var App\CustomService
+     * @var CustomService
      */
     private $service;
 
     /**
-     * @param App\CustomService $application
+     * @param CustomService $application
      */
-    public function __construct(App\CustomService $service = null)
+    public function __construct(CustomService $service = null)
     {
         $this->service = $service;
     }
 
     /**
-     * @return App\CustomService
+     * @return CustomService
      */
     public function getService()
     {
@@ -308,7 +322,6 @@ Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 <?php
 
 // index.php
-<?php
 require __DIR__.'/../vendor/autoload.php';
 
 $app = new Turbine\Application();
@@ -336,6 +349,11 @@ Basic usage with Stratigility (using `Zend\Stratigility\MiddlewarePipe`):
 ```php
 <?php
 
+use Psr\Http\Message\ResponseInterface;
+use Zend\Diactoros\ServerRequestFactory;
+use Turbine\Application;
+use Turbine\Stratigility\MiddlewarePipeAdapter;
+
 $application = new Application();
 $application->get('/', function($request, ResponseInterface $response){
     $response->getBody()->write('Hello World');
@@ -346,11 +364,13 @@ $middleware = new MiddlewarePipeAdapter($application);
 $middleware->pipe('/', function($request, ResponseInterface $response, $next){
     $response->getBody()->write('<h1>');
 
+    /** @var ResponseInterface $response */
     $response = $next($request, $response);
 
     $response->getBody()->write('</h1>');
 });
 
+/** @var ResponseInterface $response */
 $response = $middleware(ServerRequestFactory::fromGlobals(), $application->getResponse());
 
 echo $response->getBody(); //prints <h1>Hello World</h1>
@@ -359,7 +379,7 @@ echo $response->getBody(); //prints <h1>Hello World</h1>
 
 ## Error handling
 
-Turbine is using Whoops error handling framework and determines the error handler by request content type.
+Turbine uses <a href="https://github.com/filp/whoops" target="_blank">Whoops</a> error handling framework and determines the error handler by request content type.
 
 Set your own handler:
 
@@ -399,14 +419,14 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ## Events
 
-You can intercept requests and responses at six points during the lifecycle:
+You can intercept requests and responses at seven points during the lifecycle:
 
 ### request.received
 
 ```php
 <?php
 
-$app->subscribe($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
+$app->addListener($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
     // manipulate request
 });
 ```
@@ -418,7 +438,7 @@ This event is fired when a request is received but before it has been processed 
 ```php
 <?php
 
-$app->subscribe($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
+$app->addListener($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
     //manipulate request or response
 });
 ```
@@ -430,7 +450,7 @@ This event is fired when a response has been created but before it has been outp
 ```php
 <?php
 
-$app->subscribe($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
+$app->addListener($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
     //manipulate request and response
 });
 ```
@@ -442,7 +462,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->subscribe($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
+$app->addListener($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
     //process exception
 });
 ```
@@ -456,7 +476,7 @@ This event is always fired when an error occurs.
 ```php
 <?php
 
-$app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, \Exception $exception, ServerRequestInterface $request, ResponseInterface $errorResponse, ResponseInterface $response) {
+$app->addListener($app::EVENT_LIFECYCLE_ERROR, function ($event, \Exception $exception, ServerRequestInterface $request, ResponseInterface $errorResponse, ResponseInterface $response) {
     //manipulate $errorResponse and process exception
 });
 ```
@@ -469,13 +489,27 @@ This event is fired after runtime.error
 ```php
 <?php
 
-$app->subscribe($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
+$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
-})
+});
 ```
 
 This event is fired when a response has been output and before the application lifecycle is completed.
+
+### shutdown
+
+```php
+<?php
+
+$app->addListener($app::EVENT_SHUTDOWN, function ($event, $response, $terminatedOutputBuffers = []) {
+    // access the response using $event->getResponse()
+    // access terminated output buffer contents
+    // or force application exit()
+});
+```
+
+This event is always fired after each operation is completed or failed.
 
 ### Custom Events
 
@@ -484,8 +518,8 @@ You can fire custom events using the event emitter directly:
 ```php
 <?php
 
-// Subscribe
-$app->subscribe('custom.event', function ($event, $time) {
+// addListener
+$app->addListener('custom.event', function ($event, $time) {
     return 'the time is '.$time;
 });
 
@@ -501,16 +535,17 @@ You can bind singleton objects into the container from the main application obje
 
 ```php
 <?php
-
-$app['db'] = function () {
+/** @var Turbine\Application $app */
+$app['db'] = function () use($app) {
+    $config = $app->getConfig('database');
     $manager = new Illuminate\Database\Capsule\Manager;
 
     $manager->addConnection([
         'driver'    => 'mysql',
-        'host'      => $config['db_host'],
-        'database'  => $config['db_name'],
-        'username'  => $config['db_user'],
-        'password'  => $config['db_pass'],
+        'host'      => $config['host'],
+        'database'  => $config['name'],
+        'username'  => $config['user'],
+        'password'  => $config['pass'],
         'charset'   => 'utf8',
         'collation' => 'utf8_unicode_ci'
     ], 'default');
@@ -525,8 +560,9 @@ or by accessing the container directly:
 
 ```php
 <?php
-
-$app->getContainer()->share('db', function () {
+/** @var Turbine\Application $app */
+$app->getContainer()->share('db', function () use($app) {
+    $config = $app->getConfig('database');
     $manager = new Illuminate\Database\Capsule\Manager;
 
     $manager->addConnection([
@@ -618,7 +654,7 @@ $app->getConfigurator();
 ```php
 <?php
 
-$app->getContainer()->share(\ArrayAccess::class, \ArrayObject::class)
+$app->getContainer()->share(\Turbine\Application\ConfiguratorInterface::class, \ArrayObject::class);
 ```
 
 ### error handler
@@ -632,7 +668,7 @@ $app->getContainer()->share(\Whoops\Run::class, new \Whoops\Run());
 ```php
 <?php
 
-$app->getErrorHandler()
+$app->getErrorHandler();
 ``` 
 
 ### error response handler
@@ -646,7 +682,7 @@ $app->getContainer()->share(\Whoops\Handler\HandlerInterface::class, Acme\ErrorR
 ```php
 <?php
 
-$app->getErrorResponseHandler()
+$app->getErrorResponseHandler();
 ``` 
 
 ### psr logger
@@ -665,6 +701,14 @@ $app->getContainer()->add(\Psr\Log\LoggerInterface::class, \Monolog\Logger::clas
 $app->getLogger('channel name');
 ``` 
 
+Get a list of available logger channels
+
+```php
+<?php
+
+$app->getLoggerChannels();
+```
+
 ### psr server request
 
 ```php
@@ -676,7 +720,7 @@ $app->getContainer()->share(\Psr\Http\Message\ServerRequestInterface::class, \Ze
 ```php
 <?php
 
-$app->getRequest()
+$app->getRequest();
 ``` 
 
 ### psr response
@@ -690,7 +734,7 @@ $app->getContainer()->add(\Psr\Http\Message\ResponseInterface::class, \Zend\Diac
 ```php
 <?php
 
-$app->getRequest()
+$app->getRequest();
 ``` 
 
 ### response emitter
@@ -704,7 +748,7 @@ $app->getContainer()->share(\Zend\Diactoros\Response\EmitterInterface::class, \Z
 ```php
 <?php
 
-$app->getResponseEmitter()
+$app->getResponseEmitter();
 ``` 
 
 
