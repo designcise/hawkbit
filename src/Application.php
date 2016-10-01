@@ -87,6 +87,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     private $terminate = true;
 
     /**
+     * Flag which forces response emitting and ignores already sended output
+     *
+     * @var bool
+     */
+    private $forceResponseEmitting = false;
+
+    /**
      * New Application.
      *
      * @param bool|array $configuration Enable debug mode
@@ -474,10 +481,30 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * Set terminating flag
      *
      * @param boolean $terminate
+     * @return $this
      */
     public function setCanTerminate($terminate)
     {
         $this->terminate = $terminate;
+        return $this;
+    }
+
+    /**
+     * @return boolean
+     */
+    public function canForceResponseEmitting()
+    {
+        return $this->forceResponseEmitting;
+    }
+
+    /**
+     * @param boolean $forceResponseEmitting
+     * @return $this
+     */
+    public function setForceResponseEmitting($forceResponseEmitting)
+    {
+        $this->forceResponseEmitting = $forceResponseEmitting;
+        return $this;
     }
 
     /*******************************************
