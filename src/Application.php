@@ -1,6 +1,6 @@
 <?php
 /**
- * The Proton Micro Framework.
+ * The Turbine Micro framework. An advanced Proton Micro Framework Derivate.
  *
  * @author  Alex Bilbie <hello@alexbilbie.com>
  * @author  Marco Bunge <marco_bunge@web.de>
