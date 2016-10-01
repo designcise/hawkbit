@@ -350,7 +350,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * @param string $content
      * @return \Psr\Http\Message\ResponseInterface
      */
-    public function getResponse($content = '')
+    public function getResponse($content = '', $contentType = null)
     {
         //transform content by environment and request type
         if ( $this->isAjaxRequest() ) {
@@ -378,8 +378,19 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->add(ResponseInterface::class, $class);
         }
 
-        return $this->validateContract($this->getContainer()->get(ResponseInterface::class, [$content]),
+        /** @var ResponseInterface $response */
+        $response = $this->validateContract($this->getContainer()->get(ResponseInterface::class, [$content]),
             ResponseInterface::class);
+
+        //inject request content type
+        $request = $this->getRequest();
+
+        $contentTypeKey = 'content-type';
+        foreach ($request->getHeader($contentTypeKey) as $contentType){
+            $response = $response->withHeader($contentTypeKey, $contentType);
+        }
+
+        return $response;
     }
 
 
