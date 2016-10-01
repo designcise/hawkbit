@@ -1,10 +1,21 @@
 # Blast Turbine Changelog
 
+## 1.1.6
+
+### Added
+
+ - Add vagrant development environment
+
+### Altered
+
+ - Delegate request content type to response
+
+
 ## 1.1.5
 
 ### Added
 
- - Add `\Turbine\Application\ConfiguratorInterface` 
+ - Add `\Turbine\Application\ConfiguratorInterface`
 
 ### Altered
 
