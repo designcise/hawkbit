@@ -15,7 +15,7 @@
  - Rename `Application::finishRequest` to `Application::shutdown`
  - Rename `Application::subscribe` to `Application::addListener`
  - Enhance error handling for different content types
- - Log application errors correctly
+ - Log application errors correctly, logging is silenced by default.
  
 ### Deprecated
 

@@ -335,7 +335,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $logger = $this->getContainer()->get(LoggerInterface::class, [$name]);
 
         // by default silence all loggers.
-//        $logger->pushHandler(new NullHandler());
+        $logger->pushHandler(new NullHandler());
 
         $this->loggers[$name] = $logger;
 
@@ -347,7 +347,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @return string[]
      */
-    public function getLoggerNames()
+    public function getLoggerChannels()
     {
         return array_keys($this->loggers);
     }

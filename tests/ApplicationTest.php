@@ -385,9 +385,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app->getLogger()->info('Hello there');
         $app->getLogger('another')->info('Hallo!');
 
-        $this->assertTrue(in_array('default', $app->getLoggerNames()));
-        $this->assertTrue(in_array('another', $app->getLoggerNames()));
-        $this->assertFalse(in_array('nope', $app->getLoggerNames()));
+        $this->assertTrue(in_array('default', $app->getLoggerChannels()));
+        $this->assertTrue(in_array('another', $app->getLoggerChannels()));
+        $this->assertFalse(in_array('nope', $app->getLoggerChannels()));
 
     }
 

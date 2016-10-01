@@ -701,6 +701,14 @@ $app->getContainer()->add(\Psr\Log\LoggerInterface::class, \Monolog\Logger::clas
 $app->getLogger('channel name');
 ``` 
 
+Get a list of available logger channels
+
+```php
+<?php
+
+$app->getLoggerChannels();
+```
+
 ### psr server request
 
 ```php
