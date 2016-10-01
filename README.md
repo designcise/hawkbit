@@ -6,13 +6,50 @@
 [![Total Downloads][ico-downloads]][link-downloads]
 [![Coverage Status][ico-coveralls]][link-coveralls]
 
-Turbine is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message) and [StackPHP](http://stackphp.com/) compatible micro framework.
+Turbine is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/), [Zend Stratigility](https://github.com/zendframework/zend-stratigility) compatible micro framework.
 
 Turbine uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
 
-## Installation
+## Install
 
-Just add `"blast/turbine": "~1.0"` to your `composer.json` file.
+### Using Composer
+
+Turbine is available on [Packagist](https://packagist.org/packages/blast/turbine) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
+
+```bash
+composer require blast/turbine
+```
+
+composer.json
+
+```javascript
+{
+    "require": {
+        "blast/turbine": "~1.0"
+    }
+}
+```
+
+Be sure to also include your Composer autoload file in your project:
+
+```php
+<?php
+
+require __DIR__ . '/vendor/autoload.php';
+```
+
+### Downloading .zip file
+
+This project is also available for download as a `.zip` file on GitHub. Visit the [releases page](https://github.com/phpthinktank/blast-turbine/releases), select the version you want, and click the "Source code (zip)" download button.
+
+### Requirements
+
+The following versions of PHP are supported by this version.
+
+* PHP 5.5
+* PHP 5.6
+* PHP 7.0
+* HHVM
 
 ## Setup
 
@@ -96,6 +133,8 @@ $app->getConfig('database');
 
 ## Routing
 
+Turbine is using routing integration of `league/route` and allows access to route collection methods directly.
+
 Basic usage with anonymous functions:
 
 ```php
@@ -119,12 +158,30 @@ $app->get('/hello/{name}', function ($request, $response, $args) {
 $app->run();
 ```
 
-Basic usage with controllers:
+#### Access app from anonymous function
+
+Turbine allows to access `Turbine\Application` from anonymous function through closure binding.
 
 ```php
 <?php
 
-// index.php
+$app->get('/hello/{name}', function ($request, $response, $args) {
+    
+    // access Turbine\Application
+    $app = $this
+    
+    $response->getBody()->write(
+        sprintf('<h1>Hello, %s!</h1>', $args['name'])
+    );
+    return $response;
+});
+
+```
+
+
+Basic usage with controllers:
+
+```php
 <?php
 
 require __DIR__.'/../vendor/autoload.php';
@@ -215,6 +272,31 @@ class HomeController
     }
 }
 ```
+
+For more information about routes [read this guide](http://route.thephpleague.com/)
+
+### Route groups
+
+Turbine add support for route groups. 
+
+```php
+<?php
+
+$app->group('/admin', function ($route) {
+
+    //access app container (or any other method!)
+    $app = $this;
+    
+    $route->map('GET', '/acme/route1', 'AcmeController::actionOne');
+    $route->map('GET', '/acme/route2', 'AcmeController::actionTwo');
+    $route->map('GET', '/acme/route3', 'AcmeController::actionThree');
+});
+```
+
+#### Available vars
+
+- `$route` - `\League\Route\RouteGroup`
+- `$this` - `\Turbine\Application`
 
 ## Middleware integrations
 
@@ -317,7 +399,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ## Events
 
-You can intercept requests and responses at three points during the lifecycle:
+You can intercept requests and responses at six points during the lifecycle:
 
 ### request.received
 
@@ -374,7 +456,7 @@ This event is always fired when an error occurs.
 ```php
 <?php
 
-$app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $errorResponse, $request, $response) {
+$app->subscribe($app::EVENT_LIFECYCLE_ERROR, function ($event, \Exception $exception, ServerRequestInterface $request, ResponseInterface $errorResponse, ResponseInterface $response) {
     //manipulate $errorResponse and process exception
 });
 ```

@@ -1,5 +1,46 @@
 # Blast Turbine Changelog
 
+## 1.1.5
+
+### Added
+
+ - Add `\Turbine\Application\ConfiguratorInterface` 
+
+### Altered
+
+ - `Application::getConfigurator` is now bound to `\Turbine\Application\ConfiguratorInterface` contract
+
+## 1.1.4
+
+### Fixes
+
+- [\#9](../../issues/9) If class exists and is not part of container, `League\Container\Container::has` returns now false.
+
+## 1.1.3
+
+### Altered
+
+- Accept and process `\ArrayAccess` and `\Traversable` as configuration
+
+## 1.1.2
+
+### Altered
+
+ - Replace applications [route collection methods](https://github.com/thephpleague/route/blob/master/src/RouteCollectionInterface.php) with `\League\Route\RouteCollectionMapTrait`
+ - Application implements `\League\Route\RouteCollectionInterface`
+ - add `\League\Route\RouteCollectionInterface::map()` 
+ - add `\Turbine\Application::group()` for creating route groups, see [documentation](http://route.thephpleague.com/route-groups/)
+
+### Deprecated
+
+ - `\Turbine\Application::subscribe()`
+
+## 1.1.1
+
+### Altered
+
+ - Upgrade `league/route` from dev-develop to stable 2.x (`~2.0`) release
+
 ## 1.1.0
 
 ### Added
@@ -15,6 +56,7 @@
  - remove possibilty to configure events, routes and services by callables
  - rename `Turbine\Psr7\TerminableInterface` to `Turbine\TerminableInterface`
  - rename debug config option to error
+ - change configuration engine from `array` to instance of `\ArrayAccess`
  - Signature changes of `Turbine\Application::handle`, `Turbine\Application::run`, `Turbine\Application::__construct`, `Turbine\Application::handleErrors` 
 
 ### Removed
