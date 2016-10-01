@@ -825,10 +825,27 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @param \Psr\Http\Message\ServerRequestInterface $request
      * @param \Psr\Http\Message\ResponseInterface $response
+     * @throws \Exception
      */
     public function emitResponse(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $this->getResponseEmitter()->emit($response);
+        try {
+            $this->getResponseEmitter()->emit($response);
+        }catch (\Exception $e){
+            if($this->canForceResponseEmitting()){
+                // flush buffers
+                $maxBufferLevel = ob_get_level();
+
+                while (ob_get_level() > $maxBufferLevel) {
+                    ob_end_flush();
+                }
+
+                // print response
+                echo $response->getBody();
+            }else{
+                throw $e;
+            }
+        }
         $this->emit(self::EVENT_RESPONSE_SENT, $request, $response);
     }
 
