@@ -265,7 +265,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if (!$this->getContainer()->has(Run::class)) {
             $errorHandler = new Run();
             $errorHandler->pushHandler($this->getErrorResponseHandler());
-            $errorHandler->pushHandler(function ($exception) {
+            $errorHandler->pushHandler(function (\Exception $exception) {
+
+                // log all errors
+                $this->getLogger()->error($exception->getMessage());
+
+                // emit runtime error event
                 $this->emit(static::EVENT_RUNTIME_ERROR, $exception);
 
                 return Handler::DONE;
@@ -326,12 +331,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->add(LoggerInterface::class, Logger::class);
         }
 
-
         /** @var Logger $logger */
         $logger = $this->getContainer()->get(LoggerInterface::class, [$name]);
 
         // by default silence all loggers.
-        $logger->pushHandler(new NullHandler());
+//        $logger->pushHandler(new NullHandler());
 
         $this->loggers[$name] = $logger;
 
