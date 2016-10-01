@@ -95,6 +95,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     private $forceResponseEmitting = false;
 
     /**
+     * Get content type of current request or response
+     *
+     * @var string
+     */
+    private $contentType = 'text/html';
+
+    /**
      * New Application.
      *
      * @param bool|array $configuration Enable debug mode
@@ -258,7 +265,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $errorHandler = new Run();
             $errorHandler->pushHandler($this->getErrorResponseHandler());
             $errorHandler->pushHandler(function ($exception) {
-                $this->emit(static::EVENT_RUNTIME_ERROR, [$exception]);
+                $this->emit(static::EVENT_RUNTIME_ERROR, $exception);
 
                 return Handler::DONE;
             });
@@ -347,11 +354,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function getRequest()
     {
         if (!$this->getContainer()->has(ServerRequestInterface::class)) {
-            $this->getContainer()->share(ServerRequestInterface::class, ServerRequestFactory::fromGlobals());
+            $this->getContainer()->share(ServerRequestInterface::class, ServerRequestFactory::fromGlobals()->withHeader('content-type', $this->getContentType()));
         }
 
-        return $this->validateContract($this->getContainer()->get(ServerRequestInterface::class),
+        $request = $this->validateContract($this->getContainer()->get(ServerRequestInterface::class),
             ServerRequestInterface::class);
+        return $request;
     }
 
     /**
@@ -363,7 +371,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function getResponse($content = '', $contentType = null)
     {
         //transform content by environment and request type
-        if ($this->isAjaxRequest()) {
+        if ($this->isAjaxRequest() || $this->isJsonRequest()) {
             if ($content instanceof Response\JsonResponse) {
                 $content = json_decode($content->getBody());
             } elseif (!is_array($content)) {
@@ -381,7 +389,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
                 $class = Response\TextResponse::class;
             } elseif ($this->isAjaxRequest()) {
                 $class = Response\JsonResponse::class;
-
             } else {
                 $class = Response\HtmlResponse::class;
             }
@@ -426,6 +433,24 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
 
     /**
+     * @return string
+     */
+    public function getContentType()
+    {
+        return $this->contentType;
+    }
+
+    /**
+     * @param string $contentType
+     * @return Application
+     */
+    public function setContentType($contentType)
+    {
+        $this->contentType = $contentType;
+        return $this;
+    }
+
+    /**
      * Check if request is a ajax request
      *
      * @return bool
@@ -448,7 +473,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
         return
             false !== strpos(
-                strtolower(ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), '')),
+                $this->getContentType(),
                 'json'
             ) && $this->isHttpRequest();
     }
@@ -462,7 +487,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
         return
             false !== strpos(
-                strtolower(ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), '')),
+                $this->getContentType(),
                 'soap'
             ) && $this->isHttpRequest();
     }
@@ -476,7 +501,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
         return
             false !== strpos(
-                strtolower(ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), '')),
+                $this->getContentType(),
                 'xml'
             ) && $this->isHttpRequest();
     }
@@ -759,6 +784,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         // Passes the request to the container
         $this->getContainer()->share(ServerRequestInterface::class, $request);
 
+        //inject request content type
+        $this->setContentType(ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), ''));
+
         if ($response === null) {
             $response = $this->getResponse();
         }
@@ -770,6 +798,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $response = $this->handleError($exception, $request, $response, $catch)
                 ->withStatus($exception instanceof NotFoundException ? 404 : 500);
         }
+
+        $this->setContentType(ServerRequestFactory::getHeader('content-type', $this->getResponse()->getHeaders(), ''));
 
         return $response;
     }
@@ -851,10 +881,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
         if ($request === null) {
             $request = $this->getRequest();
-        }
-
-        if ($response === null) {
-            $response = $this->getResponse();
         }
 
         $response = $this->handle($request, $response);
