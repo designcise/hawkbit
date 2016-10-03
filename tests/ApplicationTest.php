@@ -20,6 +20,7 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Turbine\Application;
+use Turbine\Application\ApplicationEvent;
 use Turbine\Tests\TestAsset\SharedTestController;
 use Turbine\Tests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
@@ -91,11 +92,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testaddListener()
     {
-        $app = new Application();
+        $app = new Application(true);
 
-        $app->addListener('request.received', function ($event, $request) {
-            $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+        $app->addListener('request.received', function (ApplicationEvent $event) {
+            $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
         });
 
         $this->assertTrue($app->getEmitter()->hasListeners('request.received'));
@@ -104,7 +104,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         });
 
         $foo = null;
-        $app->addListener('response.created', function ($event, $request, $response) use (&$foo) {
+        $app->addListener('response.created', function ($event) use (&$foo) {
             $foo = 'bar';
         });
 
@@ -122,10 +122,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
-        $app->addListener('response.sent', function ($event, $request, $response) {
+        $app->addListener('response.sent', function (ApplicationEvent $event) {
             $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
-            $this->assertInstanceOf(ResponseInterface::class, $response);
+            $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
+            $this->assertInstanceOf(ResponseInterface::class, $event->getResponse());
         });
 
         $request = ServerRequestFactory::fromGlobals();
@@ -218,7 +218,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->addListener($app::EVENT_REQUEST_RECEIVED, function ($event, $request, $response) {
+        $app->addListener($app::EVENT_REQUEST_RECEIVED, function ($event) {
             throw new \Exception('A test exception');
         });
 
@@ -241,8 +241,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf(\Exception::class, $exception);
         });
 
-        $app->addListener($app::EVENT_LIFECYCLE_ERROR, function ($event, $exception, $request, ResponseInterface $errorResponse) use ($app) {
-            $errorResponse->getBody()->write('Fail');
+        $app->addListener($app::EVENT_LIFECYCLE_ERROR, function (ApplicationEvent $event, $exception) use ($app) {
+            $event->getErrorResponse()->getBody()->write('Fail');
         });
 
         $response = $app->handle($request);
@@ -295,28 +295,24 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app->getContainer()->add(EmitterInterface::class, new SapiStreamEmitter());
 
-        $app->addListener($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
-            $this->assertInstanceOf(Event::class, $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
-        });
-        $app->addListener($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
-            $this->assertInstanceOf(Event::class, $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
-            $this->assertInstanceOf(ResponseInterface::class, $response);
-        });
-        $app->addListener($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
-            $this->assertInstanceOf(Event::class, $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
-            $this->assertInstanceOf(ResponseInterface::class, $response);
-        });
-        $app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
-            $this->assertInstanceOf(Event::class, $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
-            $this->assertInstanceOf(ResponseInterface::class, $response);
+        $app->addListener($app::EVENT_REQUEST_RECEIVED, function (ApplicationEvent $event) {
+            $this->assertInstanceOf(ApplicationEvent::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
         });
 
-        $response = $app->handle(ServerRequestFactory::fromGlobals());
-        $app->terminate($app->getRequest(), $response);
+        $requestResponseCallback = function (ApplicationEvent $event) {
+            $this->assertInstanceOf(ApplicationEvent::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
+            $this->assertInstanceOf(ResponseInterface::class, $event->getResponse());
+        };
+
+        $app->addListener($app::EVENT_RESPONSE_CREATED, $requestResponseCallback);
+        $app->addListener($app::EVENT_RESPONSE_SENT, $requestResponseCallback);
+        $app->addListener($app::EVENT_LIFECYCLE_COMPLETE, $requestResponseCallback);
+
+        ob_start();
+        $app->run(ServerRequestFactory::fromGlobals());
+        ob_end_clean();
     }
 
     /**
@@ -331,14 +327,14 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
-        $app->addListener('request.received', function ($event, $request) {
-            $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
+        $app->addListener('request.received', function (ApplicationEvent $event) {
+            $this->assertInstanceOf(ApplicationEvent::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
         });
-        $app->addListener('response.sent', function ($event, $request, $response) {
-            $this->assertInstanceOf('League\Event\Event', $event);
-            $this->assertInstanceOf(ServerRequestInterface::class, $request);
-            $this->assertInstanceOf(ResponseInterface::class, $response);
+        $app->addListener('response.sent', function (ApplicationEvent $event) {
+            $this->assertInstanceOf(ApplicationEvent::class, $event);
+            $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
+            $this->assertInstanceOf(ResponseInterface::class, $event->getResponse());
         });
 
         ob_start();

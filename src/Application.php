@@ -30,6 +30,7 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
+use Turbine\Application\ApplicationEvent;
 use Turbine\Application\ApplicationRunnerMiddleware;
 use Turbine\Application\HttpMiddlewareInterface;
 use Whoops\Handler\Handler;
@@ -111,6 +112,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * @var Middleware[]
      */
     private $middlewares = [];
+
+    /** @var ApplicationEvent */
+    private $applicationEvent;
 
     /**
      * New Application.
@@ -310,7 +314,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
                 $this->getLogger()->error($exception->getMessage());
 
                 // emit runtime error event
-                $this->emit(static::EVENT_RUNTIME_ERROR, $exception);
+                $applicationEvent = $this->getApplicationEvent();
+                $applicationEvent->setName(static::EVENT_RUNTIME_ERROR);
+                $this->emit($applicationEvent, $exception);
 
                 return Handler::DONE;
             });
@@ -860,8 +866,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $response = $this->getResponse();
         }
 
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setRequest($request);
+        $applicationEvent->setResponse($response);
+
         try {
-            $response = $this->handleRequest($request, $response);
+            $request = $this->handleRequest($request);
+            $response = $this->handleResponse($request, $response);
         } catch (\Exception $exception) {
 
             $response = $this->handleError($exception, $request, $response, $catch)
@@ -877,21 +888,36 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * Convert request into response.
      *
      * @param ServerRequestInterface $request
+     * @return ResponseInterface
+     */
+    public function handleRequest(ServerRequestInterface $request)
+    {
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setName(self::EVENT_REQUEST_RECEIVED);
+        $this->emit($applicationEvent, $request);
+
+        return $applicationEvent->getRequest();
+    }
+
+    /**
+     * Handle Response
+     *
+     * @param ServerRequestInterface $request
      * @param ResponseInterface $response
      * @return ResponseInterface
      */
-    public function handleRequest(ServerRequestInterface $request, ResponseInterface $response)
+    public function handleResponse(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $this->emit(self::EVENT_REQUEST_RECEIVED, $request);
-
-        $response = $this->getRouter()->dispatch(
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setName(self::EVENT_RESPONSE_CREATED);
+        $applicationEvent->setResponse($this->getRouter()->dispatch(
             $request,
             $response
-        );
+        ));
 
-        $this->emit(self::EVENT_RESPONSE_CREATED, $request, $response);
+        $this->emit($applicationEvent, $request, $response);
 
-        return $response;
+        return $applicationEvent->getResponse();
     }
 
     /**
@@ -997,7 +1023,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
                 throw $e;
             }
         }
-        $this->emit(self::EVENT_RESPONSE_SENT, $request, $response);
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setName(self::EVENT_RESPONSE_SENT);
+        $applicationEvent->setRequest($request);
+        $applicationEvent->setResponse($response);
+        $this->emit($applicationEvent);
     }
 
     /**
@@ -1010,7 +1040,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function terminate(ServerRequestInterface $request, ResponseInterface $response)
     {
-        $this->emit(self::EVENT_LIFECYCLE_COMPLETE, $request, $response);
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setRequest($request);
+        $applicationEvent->setResponse($response);
+        $applicationEvent->setName(self::EVENT_LIFECYCLE_COMPLETE);
+        $this->emit($applicationEvent);
 
     }
 
@@ -1022,8 +1056,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function shutdown($response = null)
     {
+
         $this->collectGarbage();
-        $this->emit(self::EVENT_SHUTDOWN, $response, $this->terminateOutputBuffering(1, $response));
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setResponse($response);
+        $applicationEvent->setName(self::EVENT_SHUTDOWN);
+        $this->emit($applicationEvent, $this->terminateOutputBuffering(1, $response));
     }
 
     /**
@@ -1193,9 +1231,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         ServerRequestInterface $request
     )
     {
-        $errorResponse = $this->getResponse();
-        $this->emit(self::EVENT_LIFECYCLE_ERROR, $exception, $request, $errorResponse, $response);
+
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setName(self::EVENT_LIFECYCLE_ERROR);
+        $applicationEvent->setErrorResponse($this->getResponse());
+
+        $this->emit($applicationEvent, $exception);
         $this->error = true;
+
+        $errorResponse = $applicationEvent->getErrorResponse();
 
         if (!$errorResponse->getBody()->isWritable()) {
             return $errorResponse;
@@ -1207,6 +1251,17 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         }
 
         return $errorResponse;
+    }
+
+    /**
+     * @return ApplicationEvent
+     */
+    public function getApplicationEvent()
+    {
+        if(null === $this->applicationEvent){
+            $this->applicationEvent = new ApplicationEvent();
+        }
+        return $this->applicationEvent;
     }
 
     /**
