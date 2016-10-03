@@ -34,13 +34,14 @@ class ServiceProvidersFromConfigMiddleware implements Middleware
         }
 
         $configKey = $this->configKey;
-        if(!$command->hasConfig($configKey)){
+        $hasConfig = $command->hasConfig($configKey);
+        if(!$hasConfig){
             return $next($command);
         }
 
         $providers = $command->getConfig($configKey);
 
-        if(is_array($providers)){
+        if(is_array($providers) || $providers instanceof \Traversable){
             foreach ($providers as $provider){
                 $command->getContainer()->addServiceProvider($provider);
             }

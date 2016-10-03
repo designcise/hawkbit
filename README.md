@@ -172,7 +172,7 @@ Create your configuration
 //config.php
 
 return [
-    'serviceProviders' => [
+    'providers' => [
         Acme\ServiceProvider::class
     ]
 ];

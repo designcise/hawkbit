@@ -1,6 +1,6 @@
 # Blast Turbine Changelog
 
-## 2.0.0
+## 1.2.0
 
  - Add `\Zend\Config\Config` as default configuration storage
  - Add `\League\Tactician` for dispatching middlewares and provide advanced control of application lifecycle
