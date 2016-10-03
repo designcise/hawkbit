@@ -1,9 +1,10 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: marco.bunge
- * Date: 21.08.2016
- * Time: 18:36
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
+ *
+ * @author  Marco Bunge <marco_bunge@web.de>
+ *
+ * @license MIT
  */
 
 use Psr\Http\Message\ResponseInterface;

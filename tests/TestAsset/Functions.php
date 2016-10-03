@@ -18,6 +18,7 @@
  * @copyright Copyright (c) 2015 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   https://github.com/zendframework/zend-diactoros/blob/master/LICENSE.md New BSD License
  */
+
 namespace ZendTest\Diactoros\TestAsset;
 /**
  * Store output artifacts

@@ -1,17 +1,14 @@
 <?php
-/*
-*
-* (c) Marco Bunge <marco_bunge@web.de>
-*
-* For the full copyright and license information, please view the LICENSE.txt
-* file that was distributed with this source code.
-*
-* Date: 05.03.2016
-* Time: 00:00
-*/
+/**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
+ *
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @copyright Marco Bunge <marco_bunge@web.de>
+ *
+ * @license MIT
+ */
 
 namespace Turbine;
-
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
