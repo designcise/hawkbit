@@ -28,6 +28,7 @@
     "league/route": "~2.0",
     "league/container": "~2.0",
     "league/event": "~2.1",
+    "league/tactician": "^1.0.2",
     "filp/whoops": "~2.0",
     "monolog/monolog": "~1.12",
     "zendframework/zend-config": "^2.6",

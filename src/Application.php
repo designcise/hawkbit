@@ -22,11 +22,16 @@ use League\Event\ListenerAcceptorInterface;
 use League\Route\RouteCollection;
 use League\Route\RouteCollectionInterface;
 use League\Route\RouteCollectionMapTrait;
+use League\Tactician\CommandBus;
+use League\Tactician\Handler\CommandHandlerMiddleware;
+use League\Tactician\Middleware;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
+use Turbine\Application\ApplicationRunnerMiddleware;
+use Turbine\Application\HttpMiddlewareInterface;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -103,6 +108,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     private $contentType = 'text/html';
 
     /**
+     * @var Middleware[]
+     */
+    private $middlewares = [];
+
+    /**
      * New Application.
      *
      * @param bool|array $configuration Enable debug mode
@@ -136,7 +146,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function setConfig($key, $value = null)
     {
-
         $configurator = $this->getConfigurator();
         if(is_array($key) || $key instanceof \ArrayAccess){
             $configurator->merge(new Config((array) $key, true));
@@ -182,6 +191,42 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $configurator = $this->getConfigurator();
 
         return isset($configurator[$key]);
+    }
+
+
+    /*******************************************
+     *
+     *           Middleware
+     *
+     */
+
+    /**
+     * Add a middleware
+     *
+     * @param $middleware
+     */
+    public function addMiddleware(Middleware $middleware){
+        $this->middlewares[] = $middleware;
+    }
+
+    /**
+     * @return \League\Tactician\Middleware[]
+     */
+    public function getMiddlewares()
+    {
+        return $this->middlewares;
+    }
+
+    /**
+     * Execute middlewares
+     *
+     * @param $middlewares
+     * @return mixed
+     */
+    public function handleMiddlewares($command, $middlewares){
+        // run middlewares for manipulating application
+        $commandBus = new CommandBus($middlewares);
+        return $commandBus->handle($command);
     }
 
     /*******************************************
@@ -803,9 +848,10 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $catch = self::DEFAULT_ERROR_CATCH
     )
     {
-
         // Passes the request to the container
-        $this->getContainer()->share(ServerRequestInterface::class, $request);
+        if(!$this->getContainer()->has(ServerRequestInterface::class)){
+            $this->getContainer()->share(ServerRequestInterface::class, $request);
+        }
 
         //inject request content type
         $this->setContentType(ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), ''));
@@ -906,15 +952,21 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $request = $this->getRequest();
         }
 
-        $response = $this->handle($request, $response);
+        $hasApplicationRunnerMiddleware = false;
 
-        $this->emitResponse($request, $response);
-
-        if ($this->canTerminate()) {
-            $this->terminate($request, $response);
+        // check if
+        foreach ($this->middlewares as $middleware){
+            if($middleware instanceof HttpMiddlewareInterface){
+                $hasApplicationRunnerMiddleware = true;
+                break;
+            }
         }
 
-        $this->shutdown($response);
+        if(false === $hasApplicationRunnerMiddleware){
+            $this->addMiddleware(new ApplicationRunnerMiddleware($request, $response));
+        }
+
+        $this->handleMiddlewares($this, $this->getMiddlewares());
 
         return $this;
     }

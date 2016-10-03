@@ -150,6 +150,63 @@ $app->getConfig();
 $app->getConfig('database');
 ```
 
+## Middlewares
+
+Turbine middlewares allows advanced control of lifecycle execution.
+ 
+Turbine uses `Turbine\ApplicationRunnerMiddeware` by default, if no middleware with interface 
+`Turubine\HttpMiddlewareInterface` exists. 
+
+```php
+$app->addMiddleware(new Acme\ApplicationRunnerMiddleware);
+```
+
+### Using middlewares
+
+#### Automatically register ServiceProviders from Config
+
+Create your configuration
+
+```php
+<?php
+//config.php
+
+return [
+    'serviceProviders' => [
+        Acme\ServiceProvider::class
+    ]
+];
+```
+
+Add configuration to application and add middleware
+
+```php
+<?php 
+
+$app = new \Turbine\Application(include 'config.php');
+$app->addMiddleware(new \Turbine\Application\ServiceProvidersFromConfigMiddleware());
+```
+
+#### Reuse middleware integration
+
+You are also able to reuse the middleware implementatio in other classes e.g. Controllers.
+
+```php
+<?php
+
+use Turbine\Application;
+
+class MyController{
+    
+    public function __construct(Application $application){
+        // you need to add this to your config or where ever you want
+        $middlewares = $application->getConfig('middlewares');
+        $application->handleMiddlewares($this, $middlewares[__CLASS__]);
+    }
+    
+}
+```
+
 ## Routing
 
 Turbine is using routing integration of `league/route` and allows access to route collection methods directly.
@@ -654,7 +711,7 @@ $app->getConfigurator();
 ```php
 <?php
 
-$app->getContainer()->share(\Turbine\Application\ConfiguratorInterface::class, \ArrayObject::class);
+$app->getContainer()->share(\Zend\Config\Config::class, new \Zend\Config\Config([], true));
 ```
 
 ### error handler

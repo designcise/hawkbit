@@ -2,7 +2,8 @@
 
 ## 2.0.0
 
- - Add \Zend\Config\Config as default configuration storage
+ - Add `\Zend\Config\Config` as default configuration storage
+ - Add `\League\Tactician` for dispatching middlewares and provide advanced control of application lifecycle
 
 ### Altered
  
