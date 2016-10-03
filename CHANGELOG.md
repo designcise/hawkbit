@@ -4,7 +4,7 @@
 
  - Add `\Zend\Config\Config` as default configuration storage
  - Add `\League\Tactician` for dispatching middlewares and provide advanced control of application lifecycle
-
+ - Add application event for advanced control of request and response
 ### Altered
  
  - Change Turbine test namespace to Turbine\Tests
