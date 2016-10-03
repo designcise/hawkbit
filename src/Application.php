@@ -982,7 +982,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
         // check if
         foreach ($this->middlewares as $middleware){
-            if($middleware instanceof HttpMiddlewareInterface){
+            if($middleware instanceof ApplicationRunnerMiddleware){
                 $hasApplicationRunnerMiddleware = true;
                 break;
             }
