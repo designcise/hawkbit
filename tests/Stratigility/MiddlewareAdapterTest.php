@@ -11,7 +11,7 @@
  *
  */
 
-namespace TurbineTests\Stratigility;
+namespace Turbine\Tests\Stratigility;
 
 
 use League\Route\Http\Exception\NotFoundException;

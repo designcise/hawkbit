@@ -1,5 +1,13 @@
 # Blast Turbine Changelog
 
+## 2.0.0
+
+ - Add \Zend\Config\Config as default configuration storage
+
+### Altered
+ 
+ - Change Turbine test namespace to Turbine\Tests
+
 ## 1.1.6
 
 ### Added

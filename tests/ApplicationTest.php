@@ -1,6 +1,6 @@
 <?php
 
-namespace TurbineTests;
+namespace Turbine\Tests;
 
 use League\Container\Container;
 use League\Event\Emitter;
@@ -10,11 +10,9 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Turbine;
 use Turbine\Application;
-use Turbine\Application\ConfiguratorInterface;
-use TurbineTests\TestAsset\SharedTestController;
-use TurbineTests\TestAsset\TestController;
+use Turbine\Tests\TestAsset\SharedTestController;
+use Turbine\Tests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\ServerRequestFactory;

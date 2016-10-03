@@ -27,7 +27,6 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use Turbine\Application\ConfiguratorInterface;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -35,6 +34,7 @@ use Whoops\Handler\PlainTextHandler;
 use Whoops\Handler\PrettyPageHandler;
 use Whoops\Handler\XmlResponseHandler;
 use Whoops\Run;
+use Zend\Config\Config;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -138,15 +138,10 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
 
         $configurator = $this->getConfigurator();
-        if (is_array($key) || $key instanceof \Traversable || $key instanceof \ArrayAccess) {
-            $iter = new \ArrayIterator($key);
-            while ($iter->valid()) {
-                $this->setConfig($iter->key(), $iter->current());
-                $iter->next();
-            }
-        } else {
-            $this->validateConfigKey($key);
-            $configurator->offsetSet($key, $value);
+        if(is_array($key) || $key instanceof \ArrayAccess){
+            $configurator->merge(new Config((array) $key, true));
+        }else{
+            $configurator[$key] = $value;
         }
 
         return $this;
@@ -164,11 +159,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     {
 
         $configurator = $this->getConfigurator();
-        if ($key === null) {
+        if (null === $key) {
             return $configurator;
         }
-
-        $this->validateConfigKey($key);
 
         return $this->hasConfig($key) ? $configurator[$key] : $default;
     }
@@ -186,7 +179,6 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             return false;
         }
 
-        $this->validateConfigKey($key);
         $configurator = $this->getConfigurator();
 
         return isset($configurator[$key]);
@@ -201,15 +193,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Get configuration container
      *
-     * @return \ArrayAccess
+     * @return \Zend\Config\Config
      */
     public function getConfigurator()
     {
-        if (!$this->getContainer()->has(ConfiguratorInterface::class)) {
-            $this->getContainer()->share(ConfiguratorInterface::class, \ArrayObject::class);
+        if (!$this->getContainer()->has(Config::class)) {
+            $this->getContainer()->share(Config::class, (new Config([], true)));
         }
 
-        return $this->getContainer()->get(ConfiguratorInterface::class);
+        return $this->getContainer()->get(Config::class);
     }
 
     /**
@@ -232,7 +224,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Get the container.
      *
-     * @return \League\Container\Container
+     * @return \League\Container\Container|\League\Container\ContainerInterface
      */
     public function getContainer()
     {
@@ -254,7 +246,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->share(EmitterInterface::class, new Emitter());
         }
 
-        return $this->validateContract($this->getContainer()->get(EmitterInterface::class), EmitterInterface::class);
+        /** @var EmitterInterface $validateContract */
+        $validateContract = $this->validateContract($this->getContainer()->get(EmitterInterface::class), EmitterInterface::class);
+        return $validateContract;
     }
 
     /**
@@ -279,7 +273,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->share(Run::class, $errorHandler);
         }
 
-        return $this->validateContract($this->getContainer()->get(Run::class), Run::class);
+        /** @var Run $contract */
+        $contract = $this->validateContract($this->getContainer()->get(Run::class), Run::class);
+        return $contract;
     }
 
     /**
@@ -302,13 +298,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->add(HandlerInterface::class, $class);
         }
 
-        return $this->validateContract($this->getContainer()->get(HandlerInterface::class), HandlerInterface::class);
+        /** @var HandlerInterface $contract */
+        $contract = $this->validateContract($this->getContainer()->get(HandlerInterface::class), HandlerInterface::class);
+        return $contract;
     }
 
     /**
      * Return the event emitter.
      *
-     * @return \League\Event\Emitter
+     * @return \League\Event\Emitter|\League\Event\EmitterInterface
      */
     public function getEventEmitter()
     {
@@ -339,7 +337,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
         $this->loggers[$name] = $logger;
 
-        return $this->validateContract($this->loggers[$name], LoggerInterface::class);
+        /** @var LoggerInterface $contract */
+        $contract = $this->validateContract($this->loggers[$name], LoggerInterface::class);
+        return $contract;
     }
 
     /**
@@ -379,6 +379,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->getContainer()->share(ServerRequestInterface::class, ServerRequestFactory::fromGlobals()->withHeader('content-type', $this->getContentType()));
         }
 
+        /** @var ServerRequestInterface $request */
         $request = $this->validateContract($this->getContainer()->get(ServerRequestInterface::class),
             ServerRequestInterface::class);
         return $request;

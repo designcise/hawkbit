@@ -11,7 +11,7 @@
  *
  */
 
-namespace TurbineTests\Symfony;
+namespace Turbine\Tests\Symfony;
 
 
 use League\Route\Http\Exception\NotFoundException;

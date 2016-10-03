@@ -10,7 +10,7 @@
 * Time: 23:26
 */
 
-namespace TurbineTests\TestAsset;
+namespace Turbine\Tests\TestAsset;
 
 
 use Turbine\Application;
