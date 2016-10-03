@@ -3,6 +3,7 @@
  * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
  *
  * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
  * @copyright Marco Bunge <marco_bunge@web.de>
  *
  * @license MIT
@@ -23,7 +24,6 @@ use League\Route\RouteCollection;
 use League\Route\RouteCollectionInterface;
 use League\Route\RouteCollectionMapTrait;
 use League\Tactician\CommandBus;
-use League\Tactician\Handler\CommandHandlerMiddleware;
 use League\Tactician\Middleware;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
@@ -44,7 +44,7 @@ use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 
 /**
- * Proton Application Class.
+ * Turbine Application Class.
  */
 class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface,
     RouteCollectionInterface, TerminableInterface, \ArrayAccess
