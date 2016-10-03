@@ -9,17 +9,14 @@
  * @license MIT
  */
 
-/**
- * Created by PhpStorm.
- * User: marco.bunge
- * Date: 03.10.2016
- * Time: 21:54
- */
-
 namespace Turbine\Application;
 
 
 use League\Event\AbstractEvent;
+use Psr\Http\Message\ResponseInterface;
+use Psr\Http\Message\ServerRequestInterface;
+use Turbine\ApplicationInterface;
+use Zend\Stdlib\ArrayObject;
 
 class ApplicationEvent extends AbstractEvent
 {
@@ -43,9 +40,28 @@ class ApplicationEvent extends AbstractEvent
      * @var
      */
     private $name;
+    /**
+     * @var ApplicationInterface
+     */
+    private $application;
 
     /**
-     * @return mixed
+     * @var \ArrayObject
+     */
+    private $paramCollection = null;
+
+    /**
+     * ApplicationEvent constructor.
+     * @param ApplicationInterface $application
+     */
+    public function __construct(ApplicationInterface $application)
+    {
+        $this->application = $application;
+        $this->paramCollection = new ArrayObject();
+    }
+
+    /**
+     * @return ResponseInterface
      */
     public function getResponse()
     {
@@ -53,15 +69,17 @@ class ApplicationEvent extends AbstractEvent
     }
 
     /**
-     * @param mixed $response
+     * @param ResponseInterface $response
+     * @return ApplicationEvent
      */
     public function setResponse($response)
     {
         $this->response = $response;
+        return $this;
     }
 
     /**
-     * @return mixed
+     * @return ServerRequestInterface
      */
     public function getRequest()
     {
@@ -69,15 +87,17 @@ class ApplicationEvent extends AbstractEvent
     }
 
     /**
-     * @param mixed $request
+     * @param ServerRequestInterface $request
+     * @return ApplicationEvent
      */
     public function setRequest($request)
     {
         $this->request = $request;
+        return $this;
     }
 
     /**
-     * @return mixed
+     * @return ResponseInterface
      */
     public function getErrorResponse()
     {
@@ -85,15 +105,17 @@ class ApplicationEvent extends AbstractEvent
     }
 
     /**
-     * @param mixed $errorResponse
+     * @param ResponseInterface $errorResponse
+     * @return ApplicationEvent
      */
     public function setErrorResponse($errorResponse)
     {
         $this->errorResponse = $errorResponse;
+        return $this;
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getName()
     {
@@ -102,10 +124,27 @@ class ApplicationEvent extends AbstractEvent
 
     /**
      * @param mixed $name
+     * @return ApplicationEvent
      */
     public function setName($name)
     {
         $this->name = $name;
+        return $this;
     }
 
+    /**
+     * @return ApplicationInterface
+     */
+    public function getApplication()
+    {
+        return $this->application;
+    }
+
+    /**
+     * @return \ArrayObject
+     */
+    public function getParamCollection()
+    {
+        return $this->paramCollection;
+    }
 }

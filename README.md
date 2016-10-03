@@ -6,9 +6,19 @@
 [![Total Downloads][ico-downloads]][link-downloads]
 [![Coverage Status][ico-coveralls]][link-coveralls]
 
-Turbine is a advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and is a [PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/), [Zend Stratigility](https://github.com/zendframework/zend-stratigility) compatible micro framework.
 
-Turbine uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, [League\Container](https://github.com/thephpleague/container) for dependency injection, and [League\Event](https://github.com/thephpleague/event) for event dispatching.
+
+Turbine is a high customizable, middleware aware, event driven, 
+[PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/) and 
+[Zend Stratigility](https://github.com/zendframework/zend-stratigility) compatible micro framework.
+
+Turbine uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
+[League\Container](https://github.com/thephpleague/container) for dependency injection, 
+[League\Event](https://github.com/thephpleague/event) for event dispatching, 
+[League\Tactican](https://github.com/thephpleague/tactican) as middleware runner and
+[Zend Config](https://docs.zendframework.com/zend-config/) for configuration.
+
+Turbine is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton).
 
 ## Install
 
@@ -118,6 +128,8 @@ Run application
 
 $app->run();
 ```
+
+See also our example at `/public/index.php`.
 
 ## Configuration
 
@@ -476,15 +488,36 @@ For more information about channels read this guide - [https://github.com/Seldae
 
 ## Events
 
-You can intercept requests and responses at seven points during the lifecycle:
+You can intercept requests and responses at seven points during the lifecycle. You can manipulate Request, Response and 
+ErrorResponse via `Turbine\ApplicationEvent`.
+
+### Application event
+
+
+```php
+<?php
+
+/** @var \Turbine\Application\ApplicationEvent $event */
+
+// custom params
+$event->getParamCollection(); // returns a mutable \ArrayObject
+
+// access application
+$event->getApplication();
+
+```
 
 ### request.received
 
 ```php
 <?php
 
-$app->addListener($app::EVENT_REQUEST_RECEIVED, function ($event, $request) {
-    // manipulate request
+$app->addListener($app::EVENT_REQUEST_RECEIVED, function (\Turbine\Application\ApplicationEvent $event) {
+    $request = $event->getRequest();
+    
+    // manipulate $request
+    
+    $event->setRequest($request);
 });
 ```
 
@@ -495,8 +528,14 @@ This event is fired when a request is received but before it has been processed 
 ```php
 <?php
 
-$app->addListener($app::EVENT_RESPONSE_CREATED, function ($event, $request, $response) {
-    //manipulate request or response
+$app->addListener($app::EVENT_RESPONSE_CREATED, function (\Turbine\Application\ApplicationEvent $event) {
+    $request = $event->getRequest();
+    $response = $event->getResponse();
+        
+    // manipulate request or response
+    
+    $event->setRequest($request);
+    $event->setResponse($response);
 });
 ```
 
@@ -507,8 +546,14 @@ This event is fired when a response has been created but before it has been outp
 ```php
 <?php
 
-$app->addListener($app::EVENT_RESPONSE_SENT, function ($event, $request, $response) {
-    //manipulate request and response
+$app->addListener($app::EVENT_RESPONSE_SENT, function (\Turbine\Application\ApplicationEvent $event) {
+    $request = $event->getRequest();
+    $response = $event->getResponse();
+    
+    // manipulate request or response
+    
+    $event->setRequest($request);
+    $event->setResponse($response);
 });
 ```
 
@@ -519,7 +564,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->addListener($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
+$app->addListener($app::EVENT_RUNTIME_ERROR, function (\Turbine\Application\ApplicationEvent $event, $exception) use ($app) {
     //process exception
 });
 ```
@@ -533,8 +578,12 @@ This event is always fired when an error occurs.
 ```php
 <?php
 
-$app->addListener($app::EVENT_LIFECYCLE_ERROR, function ($event, \Exception $exception, ServerRequestInterface $request, ResponseInterface $errorResponse, ResponseInterface $response) {
-    //manipulate $errorResponse and process exception
+$app->addListener($app::EVENT_LIFECYCLE_ERROR, function (\Turbine\Application\ApplicationEvent $event, \Exception $exception) {
+    $errorResponse = $event->getErrorResponse();
+ 
+    //manipulate error response and process exception
+        
+    $event->setErrorResponse($errorResponse);
 });
 ```
 
@@ -546,7 +595,7 @@ This event is fired after runtime.error
 ```php
 <?php
 
-$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function ($event, $request, $response) {
+$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function (\Turbine\Application\ApplicationEvent $event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 });
@@ -559,7 +608,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->addListener($app::EVENT_SHUTDOWN, function ($event, $response, $terminatedOutputBuffers = []) {
+$app->addListener($app::EVENT_SHUTDOWN, function (\Turbine\Application\ApplicationEvent $event, $response, $terminatedOutputBuffers = []) {
     // access the response using $event->getResponse()
     // access terminated output buffer contents
     // or force application exit()
@@ -576,7 +625,7 @@ You can fire custom events using the event emitter directly:
 <?php
 
 // addListener
-$app->addListener('custom.event', function ($event, $time) {
+$app->addListener('custom.event', function (\Turbine\Application\ApplicationEvent $event, $time) {
     return 'the time is '.$time;
 });
 

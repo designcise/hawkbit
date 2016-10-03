@@ -940,13 +940,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $catch = self::DEFAULT_ERROR_CATCH
     )
     {
-        $exception = $this->decorateException($exception);
-        $errorHandler = $this->getErrorHandler();
-
         // notify app that an error occurs
         $this->error = true;
 
-        //if delivered value of $catch, then configured value, then default value
+        $exception = $this->decorateException($exception);
+        $errorHandler = $this->getErrorHandler();
+
+        // if delivered value of $catch, then configured value, then default value
         $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::KEY_ERROR_CATCH, $catch);
 
         if (
@@ -1231,13 +1231,13 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         ServerRequestInterface $request
     )
     {
-
         $applicationEvent = $this->getApplicationEvent();
         $applicationEvent->setName(self::EVENT_LIFECYCLE_ERROR);
+        $applicationEvent->setRequest($request);
+        $applicationEvent->setResponse($response);
         $applicationEvent->setErrorResponse($this->getResponse());
 
         $this->emit($applicationEvent, $exception);
-        $this->error = true;
 
         $errorResponse = $applicationEvent->getErrorResponse();
 
@@ -1259,7 +1259,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function getApplicationEvent()
     {
         if(null === $this->applicationEvent){
-            $this->applicationEvent = new ApplicationEvent();
+            $this->applicationEvent = new ApplicationEvent($this);
         }
         return $this->applicationEvent;
     }
