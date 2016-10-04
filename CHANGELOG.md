@@ -12,6 +12,12 @@
  - Change Turbine test namespace to Turbine\Tests
  - Rewrite event behavior for advanced interception of requests, responses and errors
 
+## 1.1.7
+
+### Altered
+
+ - Fix wrong response determined by content type delegation
+ 
 ## 1.1.6
 
 ### Added
