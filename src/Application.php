@@ -1,5 +1,15 @@
 <?php
 /**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
+ *
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
+ * @copyright Marco Bunge <marco_bunge@web.de>
+ *
+ * @license MIT
+ */
+
+/**
  * The Proton Micro Framework.
  *
  * @author  Alex Bilbie <hello@alexbilbie.com>
@@ -118,6 +128,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         ) {
             $this->setConfig($configuration);
         }
+        $this->init();
+    }
+
+    protected function init(){
+        // configure request content type
+        $this->setContentType(ServerRequestFactory::getHeader('content-type', ServerRequestFactory::fromGlobals()->getHeaders(), $this->getContentType()));
     }
 
     /*******************************************
@@ -409,7 +425,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if (!$this->getContainer()->has(ResponseInterface::class)) {
             if ($this->isCli()) {
                 $class = Response\TextResponse::class;
-            } elseif ($this->isAjaxRequest()) {
+            } elseif ($this->isJsonRequest()) {
                 $class = Response\JsonResponse::class;
             } else {
                 $class = Response\HtmlResponse::class;

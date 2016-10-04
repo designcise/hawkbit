@@ -1,4 +1,13 @@
 <?php
+/**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
+ *
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
+ * @copyright Marco Bunge <marco_bunge@web.de>
+ *
+ * @license MIT
+ */
 
 namespace TurbineTests;
 
@@ -371,12 +380,13 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
+        $_SERVER['CONTENT_TYPE'] = 'application/json';
         $request = ServerRequestFactory::fromGlobals();
-        $request = $request->withHeader('content-type', 'application/json');
 
         $response = $app->handle($request);
 
         $this->assertEquals($request->getHeader('content-type'), $response->getHeader('content-type'));
+        $this->assertEquals(['application/json'], $response->getHeader('content-type'));
     }
 
     public function testGetLoggers()

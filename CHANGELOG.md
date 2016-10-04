@@ -1,5 +1,11 @@
 # Blast Turbine Changelog
 
+## 1.1.7
+
+### Altered
+
+ - Fix wrong response determined by content type delegation
+ 
 ## 1.1.6
 
 ### Added
