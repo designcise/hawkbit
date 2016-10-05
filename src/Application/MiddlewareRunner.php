@@ -18,8 +18,6 @@
 
 namespace Turbine\Application;
 
-
-use Application\Middleware\Delegate;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 
@@ -41,18 +39,33 @@ class MiddlewareRunner
     }
 
     /**
-     * @param array $middlewares
+     * @param $middleware
      * @return $this
      */
-    public function addMiddleware($middlewares)
+    public function addMiddleware($middleware)
     {
-        $this->middlewares = $middlewares;
+        $this->middlewares[] = $middleware;
         return $this;
     }
 
-    public function run(ServerRequestInterface $request, ResponseInterface $response, callable $fail = null)
+    /**
+     * Execute middlewares
+     *
+     * @param ServerRequestInterface $request
+     * @param ResponseInterface $response
+     * @param callable $final
+     * @param callable|null $fail
+     * @return mixed
+     */
+    public function run(ServerRequestInterface $request, ResponseInterface $response, callable $final = null, callable $fail = null)
     {
         $middlewares = $this->middlewares;
+
+        if(!is_callable($final)){
+            $final = function($request, $response){
+                return $response;
+            };
+        }
 
         if (!is_callable($fail)) {
             $fail = function ($exception, $request, $response, $last) {
@@ -60,21 +73,37 @@ class MiddlewareRunner
             };
         }
 
+        array_push($middlewares, $final);
+
         $last = function ($request, $response) {
             // no op
         };
 
+        $result = null;
+
         try {
             while ($middleware = array_pop($middlewares)) {
+                if(is_object($middleware)){
+                    if(method_exists($middleware, '__invoke')){
+                        $middleware = [$middleware, '__invoke'];
+                    }
+                }
+
+                if(!is_callable($middleware)){
+                    throw new \InvalidArgumentException('Middle needs to be callable');
+                }
+
                 $last = function ($request, $response) use ($middleware, $last) {
                     return call_user_func_array($middleware, [$request, $response, $last]);
                 };
             }
+
+            $result = $last($request, $response);
         } catch (\Exception $e) {
-            $last = call_user_func_array($fail, [$e, $request, $response, $last]);
+            $result = call_user_func_array($fail, [$e, $request, $response, $result]);
         }
 
-        return $last($request, $response);
+        return $result;
     }
 
 }

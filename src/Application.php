@@ -23,16 +23,13 @@ use League\Event\ListenerAcceptorInterface;
 use League\Route\RouteCollection;
 use League\Route\RouteCollectionInterface;
 use League\Route\RouteCollectionMapTrait;
-use League\Tactician\CommandBus;
-use League\Tactician\Middleware;
 use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
 use Turbine\Application\ApplicationEvent;
-use Turbine\Application\ApplicationRunnerMiddleware;
-use Turbine\Application\HttpMiddlewareInterface;
+use Turbine\Application\MiddlewareRunner;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -109,7 +106,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     private $contentType = 'text/html';
 
     /**
-     * @var Middleware[]
+     * @var callable[]
      */
     private $middlewares = [];
 
@@ -135,7 +132,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $this->init();
     }
 
-    protected function init(){
+    protected function init()
+    {
         // configure request content type
         $this->setContentType(ServerRequestFactory::getHeader('content-type', ServerRequestFactory::fromGlobals()->getHeaders(), $this->getContentType()));
     }
@@ -157,9 +155,9 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function setConfig($key, $value = null)
     {
         $configurator = $this->getConfigurator();
-        if(is_array($key) || $key instanceof \ArrayAccess){
-            $configurator->merge(new Config((array) $key, true));
-        }else{
+        if (is_array($key) || $key instanceof \ArrayAccess) {
+            $configurator->merge(new Config((array)$key, true));
+        } else {
             $configurator[$key] = $value;
         }
 
@@ -215,28 +213,17 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      *
      * @param $middleware
      */
-    public function addMiddleware(Middleware $middleware){
+    public function addMiddleware(callable $middleware)
+    {
         $this->middlewares[] = $middleware;
     }
 
     /**
-     * @return \League\Tactician\Middleware[]
+     * @return callable[]
      */
     public function getMiddlewares()
     {
         return $this->middlewares;
-    }
-
-    /**
-     * Execute middlewares
-     *
-     * @param $middlewares
-     * @return mixed
-     */
-    public function handleMiddlewares($command, $middlewares){
-        // run middlewares for manipulating application
-        $commandBus = new CommandBus($middlewares);
-        return $commandBus->handle($command);
     }
 
     /*******************************************
@@ -861,7 +848,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     )
     {
         // Passes the request to the container
-        if(!$this->getContainer()->has(ServerRequestInterface::class)){
+        if (!$this->getContainer()->has(ServerRequestInterface::class)) {
             $this->getContainer()->share(ServerRequestInterface::class, $request);
         }
 
@@ -876,14 +863,24 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $applicationEvent->setRequest($request);
         $applicationEvent->setResponse($response);
 
-        try {
-            $request = $this->handleRequest($request);
-            $response = $this->handleResponse($request, $response);
-        } catch (\Exception $exception) {
+        // init middleware runner
+        $middlewareRunner = new MiddlewareRunner($this->getMiddlewares());
+        // add request handler middleware
+        $middlewareRunner->addMiddleware(function (ServerRequestInterface $request, $response, $next){
+            return $next($this->handleRequest($request), $response);
+        });
 
-            $response = $this->handleError($exception, $request, $response, $catch)
-                ->withStatus($exception instanceof NotFoundException ? 404 : 500);
-        }
+
+        // fetch response
+        $response = $middlewareRunner->run($request, $response,
+            function ($request, $response) {
+                return $this->handleResponse($request, $response);
+            },
+            function ($exception, $request, $response) use ($catch) {
+                return $this->handleError($exception, $request, $response, $catch)
+                    ->withStatus($exception instanceof NotFoundException ? 404 : 500);
+            }
+        );
 
         $this->setContentType(ServerRequestFactory::getHeader('content-type', $this->getResponse()->getHeaders(), ''));
 
@@ -894,7 +891,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      * Convert request into response.
      *
      * @param ServerRequestInterface $request
-     * @return ResponseInterface
+     * @return ServerRequestInterface
      */
     public function handleRequest(ServerRequestInterface $request)
     {
@@ -983,22 +980,15 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         if ($request === null) {
             $request = $this->getRequest();
         }
+        $response = $this->handle($request, $response);
 
-        $hasApplicationRunnerMiddleware = false;
+        $this->emitResponse($request, $response);
 
-        // check if
-        foreach ($this->middlewares as $middleware){
-            if($middleware instanceof ApplicationRunnerMiddleware){
-                $hasApplicationRunnerMiddleware = true;
-                break;
-            }
+        if ($this->canTerminate()) {
+            $this->terminate($request, $response);
         }
 
-        if(false === $hasApplicationRunnerMiddleware){
-            $this->addMiddleware(new ApplicationRunnerMiddleware($request, $response));
-        }
-
-        $this->handleMiddlewares($this, $this->getMiddlewares());
+        $this->shutdown($response);
 
         return $this;
     }
@@ -1264,7 +1254,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getApplicationEvent()
     {
-        if(null === $this->applicationEvent){
+        if (null === $this->applicationEvent) {
             $this->applicationEvent = new ApplicationEvent($this);
         }
         return $this->applicationEvent;

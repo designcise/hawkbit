@@ -12,6 +12,7 @@
 namespace Turbine\Tests;
 
 
+use Psr\Http\Message\ResponseInterface;
 use Turbine\Application;
 use Turbine\Application\MiddlewareRunner;
 use Turbine\Application\ServiceProvidersFromConfigMiddleware;
@@ -22,39 +23,30 @@ use Zend\Diactoros\ServerRequestFactory;
 class MiddlewareTest extends \PHPUnit_Framework_TestCase
 {
 
-    public function testServiceProviderconfiguratorMiddleware()
-    {
-        $application = new Application([
-            'providers' => [
-                new TestServiceProvider()
-            ]
-        ]);
-        $application->addMiddleware(new ServiceProvidersFromConfigMiddleware());
-
-        //handle middlewares
-        $application->handleMiddlewares($application, $application->getMiddlewares());
-
-        $this->assertTrue($application->getContainer()->has('TestService'));
-
-    }
-
     public function testMiddleWareRunner()
     {
         $middlewareRunner = new MiddlewareRunner([
-            function ($request, $response, $next) {
-                echo 1;
-                if(true){
+            function ($request, ResponseInterface $response, $next) {
+                $response->getBody()->write('before-');
 
-                }
-                return $next($request, $response);
+                /** @var ResponseInterface $response */
+                $response = $next($request, $response);
+                $response->getBody()->write('after');
+                return $response;
             },
-            function ($request, $response, $next) {
-                echo 2;
+            function ($request, ResponseInterface $response, $next) {
+                $response->getBody()->write('last-');
                 return $next($request, $response);
             },
         ]);
 
-        $middlewareRunner->run(ServerRequestFactory::fromGlobals(), new Response());
+        /** @var ResponseInterface $response */
+        $response = $middlewareRunner->run(ServerRequestFactory::fromGlobals(), new Response(), function ($request, ResponseInterface $response, $next) {
+            $response->getBody()->write('final-');
+            return $response;
+        });
+
+        $this->assertEquals('before-last-final-after',$response->getBody()->__toString());
     }
 
 
