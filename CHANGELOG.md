@@ -8,13 +8,14 @@ __Migrate Turbine from PhpThinkTank to 0xF10 component collection.__
 
 ### Added
 
- - Add `\Zend\Config\Config` as default configuration storage
+ - Add `\ZeroXF10\Turbine\Configuration` (extending `\Zend\Config\Config`) as default configuration storage
  - Add PSR7 middleware implementation `\ZeroXF10\Turbine\Application\MiddlewareRunner` for advanced control of application lifecycle
  
 ### Altered
  
  - Change Turbine test namespace to ZeroXF10\Turbine\Tests
  - Rewrite event behavior for advanced interception of requests, responses and errors
+ - Implement dot chaining for nested configuration
 
 ## 1.1.7
 

@@ -155,11 +155,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function setConfig($key, $value = null)
     {
         $configurator = $this->getConfigurator();
-        if (is_array($key) || $key instanceof \ArrayAccess) {
-            $configurator->merge(new Config((array)$key, true));
-        } else {
-            $configurator[$key] = $value;
-        }
+        $configurator[$key] = $value;
 
         return $this;
     }
@@ -180,7 +176,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             return $configurator;
         }
 
-        return $this->hasConfig($key) ? $configurator[$key] : $default;
+        return $configurator->get($key, $default);
     }
 
     /**
@@ -192,12 +188,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function hasConfig($key)
     {
-        if (null === $key) {
-            return false;
-        }
-
         $configurator = $this->getConfigurator();
-
         return isset($configurator[$key]);
     }
 
@@ -235,15 +226,16 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Get configuration container
      *
-     * @return \Zend\Config\Config
+     * @return \ZeroXF10\Turbine\Configuration
+     *
      */
     public function getConfigurator()
     {
-        if (!$this->getContainer()->has(Config::class)) {
-            $this->getContainer()->share(Config::class, (new Config([], true)));
+        if (!$this->getContainer()->has(Configuration::class)) {
+            $this->getContainer()->share(Configuration::class, (new Configuration([], true)));
         }
 
-        return $this->getContainer()->get(Config::class);
+        return $this->getContainer()->get(Configuration::class);
     }
 
     /**
@@ -437,7 +429,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function getResponse($content = '', $contentType = null)
     {
-        //transform content by environment and request type
+        //transform content by content type
         if ($this->isAjaxRequest() || $this->isJsonRequest()) {
             if ($content instanceof Response\JsonResponse) {
                 $content = json_decode($content->getBody());
@@ -451,6 +443,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
                 $content = $content->getBody()->__toString();
             }
         }
+
         if (!$this->getContainer()->has(ResponseInterface::class)) {
             if ($this->isCli()) {
                 $class = Response\TextResponse::class;
@@ -866,7 +859,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         // init middleware runner
         $middlewareRunner = new MiddlewareRunner($this->getMiddlewares());
         // add request handler middleware
-        $middlewareRunner->addMiddleware(function (ServerRequestInterface $request, $response, $next){
+        $middlewareRunner->addMiddleware(function (ServerRequestInterface $request, $response, $next) {
             return $next($this->handleRequest($request), $response);
         });
 
