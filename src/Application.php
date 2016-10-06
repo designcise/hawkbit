@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace Turbine;
+namespace ZeroXF10\Turbine;
 
 use League\Container\Container;
 use League\Container\ContainerAwareInterface;
@@ -28,8 +28,8 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use Turbine\Application\ApplicationEvent;
-use Turbine\Application\MiddlewareRunner;
+use ZeroXF10\Turbine\Application\ApplicationEvent;
+use ZeroXF10\Turbine\Application\MiddlewareRunner;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -42,7 +42,7 @@ use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 
 /**
- * Turbine Application Class.
+ * ZeroXF10\Turbine Application Class.
  */
 class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface,
     RouteCollectionInterface, TerminableInterface, \ArrayAccess
@@ -830,7 +830,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
 
     /**
-     * Convert request into response. If an error occurs, turbine tries
+     * Convert request into response. If an error occurs, ZeroXF10\Turbine tries
      * to handle error as response.
      *
      * @param ServerRequestInterface $request

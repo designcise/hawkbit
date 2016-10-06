@@ -9,10 +9,10 @@
  * @license MIT
  */
 
-namespace Turbine\Tests\TestAsset;
+namespace ZeroXF10\Turbine\Tests\TestAsset;
 
-use Turbine\Application;
-use Turbine\ApplicationInterface;
+use ZeroXF10\Turbine\Application;
+use ZeroXF10\Turbine\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

@@ -2,7 +2,7 @@
 
 Contributions are **welcome** and will be fully **credited**.
 
-We accept contributions via Pull Requests on [Github](https://github.com/phpthinktank/blast-turbine).
+We accept contributions via Pull Requests on [Github](https://github.com/0xF10/Turbine).
 
 ## Pull Requests
 

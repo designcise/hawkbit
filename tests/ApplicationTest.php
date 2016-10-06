@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace Turbine\Tests;
+namespace ZeroXF10\Turbine\Tests;
 
 use League\Container\Container;
 use League\Event\Emitter;
@@ -19,10 +19,10 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Turbine\Application;
-use Turbine\Application\ApplicationEvent;
-use Turbine\Tests\TestAsset\SharedTestController;
-use Turbine\Tests\TestAsset\TestController;
+use ZeroXF10\Turbine\Application;
+use ZeroXF10\Turbine\Application\ApplicationEvent;
+use ZeroXF10\Turbine\Tests\TestAsset\SharedTestController;
+use ZeroXF10\Turbine\Tests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\ServerRequestFactory;

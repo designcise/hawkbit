@@ -1,15 +1,19 @@
-# Blast Turbine Changelog
+# 0xF10 Turbine Changelog
 
 ## 1.2.0
+
+### Notice
+
+__Migrate Turbine from PhpThinkTank to 0xF10 component collection.__
 
 ### Added
 
  - Add `\Zend\Config\Config` as default configuration storage
- - Add `\League\Tactician` for dispatching middlewares and provide advanced control of application lifecycle
+ - Add PSR7 middleware implementation `\ZeroXF10\Turbine\Application\MiddlewareRunner` for advanced control of application lifecycle
  
 ### Altered
  
- - Change Turbine test namespace to Turbine\Tests
+ - Change Turbine test namespace to ZeroXF10\Turbine\Tests
  - Rewrite event behavior for advanced interception of requests, responses and errors
 
 ## 1.1.7

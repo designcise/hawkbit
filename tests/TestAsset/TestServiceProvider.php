@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace Turbine\Tests\TestAsset;
+namespace ZeroXF10\Turbine\Tests\TestAsset;
 
 
 use League\Container\ServiceProvider\AbstractServiceProvider;

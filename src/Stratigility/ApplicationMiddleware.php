@@ -9,12 +9,12 @@
  * @license MIT
  */
 
-namespace Turbine\Stratigility;
+namespace ZeroXF10\Turbine\Stratigility;
 
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Turbine\ApplicationInterface;
+use ZeroXF10\Turbine\ApplicationInterface;
 use Zend\Stratigility\MiddlewareInterface;
 
 class ApplicationMiddleware implements MiddlewareInterface

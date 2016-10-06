@@ -16,7 +16,7 @@
  * Time: 00:02
  */
 
-namespace Turbine\Application;
+namespace ZeroXF10\Turbine\Application;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

@@ -9,14 +9,14 @@
  * @license MIT
  */
 
-namespace Turbine\Tests;
+namespace ZeroXF10\Turbine\Tests;
 
 
 use Psr\Http\Message\ResponseInterface;
-use Turbine\Application;
-use Turbine\Application\MiddlewareRunner;
-use Turbine\Application\ServiceProvidersFromConfigMiddleware;
-use Turbine\Tests\TestAsset\TestServiceProvider;
+use ZeroXF10\Turbine\Application;
+use ZeroXF10\Turbine\Application\MiddlewareRunner;
+use ZeroXF10\Turbine\Application\ServiceProvidersFromConfigMiddleware;
+use ZeroXF10\Turbine\Tests\TestAsset\TestServiceProvider;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 

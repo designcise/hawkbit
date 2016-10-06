@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace Turbine;
+namespace ZeroXF10\Turbine;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
