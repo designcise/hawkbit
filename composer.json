@@ -1,5 +1,5 @@
 {
-  "name": "blast/ZeroXF10\Turbine",
+  "name": "0xF10/Turbine",
   "type": "library",
   "description": "PSR-7 Micro PHP framework",
   "keywords": [
@@ -9,9 +9,9 @@
     "PSR-7",
     "middleware",
     "micro",
-    "blast"
+    "0xF10"
   ],
-  "homepage": "https://github.com/phpthinktank/blast-ZeroXF10\Turbine",
+  "homepage": "https://github.com/0xF10/Turbine",
   "license": "MIT",
   "authors": [
     {

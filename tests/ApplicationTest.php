@@ -42,22 +42,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app->setConfig(['baz' => 'far']);
         $this->assertEquals('far', $app->getConfig('baz'));
         $app->setConfig('bar', 'foo');
-        $this->assertEquals('foo', $app->getConfig('bar'));
-    }
-
-    /**
-     *
-     */
-    public function testConfigurationFromArrayObject()
-    {
-        $app = new Application(new \ArrayObject(['foo' => 'bar']));
-        $this->assertInstanceOf(\ArrayAccess::class, $app->getConfig());
-        $this->assertTrue($app->hasConfig('foo'));
-        $this->assertEquals('bar', $app->getConfig('foo'));
-        $app->setConfig(['baz' => 'far']);
-        $this->assertEquals('far', $app->getConfig('baz'));
-        $app->setConfig('bar', 'foo');
-        $this->assertEquals('foo', $app->getConfig('bar'));
+        $config = $app->getConfig('bar');
+        $this->assertEquals('foo', $config);
     }
 
     /**

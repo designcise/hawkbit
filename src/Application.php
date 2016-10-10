@@ -155,7 +155,12 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     public function setConfig($key, $value = null)
     {
         $configurator = $this->getConfigurator();
-        $configurator[$key] = $value;
+        if(!is_scalar($key)){
+            $configuratorClass = get_class($configurator);
+            $configurator->merge(new $configuratorClass($key, true));
+        }else{
+            $configurator[$key] = $value;
+        }
 
         return $this;
     }
