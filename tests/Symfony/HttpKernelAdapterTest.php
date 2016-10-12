@@ -9,12 +9,12 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Tests\Symfony;
+namespace Hawkbit\Tests\Symfony;
 
 
 use League\Route\Http\Exception\NotFoundException;
-use ZeroXF10\Turbine\Application;
-use ZeroXF10\Turbine\Symfony\HttpKernelAdapter;
+use Hawkbit\Application;
+use Hawkbit\Symfony\HttpKernelAdapter;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;

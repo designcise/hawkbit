@@ -9,11 +9,11 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Symfony;
+namespace Hawkbit\Symfony;
 
 
 
-use ZeroXF10\Turbine\Application;
+use Hawkbit\Application;
 use Symfony\Bridge\PsrHttpMessage\Factory\DiactorosFactory;
 use Symfony\Bridge\PsrHttpMessage\Factory\HttpFoundationFactory;
 use Symfony\Component\HttpFoundation\Request;

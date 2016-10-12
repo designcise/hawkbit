@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine;
+namespace Hawkbit;
 
 use League\Container\Container;
 use League\Container\ContainerAwareInterface;
@@ -28,8 +28,8 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Psr\Log\LoggerInterface;
-use ZeroXF10\Turbine\Application\ApplicationEvent;
-use ZeroXF10\Turbine\Application\MiddlewareRunner;
+use Hawkbit\Application\ApplicationEvent;
+use Hawkbit\Application\MiddlewareRunner;
 use Whoops\Handler\Handler;
 use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
@@ -42,7 +42,7 @@ use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 
 /**
- * ZeroXF10\Turbine Application Class.
+ * Hawkbit Application Class.
  */
 class Application implements ApplicationInterface, ContainerAwareInterface, ListenerAcceptorInterface,
     RouteCollectionInterface, TerminableInterface, \ArrayAccess
@@ -231,7 +231,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     /**
      * Get configuration container
      *
-     * @return \ZeroXF10\Turbine\Configuration
+     * @return \Hawkbit\Configuration
      *
      */
     public function getConfigurator()
@@ -828,7 +828,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
 
     /**
-     * Convert request into response. If an error occurs, ZeroXF10\Turbine tries
+     * Convert request into response. If an error occurs, Hawkbit tries
      * to handle error as response.
      *
      * @param ServerRequestInterface $request

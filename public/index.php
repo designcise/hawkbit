@@ -11,7 +11,7 @@
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use ZeroXF10\Turbine\Application;
+use Hawkbit\Application;
 
 require_once __DIR__ . '/../vendor/autoload.php';
 

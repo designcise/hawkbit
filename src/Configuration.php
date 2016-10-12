@@ -12,9 +12,9 @@
 /**
  * Dot chaining support for nested configuratio
  *
- * @see \ZeroXF10\Turbine\Configuration::internalGet()
- * @see \ZeroXF10\Turbine\Configuration::internalSet()
- * @see \ZeroXF10\Turbine\Configuration::internalUnset()
+ * @see \Hawkbit\Configuration::internalGet()
+ * @see \Hawkbit\Configuration::internalSet()
+ * @see \Hawkbit\Configuration::internalUnset()
  *
  * (c) m1 <hello@milescroxford.com>
  *
@@ -29,7 +29,7 @@
  * @link        http://github.com/m1/vars/blob/master/README.MD Documentation
  */
 
-namespace ZeroXF10\Turbine;
+namespace Hawkbit;
 
 
 use Zend\Config\Config;
@@ -38,7 +38,7 @@ use Zend\Config\Config;
  * Supports dot chaining for nested configuration inspired by M1/vars
  *
  * Class Configuration
- * @package ZeroXF10\Turbine
+ * @package Hawkbit
  */
 final class Configuration extends Config
 {

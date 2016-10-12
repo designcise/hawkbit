@@ -9,14 +9,14 @@
  *
  * @license MIT
  */
-namespace ZeroXF10\Turbine\Tests\Stratigility;
+namespace Hawkbit\Tests\Stratigility;
 
 
 use League\Route\Http\Exception\NotFoundException;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use ZeroXF10\Turbine\Application;
-use ZeroXF10\Turbine\Stratigility\MiddlewarePipeAdapter;
+use Hawkbit\Application;
+use Hawkbit\Stratigility\MiddlewarePipeAdapter;
 use Zend\Diactoros\ServerRequestFactory;
 
 class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase

@@ -9,10 +9,10 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Tests\TestAsset;
+namespace Hawkbit\Tests\TestAsset;
 
-use ZeroXF10\Turbine\Application;
-use ZeroXF10\Turbine\ApplicationInterface;
+use Hawkbit\Application;
+use Hawkbit\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

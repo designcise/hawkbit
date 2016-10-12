@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Tests;
+namespace Hawkbit\Tests;
 
 use League\Container\Container;
 use League\Event\Emitter;
@@ -20,10 +20,10 @@ use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Tests\Fixtures\ServerRequest;
-use ZeroXF10\Turbine\Application;
-use ZeroXF10\Turbine\Application\ApplicationEvent;
-use ZeroXF10\Turbine\Tests\TestAsset\SharedTestController;
-use ZeroXF10\Turbine\Tests\TestAsset\TestController;
+use Hawkbit\Application;
+use Hawkbit\Application\ApplicationEvent;
+use Hawkbit\Tests\TestAsset\SharedTestController;
+use Hawkbit\Tests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\ServerRequestFactory;

@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Tests\TestAsset;
+namespace Hawkbit\Tests\TestAsset;
 
 
 use Psr\Http\Message\ResponseInterface;

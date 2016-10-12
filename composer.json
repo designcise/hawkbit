@@ -1,5 +1,5 @@
 {
-  "name": "0xF10/Turbine",
+  "name": "Hawkbit",
   "type": "library",
   "description": "PSR-7 Micro PHP framework",
   "keywords": [
@@ -9,9 +9,9 @@
     "PSR-7",
     "middleware",
     "micro",
-    "0xF10"
+    ""
   ],
-  "homepage": "https://github.com/0xF10/Turbine",
+  "homepage": "https://github.com/Hawkbit",
   "license": "MIT",
   "authors": [
     {
@@ -42,12 +42,12 @@
   },
   "autoload": {
     "psr-4": {
-      "ZeroXF10\\Turbine\\": "src/"
+      "Hawkbit\\": "src/"
     }
   },
   "autoload-dev": {
     "psr-4": {
-      "ZeroXF10\\Turbine\\Tests\\": "tests/"
+      "\Hawkbit\\Tests\\": "tests/"
     },
     "files": [
       "tests/TestAsset/Functions.php",

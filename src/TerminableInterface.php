@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine;
+namespace Hawkbit;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

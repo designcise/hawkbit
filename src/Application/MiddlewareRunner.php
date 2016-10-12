@@ -16,7 +16,7 @@
  * Time: 00:02
  */
 
-namespace ZeroXF10\Turbine\Application;
+namespace Hawkbit\Application;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

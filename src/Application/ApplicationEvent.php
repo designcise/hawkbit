@@ -9,13 +9,13 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Application;
+namespace Hawkbit\Application;
 
 
 use League\Event\AbstractEvent;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use ZeroXF10\Turbine\ApplicationInterface;
+use Hawkbit\ApplicationInterface;
 use Zend\Stdlib\ArrayObject;
 
 class ApplicationEvent extends AbstractEvent

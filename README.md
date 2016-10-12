@@ -1,4 +1,4 @@
-# Blast ZeroXF10\Turbine
+# Hawkbit
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
@@ -8,26 +8,26 @@
 
 
 
-Turbine is a high customizable, middleware aware, event driven, 
+Hawkbit is a high customizable, middleware aware, event driven, 
 [PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/) and 
 [Zend Stratigility](https://github.com/zendframework/zend-stratigility) compatible micro framework.
 
-Turbine uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
+Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
 [League\Container](https://github.com/thephpleague/container) for dependency injection, 
 [League\Event](https://github.com/thephpleague/event) for event dispatching, 
 [League\Tactican](https://github.com/thephpleague/tactican) as middleware runner and
 [Zend Config](https://docs.zendframework.com/zend-config/) for configuration.
 
-Turbine is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of 0xF10 (ZeroXF10) Component collection by Marco Bunge.
+Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of () Component collection by Marco Bunge.
 
 ## Install
 
 ### Using Composer
 
-Turbine is available on [Packagist](https://packagist.org/packages/0xF10/Turbine) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
+Hawkbit is available on [Packagist](https://packagist.org/packages/hawkbit/hawkbit) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
 
 ```bash
-composer require 0xF10/Turbine
+composer require Hawkbit
 ```
 
 composer.json
@@ -35,7 +35,7 @@ composer.json
 ```javascript
 {
     "require": {
-        "0xF10/Turbine": "~1.0"
+        "Hawkbit": "~1.0"
     }
 }
 ```
@@ -50,7 +50,7 @@ require __DIR__ . '/vendor/autoload.php';
 
 ### Downloading .zip file
 
-This project is also available for download as a `.zip` file on GitHub. Visit the [releases page](https://github.com/0xF10\Turbine/releases), select the version you want, and click the "Source code (zip)" download button.
+This project is also available for download as a `.zip` file on GitHub. Visit the [releases page](https://github.com/hawkbit/hawkbit/releases), select the version you want, and click the "Source code (zip)" download button.
 
 ### Requirements
 
@@ -63,20 +63,20 @@ The following versions of PHP are supported by this version.
 
 ### Vagrant
 
-0xF10 Turbine use scotch box with additional xdebug support, modified php setup and mailcatcher for development.
+Hawkbit use scotch box with additional xdebug support, modified php setup and mailcatcher for development.
 
 Please read <a href="https://box.scotch.io/" target="_blank">scotch box documentation</a> for more information.
 
 #### Project development
 
-If your project ist depending on `0xF10/Turbine`, you may use the box your project development. You
+If your project ist depending on `Hawkbit`, you may use the box your project development. You
 just need to install your composer dependencies and run following commands within your project 
 folder.
 
 ```
-cp ./vendor/0xF10/Turbine/public .
-cp ./vendor/0xF10/Turbine/Vagrantfile .
-cp ./vendor/0xF10/Turbine/provision .
+cp ./vendor/hawkbit/hawkbit/public .
+cp ./vendor/hawkbit/hawkbit/Vagrantfile .
+cp ./vendor/hawkbit/hawkbit/provision .
 ```
 
 ## Setup
@@ -88,7 +88,7 @@ Create a new app
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new \ZeroXF10\Turbine\Application();
+$app = new \Hawkbit\Application();
 ```
 
 Create a new app with configuration
@@ -99,7 +99,7 @@ Create a new app with configuration
 $config = [
     'key' => 'value'
 ];
-$app = new \ZeroXF10\Turbine\Application($config);
+$app = new \Hawkbit\Application($config);
 ```
 
 Add routes
@@ -107,7 +107,7 @@ Add routes
 ```php
 <?php
 
-/** @var ZeroXF10\Turbine\Application $app */
+/** @var Hawkbit\Application $app */
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
     return $response;
@@ -164,9 +164,9 @@ $app->getConfig('database');
 
 ## Middlewares
 
-ZeroXF10\Turbine middlewares allows advanced control of lifecycle execution.
+Hawkbit middlewares allows advanced control of lifecycle execution.
  
-ZeroXF10\Turbine uses `ZeroXF10\Turbine\ApplicationRunnerMiddeware` by default, if no middleware with interface 
+Hawkbit uses `Hawkbit\ApplicationRunnerMiddeware` by default, if no middleware with interface 
 `Turubine\HttpMiddlewareInterface` exists. 
 
 ```php
@@ -195,8 +195,8 @@ Add configuration to application and add middleware
 ```php
 <?php 
 
-$app = new \ZeroXF10\Turbine\Application(include 'config.php');
-$app->addMiddleware(new \ZeroXF10\Turbine\Application\ServiceProvidersFromConfigMiddleware());
+$app = new \Hawkbit\Application(include 'config.php');
+$app->addMiddleware(new \Hawkbit\Application\ServiceProvidersFromConfigMiddleware());
 ```
 
 #### Reuse middleware integration
@@ -206,7 +206,7 @@ You are also able to reuse the middleware implementatio in other classes e.g. Co
 ```php
 <?php
 
-use ZeroXF10\Turbine\Application;
+use Hawkbit\Application;
 
 class MyController{
     
@@ -221,7 +221,7 @@ class MyController{
 
 ## Routing
 
-0xF10 Turbine is using routing integration of `league/route` and allows access to route collection methods directly.
+Hawkbit is using routing integration of `league/route` and allows access to route collection methods directly.
 
 Basic usage with anonymous functions:
 
@@ -246,14 +246,14 @@ $app->run();
 
 #### Access app from anonymous function
 
-0xF10 Turbine allows to access `ZeroXF10\Turbine\Application` from anonymous function through closure binding.
+Hawkbit allows to access `Hawkbit\Application` from anonymous function through closure binding.
 
 ```php
 <?php
 
 $app->get('/hello/{name}', function ($request, $response, $args) {
     
-    // access ZeroXF10\Turbine\Application
+    // access Hawkbit\Application
     $app = $this;
     
     $response->getBody()->write(
@@ -272,7 +272,7 @@ Basic usage with controllers:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new ZeroXF10\Turbine\Application();
+$app = new Hawkbit\Application();
 
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
@@ -306,7 +306,7 @@ Automatic constructor injection of controllers:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new ZeroXF10\Turbine\Application();
+$app = new Hawkbit\Application();
 
 $app->share('CustomService', new \CustomService);
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
@@ -360,7 +360,7 @@ For more information about routes [read this guide](http://route.thephpleague.co
 
 ### Route groups
 
-0xF10 Turbine add support for route groups. 
+Hawkbit add support for route groups. 
 
 ```php
 <?php
@@ -379,7 +379,7 @@ $app->group('/admin', function ($route) {
 #### Available vars
 
 - `$route` - `\League\Route\RouteGroup`
-- `$this` - `\ZeroXF10\Turbine\Application`
+- `$this` - `\Hawkbit\Application`
 
 ## Middleware integrations
 
@@ -393,14 +393,14 @@ Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 // index.php
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new ZeroXF10\Turbine\Application();
+$app = new Hawkbit\Application();
 
 $app->get('/', function ($request, $response) {
     $response->setContent('<h1>Hello World</h1>');
     return $response;
 });
 
-$httpKernel = new ZeroXF10\Turbine\Symfony\HttpKernelAdapter($app);
+$httpKernel = new Hawkbit\Symfony\HttpKernelAdapter($app);
 
 $stack = (new Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
@@ -420,8 +420,8 @@ Basic usage with Stratigility (using `Zend\Stratigility\MiddlewarePipe`):
 
 use Psr\Http\Message\ResponseInterface;
 use Zend\Diactoros\ServerRequestFactory;
-use ZeroXF10\Turbine\Application;
-use ZeroXF10\Turbine\Stratigility\MiddlewarePipeAdapter;
+use Hawkbit\Application;
+use Hawkbit\Stratigility\MiddlewarePipeAdapter;
 
 $application = new Application();
 $application->get('/', function($request, ResponseInterface $response){
@@ -448,7 +448,7 @@ echo $response->getBody(); //prints <h1>Hello World</h1>
 
 ## Error handling
 
-0xF10 Turbine uses <a href="https://github.com/filp/whoops" target="_blank">Whoops</a> error handling framework and determines the error handler by request content type.
+Hawkbit uses <a href="https://github.com/filp/whoops" target="_blank">Whoops</a> error handling framework and determines the error handler by request content type.
 
 Set your own handler:
 
@@ -458,7 +458,7 @@ Set your own handler:
 $app->getErrorHandler()->push(new Acme\ErrorResponseHandler);
 ```
 
-By default 0xF10 Turbine runs with error options disabled. To enable debugging add
+By default Hawkbit runs with error options disabled. To enable debugging add
 
 ```php
 <?php
@@ -466,7 +466,7 @@ By default 0xF10 Turbine runs with error options disabled. To enable debugging a
 $app->setConfig('error', true);
 ```
 
-By default 0xF10 Turbine is catching all errors. To disable error catching add
+By default Hawkbit is catching all errors. To disable error catching add
 
 ```php
 <?php
@@ -476,7 +476,7 @@ $app->setConfig('error.catch', false);
 
 ## Logging
 
-0xF10 Turbine has built in support for Monolog. To access a channel call:
+Hawkbit has built in support for Monolog. To access a channel call:
 
 ```php
 <?php
@@ -489,7 +489,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 ## Events
 
 You can intercept requests and responses at seven points during the lifecycle. You can manipulate Request, Response and 
-ErrorResponse via `ZeroXF10\Turbine\ApplicationEvent`.
+ErrorResponse via `Hawkbit\ApplicationEvent`.
 
 ### Application event
 
@@ -497,7 +497,7 @@ ErrorResponse via `ZeroXF10\Turbine\ApplicationEvent`.
 ```php
 <?php
 
-/** @var \ZeroXF10\Turbine\Application\ApplicationEvent $event */
+/** @var \Hawkbit\Application\ApplicationEvent $event */
 
 // custom params
 $event->getParamCollection(); // returns a mutable \ArrayObject
@@ -512,7 +512,7 @@ $event->getApplication();
 ```php
 <?php
 
-$app->addListener($app::EVENT_REQUEST_RECEIVED, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_REQUEST_RECEIVED, function (\Hawkbit\Application\ApplicationEvent $event) {
     $request = $event->getRequest();
     
     // manipulate $request
@@ -528,7 +528,7 @@ This event is fired when a request is received but before it has been processed 
 ```php
 <?php
 
-$app->addListener($app::EVENT_RESPONSE_CREATED, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_RESPONSE_CREATED, function (\Hawkbit\Application\ApplicationEvent $event) {
     $request = $event->getRequest();
     $response = $event->getResponse();
         
@@ -546,7 +546,7 @@ This event is fired when a response has been created but before it has been outp
 ```php
 <?php
 
-$app->addListener($app::EVENT_RESPONSE_SENT, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_RESPONSE_SENT, function (\Hawkbit\Application\ApplicationEvent $event) {
     $request = $event->getRequest();
     $response = $event->getResponse();
     
@@ -564,7 +564,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->addListener($app::EVENT_RUNTIME_ERROR, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event, $exception) use ($app) {
+$app->addListener($app::EVENT_RUNTIME_ERROR, function (\Hawkbit\Application\ApplicationEvent $event, $exception) use ($app) {
     //process exception
 });
 ```
@@ -578,7 +578,7 @@ This event is always fired when an error occurs.
 ```php
 <?php
 
-$app->addListener($app::EVENT_LIFECYCLE_ERROR, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event, \Exception $exception) {
+$app->addListener($app::EVENT_LIFECYCLE_ERROR, function (\Hawkbit\Application\ApplicationEvent $event, \Exception $exception) {
     $errorResponse = $event->getErrorResponse();
  
     //manipulate error response and process exception
@@ -595,7 +595,7 @@ This event is fired after runtime.error
 ```php
 <?php
 
-$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function (\Hawkbit\Application\ApplicationEvent $event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 });
@@ -608,7 +608,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->addListener($app::EVENT_SHUTDOWN, function (\ZeroXF10\Turbine\Application\ApplicationEvent $event, $response, $terminatedOutputBuffers = []) {
+$app->addListener($app::EVENT_SHUTDOWN, function (\Hawkbit\Application\ApplicationEvent $event, $response, $terminatedOutputBuffers = []) {
     // access the response using $event->getResponse()
     // access terminated output buffer contents
     // or force application exit()
@@ -625,7 +625,7 @@ You can fire custom events using the event emitter directly:
 <?php
 
 // addListener
-$app->addListener('custom.event', function (\ZeroXF10\Turbine\Application\ApplicationEvent $event, $time) {
+$app->addListener('custom.event', function (\Hawkbit\Application\ApplicationEvent $event, $time) {
     return 'the time is '.$time;
 });
 
@@ -635,13 +635,13 @@ $app->getEventEmitter()->emit('custom.event', time());
 
 ## Dependency Injection Container
 
-Turbine uses `League/Container` as its dependency injection container.
+Hawkbit uses `League/Container` as its dependency injection container.
 
 You can bind singleton objects into the container from the main application object using ArrayAccess:
 
 ```php
 <?php
-/** @var ZeroXF10\Turbine\Application $app */
+/** @var Hawkbit\Application $app */
 $app['db'] = function () use($app) {
     $config = $app->getConfig('database');
     $manager = new Illuminate\Database\Capsule\Manager;
@@ -666,7 +666,7 @@ or by accessing the container directly:
 
 ```php
 <?php
-/** @var ZeroXF10\Turbine\Application $app */
+/** @var Hawkbit\Application $app */
 $app->getContainer()->share('db', function () use($app) {
     $config = $app->getConfig('database');
     $manager = new Illuminate\Database\Capsule\Manager;
@@ -698,7 +698,7 @@ $app->getContainer()->add('foo', function () {
 });
 ```
 
-Service providers can be registered using the `register` method on the 0xF10 Turbine app or `addServiceProvider` on the container:
+Service providers can be registered using the `register` method on the Hawkbit app or `addServiceProvider` on the container:
 
 ```php
 <?php
@@ -745,7 +745,7 @@ $app->getContainer($container);
 
 ## Services
 
-0xF10 Turbine uses dependecy injection container to access it's services. Following integrations can be exchanged.
+Hawkbit uses dependecy injection container to access it's services. Following integrations can be exchanged.
 
 ### Configurator
 
@@ -880,21 +880,21 @@ If you discover any security related issues, please email <mjls@web.de> instead 
 
 - [Marco Bunge](https://github.com/mbunge)
 - [Alex Bilbie](https://github.com/alexbilbie) (Proton)
-- [All contributors](https://github.com/0xF10/Turbine/graphs/contributors)
+- [All contributors](https://github.com/hawkbit/hawkbit/graphs/contributors)
 
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
 
-[ico-version]: https://img.shields.io/packagist/v/0xF10/Turbine.svg?style=flat-square
+[ico-version]: https://img.shields.io/packagist/v/hawkbit/hawkbit.svg?style=flat-square
 [ico-license]: https://img.shields.io/badge/license-MIT-brightgreen.svg?style=flat-square
-[ico-travis]: https://img.shields.io/travis/0xF10/Turbine/master.svg?style=flat-square
-[ico-downloads]: https://img.shields.io/packagist/dt/0xF10/Turbine.svg?style=flat-square
-[ico-coveralls]: https://img.shields.io/coveralls/0xF10/Turbine/master.svg?style=flat-square)](https://coveralls.io/github/0xF10/Turbine?branch=1.0.x-dev
+[ico-travis]: https://img.shields.io/travis/hawkbit/hawkbit/master.svg?style=flat-square
+[ico-downloads]: https://img.shields.io/packagist/dt/hawkbit/hawkbit.svg?style=flat-square
+[ico-coveralls]: https://img.shields.io/coveralls/hawkbit/hawkbit/master.svg?style=flat-square)](https://coveralls.io/github/hawkbit/hawkbit?branch=1.0.x-dev
 
-[link-packagist]: https://packagist.org/packages/0xF10/Turbine
-[link-travis]: https://travis-ci.org/0xF10/Turbine
-[link-downloads]: https://packagist.org/packages/0xF10/Turbine
+[link-packagist]: https://packagist.org/packages/hawkbit/hawkbit
+[link-travis]: https://travis-ci.org/hawkbit/hawkbit
+[link-downloads]: https://packagist.org/packages/hawkbit/hawkbit
 [link-author]: https://github.com/mbunge
 [link-contributors]: ../../contributors
-[link-coveralls]: https://coveralls.io/github/0xF10/Turbine
+[link-coveralls]: https://coveralls.io/github/hawkbit/hawkbit

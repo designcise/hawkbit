@@ -9,14 +9,14 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Tests;
+namespace Hawkbit\Tests;
 
 
 use Psr\Http\Message\ResponseInterface;
-use ZeroXF10\Turbine\Application;
-use ZeroXF10\Turbine\Application\MiddlewareRunner;
-use ZeroXF10\Turbine\Application\ServiceProvidersFromConfigMiddleware;
-use ZeroXF10\Turbine\Tests\TestAsset\TestServiceProvider;
+use Hawkbit\Application;
+use Hawkbit\Application\MiddlewareRunner;
+use Hawkbit\Application\ServiceProvidersFromConfigMiddleware;
+use Hawkbit\Tests\TestAsset\TestServiceProvider;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 

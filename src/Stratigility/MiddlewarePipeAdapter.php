@@ -9,13 +9,13 @@
  * @license MIT
  */
 
-namespace ZeroXF10\Turbine\Stratigility;
+namespace Hawkbit\Stratigility;
 
 
 use League\Route\Http\Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use ZeroXF10\Turbine\Application;
+use Hawkbit\Application;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Stratigility\MiddlewarePipe;
 
