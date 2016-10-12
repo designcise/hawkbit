@@ -19,6 +19,7 @@ use League\Route\RouteCollection;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
+use Symfony\Bridge\PsrHttpMessage\Tests\Fixtures\ServerRequest;
 use ZeroXF10\Turbine\Application;
 use ZeroXF10\Turbine\Application\ApplicationEvent;
 use ZeroXF10\Turbine\Tests\TestAsset\SharedTestController;
@@ -31,7 +32,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
 
     /**
-     *
+     * Test configuration mutation and accessing
      */
     public function testConfiguration()
     {
@@ -47,9 +48,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     *
+     * Test accessing services with declared getter methods
      */
-    public function testSetGet()
+    public function testServiceAccessor()
     {
         $app = new Application();
         $this->assertTrue($app->getContainer() instanceof Container);
@@ -62,21 +63,23 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     *
+     * Test accessing service like array
      */
     public function testArrayAccessContainer()
     {
         $app = new Application();
-        $app['foo'] = 'bar';
+        $class = new \stdClass();
+        $app['foo'] = $class;
 
-        $this->assertSame('bar', $app['foo']);
+        $this->assertSame($class, $app['foo']);
+        $this->assertInstanceOf(\stdClass::class, $app['foo']);
         $this->assertTrue(isset($app['foo']));
     }
 
     /**
-     *
+     * Test add event listener
      */
-    public function testaddListener()
+    public function testAddListener()
     {
         $app = new Application(true);
 
@@ -102,7 +105,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     *
+     * Test response termination
      */
     public function testTerminate()
     {
@@ -121,9 +124,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     *
+     * Test handling all available http methods successful
      */
-    public function testHandleSuccess()
+    public function testHandleHttpMethods()
     {
         $app = new Application();
 
@@ -131,64 +134,66 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $response->getBody()->write('<h1>It works!</h1>');
             return $response;
         };
-        $app->get('/', $action);
-
-        $app->post('/', $action);
-
-        $app->put('/', $action);
-
-        $app->delete('/', $action);
-
-        $app->patch('/', $action);
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, null, false);
+        $handlingApp = clone $app;
+        $handlingApp->get('/', $action);
+        $this->assertEquals('<h1>It works!</h1>', $handlingApp->handle($request->withMethod('GET'), null, false)->getBody());
 
-        $content = $response->getBody();
-        $this->assertEquals('<h1>It works!</h1>', $content);
+        $handlingApp = clone $app;
+        $handlingApp->post('/', $action);
+        $this->assertEquals('<h1>It works!</h1>', $handlingApp->handle($request->withMethod('POST'), null, false)->getBody());
+
+        $handlingApp = clone $app;
+        $handlingApp->put('/', $action);
+        $this->assertEquals('<h1>It works!</h1>', $handlingApp->handle($request->withMethod('PUT'), null, false)->getBody());
+
+        $handlingApp = clone $app;
+        $handlingApp->delete('/', $action);
+        $this->assertEquals('<h1>It works!</h1>', $handlingApp->handle($request->withMethod('DELETE'), null, false)->getBody());
+
+        $handlingApp = clone $app;
+        $handlingApp->patch('/', $action);
+        $this->assertEquals('<h1>It works!</h1>', $handlingApp->handle($request->withMethod('PATCH'), null, false)->getBody());
+
+        $handlingApp = clone $app;
+        $handlingApp->head('/', $action);
+        $this->assertEquals('<h1>It works!</h1>', $handlingApp->handle($request->withMethod('HEAD'), null, false)->getBody());
     }
 
     /**
-     *
+     * Test handle controller action
      */
-    public function testHandleControllerActionSuccess()
+    public function testHandleControllerAction()
     {
         $app = new Application();
 
         $action = [TestController::class, 'getIndex'];
 
         $app->get('/', $action);
-        $app->post('/', $action);
-        $app->put('/', $action);
-        $app->delete('/', $action);
-        $app->patch('/', $action);
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, null, true);
+        $response = $app->handle($request->withMethod('GET'), null, true);
 
         $content = $response->getBody()->__toString();
         $this->assertEquals('getIndex', $content);
     }
 
     /**
-     *
+     * test handle auto wiring of controller action
      */
-    public function testHandleAutoWiringControllerActionSuccess()
+    public function testHandleAutoWiringControllerAction()
     {
         $app = new Application();
         $action = SharedTestController::class . '::getIndex';
 
         $app->get('/', $action);
-        $app->post('/', $action);
-        $app->put('/', $action);
-        $app->delete('/', $action);
-        $app->patch('/', $action);
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $response = $app->handle($request, null, false);
+        $response = $app->handle($request->withMethod('GET'), null, false);
 
         $content = $response->getBody();
         $this->assertEquals($app->getConfig('customValueFromController'), $content);
@@ -200,7 +205,6 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testHandleWithOtherException()
     {
         $app = new Application();
-        $app['debug'] = true;
 
         $request = ServerRequestFactory::fromGlobals();
 
@@ -233,7 +237,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $response = $app->handle($request);
 
-        $this->assertEquals(500, $response->getStatusCode());
+        $this->assertEquals(404, $response->getStatusCode());
         $toString = $response->getBody()->__toString();
         $this->assertEquals('Fail', $toString);
     }
@@ -243,11 +247,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testNotFoundException()
     {
-        $this->setExpectedException(NotFoundException::class);
-
         $app = new Application();
         $request = ServerRequestFactory::fromGlobals();
-        $app->handle($request, null, false);
+        $response = $app->handle($request, null, false);
+
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
 

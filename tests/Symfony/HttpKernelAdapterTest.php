@@ -85,10 +85,12 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testNotFoundException()
     {
-        $this->setExpectedException(NotFoundException::class);
+//        $this->setExpectedException(NotFoundException::class);
 
         $adapter = new HttpKernelAdapter(new Application());
-        $adapter->handle(Request::create('/'), 1, false);
+        $response = $adapter->handle(Request::create('/'), 1, false);
+
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
 }

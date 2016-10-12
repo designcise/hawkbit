@@ -89,10 +89,11 @@ final class Configuration extends Config
         }
         $parts = explode('.', $key);
         $partsSuperSet = $parts;
-        while (count($parts) > 1) {
+        while (count($parts) > 0) {
             $part = array_shift($parts);
             if (! isset($array[$part]) || !is_array($array[$part])) {
-                $array[$part] = [];
+                $array[$part] = $value;
+                break;
             }
             unset($partsSuperSet[$part]);
             $subSetPart = implode('.', $partsSuperSet);
@@ -116,7 +117,7 @@ final class Configuration extends Config
     {
         $parts = explode('.', $key);
         $partsSuperSet = $parts;
-        while (count($parts) > 1) {
+        while (count($parts) > 0) {
             $part = array_shift($parts);
             unset($partsSuperSet[$part]);
             $subSetPart = implode('.', $partsSuperSet);

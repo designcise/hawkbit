@@ -14,12 +14,12 @@ namespace ZeroXF10\Turbine;
 use League\Container\Container;
 use League\Container\ContainerAwareInterface;
 use League\Container\ContainerInterface;
-use League\Container\Exception\NotFoundException;
 use League\Container\ReflectionContainer;
 use League\Event\Emitter;
 use League\Event\EmitterInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
+use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
 use League\Route\RouteCollectionInterface;
 use League\Route\RouteCollectionMapTrait;
@@ -875,8 +875,11 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
                 return $this->handleResponse($request, $response);
             },
             function ($exception, $request, $response) use ($catch) {
-                return $this->handleError($exception, $request, $response, $catch)
-                    ->withStatus($exception instanceof NotFoundException ? 404 : 500);
+                $notFoundException = $exception instanceof NotFoundException;
+                $response = $this->handleError($exception, $request, $response, $catch)
+                    ->withStatus($notFoundException ? 404 : 500);
+
+                return $response;
             }
         );
 
@@ -950,9 +953,10 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         // if delivered value of $catch, then configured value, then default value
         $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::KEY_ERROR_CATCH, $catch);
 
+        $showError = $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR);
         if (
-            false === $this->getConfig(self::KEY_ERROR_CATCH, $catch)
-            && false === $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR)
+            false === $catch
+            && true === $showError
         ) {
             $this->throwException($exception);
         }

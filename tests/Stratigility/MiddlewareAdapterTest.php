@@ -1,4 +1,5 @@
 <?php
+
 /**
  * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
  *
@@ -25,14 +26,14 @@ class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase
     public function testFunctionalPiping()
     {
         $application = new Application();
-        $application->get('/', function($request, ResponseInterface $response){
+        $application->get('/', function ($request, ResponseInterface $response) {
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
             $this->assertInstanceOf(ResponseInterface::class, $response);
             $response->getBody()->write('Hello World');
         });
         $middleware = new MiddlewarePipeAdapter($application);
 
-        $middleware->pipe('/', function($request, ResponseInterface $response, $next){
+        $middleware->pipe('/', function ($request, ResponseInterface $response, $next) {
             $this->assertInstanceOf(ServerRequestInterface::class, $request);
             $this->assertInstanceOf(ResponseInterface::class, $response);
             $this->assertTrue(is_callable($next));
@@ -52,12 +53,11 @@ class MiddlewareAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testNotFoundException()
     {
-        $this->setExpectedException(NotFoundException::class);
-
         $application = new Application();
         $application->setConfig($application::KEY_ERROR_CATCH, false);
         $middleware = new MiddlewarePipeAdapter($application);
 
-        $middleware->__invoke(ServerRequestFactory::fromGlobals(), $middleware->getApplication()->getResponse());
+        $response = $middleware->__invoke(ServerRequestFactory::fromGlobals(), $middleware->getApplication()->getResponse());
+        $this->assertEquals(404, $response->getStatusCode());
     }
 }

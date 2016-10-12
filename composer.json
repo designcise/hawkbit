@@ -25,7 +25,7 @@
   ],
   "require": {
     "php": ">=5.5.0",
-    "league/route": "~2.0",
+    "league/route": "dev-master",
     "league/container": "~2.0",
     "league/event": "~2.1",
     "league/tactician": "^1.0.2",
