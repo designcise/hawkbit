@@ -1,5 +1,12 @@
 # Hawkbit Changelog
 
+## 2.0.1
+
+### Altered
+
+ - Fix documentation
+ - Fix typo
+
 ## 2.0
 
 ### Notice
