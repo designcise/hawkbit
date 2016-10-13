@@ -1,4 +1,4 @@
-# Blast Turbine Changelog
+# Blast Hawkbit Changelog
 
 ## 1.1.7
 
@@ -34,11 +34,11 @@
 
 ### Added
 
- - Add `\Turbine\Application\ConfiguratorInterface`
+ - Add `\Hawkbit\Application\ConfiguratorInterface`
 
 ### Altered
 
- - `Application::getConfigurator` is now bound to `\Turbine\Application\ConfiguratorInterface` contract
+ - `Application::getConfigurator` is now bound to `\Hawkbit\Application\ConfiguratorInterface` contract
 
 ## 1.1.4
 
@@ -59,11 +59,11 @@
  - Replace applications [route collection methods](https://github.com/thephpleague/route/blob/master/src/RouteCollectionInterface.php) with `\League\Route\RouteCollectionMapTrait`
  - Application implements `\League\Route\RouteCollectionInterface`
  - add `\League\Route\RouteCollectionInterface::map()` 
- - add `\Turbine\Application::group()` for creating route groups, see [documentation](http://route.thephpleague.com/route-groups/)
+ - add `\Hawkbit\Application::group()` for creating route groups, see [documentation](http://route.thephpleague.com/route-groups/)
 
 ### Deprecated
 
- - `\Turbine\Application::subscribe()`
+ - `\Hawkbit\Application::subscribe()`
 
 ## 1.1.1
 
@@ -84,22 +84,22 @@
  - refactor error handling and replace exception decorator with whoops
  - pass and receive all config 
  - remove possibilty to configure events, routes and services by callables
- - rename `Turbine\Psr7\TerminableInterface` to `Turbine\TerminableInterface`
+ - rename `Hawkbit\Psr7\TerminableInterface` to `Hawkbit\TerminableInterface`
  - rename debug config option to error
  - change configuration engine from `array` to instance of `\ArrayAccess`
- - Signature changes of `Turbine\Application::handle`, `Turbine\Application::run`, `Turbine\Application::__construct`, `Turbine\Application::handleErrors` 
+ - Signature changes of `Hawkbit\Application::handle`, `Hawkbit\Application::run`, `Hawkbit\Application::__construct`, `Hawkbit\Application::handleErrors` 
 
 ### Removed
 
- - `Turbine\Psr7\HttpKernelInterface` replaced by `Turbine\ApplicationInterface`
+ - `Hawkbit\Psr7\HttpKernelInterface` replaced by `Hawkbit\ApplicationInterface`
  
 ## 1.0.0 (2016-03-04)
 
 ### Added
 
- - `Turbine\Psr7\HttpKernelInterface` and `Turbine\Psr7\TerminableInterface` port of symfony HttpKernelInterface for PSR-7 compatibility
+ - `Hawkbit\Psr7\HttpKernelInterface` and `Hawkbit\Psr7\TerminableInterface` port of symfony HttpKernelInterface for PSR-7 compatibility
  - Add `zend/diactoros` for PSR-7 http support
- - provide compatibility with adapter `Turbine\Symfony\HttpKernelAdapter` for StackPHP and other Symfony HttpKernelInterface implementations
+ - provide compatibility with adapter `Hawkbit\Symfony\HttpKernelAdapter` for StackPHP and other Symfony HttpKernelInterface implementations
  - Add `filp/whoops` as default error handler
  - Add `zendframework/zend-stratigility` integration
 
