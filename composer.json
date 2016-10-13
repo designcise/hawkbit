@@ -9,7 +9,8 @@
     "PSR-7",
     "middleware",
     "micro",
-    ""
+    "Strategility",
+    "Hawkbit"
   ],
   "homepage": "https://github.com/Hawkbit",
   "license": "MIT",
