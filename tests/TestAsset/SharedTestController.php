@@ -1,20 +1,18 @@
 <?php
-/*
-*
-* (c) Marco Bunge <marco_bunge@web.de>
-*
-* For the full copyright and license information, please view the LICENSE.txt
-* file that was distributed with this source code.
-*
-* Date: 04.03.2016
-* Time: 23:26
-*/
+/**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
+ *
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
+ * @copyright Marco Bunge <marco_bunge@web.de>
+ *
+ * @license MIT
+ */
 
-namespace TurbineTests\TestAsset;
+namespace Hawkbit\Tests\TestAsset;
 
-
-use Turbine\Application;
-use Turbine\ApplicationInterface;
+use Hawkbit\Application;
+use Hawkbit\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

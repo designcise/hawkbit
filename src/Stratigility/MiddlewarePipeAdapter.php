@@ -1,23 +1,21 @@
 <?php
 /**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
  *
- * (c) Marco Bunge <marco_bunge@web.de>
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
+ * @copyright Marco Bunge <marco_bunge@web.de>
  *
- * For the full copyright and license information, please view the LICENSE.txt
- * file that was distributed with this source code.
- *
- * Date: 07.03.2016
- * Time: 16:32
- *
+ * @license MIT
  */
 
-namespace Turbine\Stratigility;
+namespace Hawkbit\Stratigility;
 
 
 use League\Route\Http\Exception;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Turbine\Application;
+use Hawkbit\Application;
 use Zend\Diactoros\Response\HtmlResponse;
 use Zend\Stratigility\MiddlewarePipe;
 
@@ -66,7 +64,7 @@ class MiddlewarePipeAdapter extends MiddlewarePipe
             return $response;
         };
         $this->pipe(function(ServerRequestInterface $request, ResponseInterface $response, $next = null) use ($application){
-            $application->handle($request, $response);
+            return $application->handle($request, $response);
         });
         return parent::__invoke($request, $response, $finalHandler);
     }

@@ -1,5 +1,15 @@
 <?php
 /**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
+ *
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
+ * @copyright Marco Bunge <marco_bunge@web.de>
+ *
+ * @license MIT
+ */
+
+/**
  * Zend Framework (http://framework.zend.com/)
  *
  * This file exists to allow overriding the various output-related functions
@@ -17,6 +27,7 @@
  * @copyright Copyright (c) 2015 Zend Technologies USA Inc. (http://www.zend.com)
  * @license   https://github.com/zendframework/zend-diactoros/blob/master/LICENSE.md New BSD License
  */
+
 namespace Zend\Diactoros\Response;
 
 use ZendTest\Diactoros\TestAsset\HeaderStack;

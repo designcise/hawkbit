@@ -1,22 +1,20 @@
 <?php
 /**
+ * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
  *
- * (c) Marco Bunge <marco_bunge@web.de>
+ * @author Marco Bunge <marco_bunge@web.de>
+ * @author Alex Bilbie <hello@alexbilbie.com>
+ * @copyright Marco Bunge <marco_bunge@web.de>
  *
- * For the full copyright and license information, please view the LICENSE.txt
- * file that was distributed with this source code.
- *
- * Date: 04.03.2016
- * Time: 16:24
- *
+ * @license MIT
  */
 
-namespace TurbineTests\Symfony;
+namespace Hawkbit\Tests\Symfony;
 
 
 use League\Route\Http\Exception\NotFoundException;
-use Turbine\Application;
-use Turbine\Symfony\HttpKernelAdapter;
+use Hawkbit\Application;
+use Hawkbit\Symfony\HttpKernelAdapter;
 use Psr\Http\Message\ResponseInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\HttpKernelInterface;
@@ -63,7 +61,7 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
         $app = new Application();
 
         //is executed while terminate and should be similar
-        $app->subscribe('response.created', function ($event, $request, $response) use(&$capturedRequest, &$capturedResponse) {
+        $app->addListener('response.created', function ($event, $request, $response) use(&$capturedRequest, &$capturedResponse) {
             $capturedRequest = $request;
             $capturedResponse = $response;
         });
@@ -87,10 +85,11 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testNotFoundException()
     {
-        $this->setExpectedException(NotFoundException::class);
 
         $adapter = new HttpKernelAdapter(new Application());
-        $adapter->handle(Request::create('/'), 1, false);
+        $response = $adapter->handle(Request::create('/'), 1, false);
+
+        $this->assertEquals(404, $response->getStatusCode());
     }
 
 }
