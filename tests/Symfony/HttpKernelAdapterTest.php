@@ -61,7 +61,7 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
         $app = new Application();
 
         //is executed while terminate and should be similar
-        $app->subscribe('response.created', function ($event, $request, $response) use(&$capturedRequest, &$capturedResponse) {
+        $app->addListener('response.created', function ($event, $request, $response) use(&$capturedRequest, &$capturedResponse) {
             $capturedRequest = $request;
             $capturedResponse = $response;
         });
@@ -85,7 +85,6 @@ class HttpKernelAdapterTest extends \PHPUnit_Framework_TestCase
 
     public function testNotFoundException()
     {
-//        $this->setExpectedException(NotFoundException::class);
 
         $adapter = new HttpKernelAdapter(new Application());
         $response = $adapter->handle(Request::create('/'), 1, false);
