@@ -1,5 +1,5 @@
 {
-  "name": "Hawkbit",
+  "name": "hawkbit/hawkbit",
   "type": "library",
   "description": "PSR-7 Micro PHP framework",
   "keywords": [

@@ -1,5 +1,4 @@
 <?php
-
 /**
  * The Turbine Micro Framework. An advanced derivate of Proton Micro Framework
  *
@@ -9,6 +8,7 @@
  *
  * @license MIT
  */
+
 namespace Hawkbit\Tests\Stratigility;
 
 
