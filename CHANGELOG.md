@@ -1,10 +1,10 @@
 # Hawkbit Changelog
 
-## 1.2.0
+## 2.0
 
 ### Notice
 
-__Migrate Hawkbit from PhpThinkTank to component collection.__
+__Migrate Turbine from PhpThinkTank to Hawkbite.__
 
 ### Added
 
@@ -16,6 +16,10 @@ __Migrate Hawkbit from PhpThinkTank to component collection.__
  - Change Hawkbit test namespace to Hawkbit\Tests
  - Rewrite event behavior for advanced interception of requests, responses and errors
  - Implement dot chaining for nested configuration
+ 
+## Fixed
+ 
+ - Stratigility Middleware adapter ist returning response correctly
 
 ## 1.1.7
 
