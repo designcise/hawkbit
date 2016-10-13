@@ -1,5 +1,22 @@
-# Blast Hawkbit Changelog
+# Hawkbit Changelog
 
+## 2.0
+
+### Notice
+
+__Migrate Hawkbit from PhpThinkTank to component collection.__
+
+### Added
+
+ - Add `\Hawkbit\Configuration` (extending `\Zend\Config\Config`) as default configuration storage
+ - Add PSR7 middleware implementation `\Hawkbit\Application\MiddlewareRunner` for advanced control of application lifecycle
+ 
+### Altered
+ 
+ - Change Hawkbit test namespace to Hawkbit\Tests
+ - Rewrite event behavior for advanced interception of requests, responses and errors
+ - Implement dot chaining for nested configuration
+ 
 ## 1.1.7
 
 ### Altered
