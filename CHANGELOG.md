@@ -11,7 +11,7 @@
 
 ### Notice
 
-__Migrate Hawkbit from PhpThinkTank to component collection.__
+__Migrate Turbine from PhpThinkTank to hawkbit.__
 
 ### Added
 
