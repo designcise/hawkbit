@@ -14,11 +14,10 @@ Hawkbit is a high customizable, middleware aware, event driven,
 
 Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
 [League\Container](https://github.com/thephpleague/container) for dependency injection, 
-[League\Event](https://github.com/thephpleague/event) for event dispatching, 
-[League\Tactican](https://github.com/thephpleague/tactican) as middleware runner and
+[League\Event](https://github.com/thephpleague/event) for event dispatching,
 [Zend Config](https://docs.zendframework.com/zend-config/) for configuration.
 
-Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of () Component collection by Marco Bunge.
+Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of Hawkbit Component collection by Marco Bunge. Hawkbit 1.x is also known as Blast Hawkbit.
 
 ## Install
 
@@ -35,7 +34,7 @@ composer.json
 ```javascript
 {
     "require": {
-        "Hawkbit": "~1.0"
+        "hawkbit/hawkbit": "~2.0"
     }
 }
 ```
@@ -63,13 +62,13 @@ The following versions of PHP are supported by this version.
 
 ### Vagrant
 
-Hawkbit use scotch box with additional xdebug support, modified php setup and mailcatcher for development.
+Hawkbit uses scotch box with additional xdebug support, modified php setup and mailcatcher for development.
 
 Please read <a href="https://box.scotch.io/" target="_blank">scotch box documentation</a> for more information.
 
 #### Project development
 
-If your project ist depending on `Hawkbit`, you may use the box your project development. You
+If your project depends on `Hawkbit`, you may use this box for your project development. You
 just need to install your composer dependencies and run following commands within your project 
 folder.
 
@@ -133,14 +132,16 @@ See also our example at `/public/index.php`.
 
 ## Configuration
 
-Extend configuration of an existing instance
+Add additional configuration to application 
 
 ```php
 <?php
 
 //add many values
 $app->setConfig([
-    'database' => 'mysql://root:root@localhost/acmedb',
+    'database' => [
+        'default' => 'mysql://root:root@localhost/acmedb',
+    ],
     'services' => [
         'Acme\Services\ViewProvider',
     ]
@@ -159,69 +160,27 @@ Access configuration
 $app->getConfig();
 
 //get one configuration item
-$app->getConfig('database');
+$app->getConfig('database'); // returns ['default' => 'mysql://root:root@localhost/acmedb']
+
+//get one configuration item via dotnotation
+$app->getConfig('database.default'); // returns 'mysql://root:root@localhost/acmedb'
 ```
 
 ## Middlewares
 
 Hawkbit middlewares allows advanced control of lifecycle execution.
- 
-Hawkbit uses `Hawkbit\ApplicationRunnerMiddeware` by default, if no middleware with interface 
-`Turubine\HttpMiddlewareInterface` exists. 
-
-```php
-$app->addMiddleware(new Acme\ApplicationRunnerMiddleware);
-```
-
-### Using middlewares
-
-#### Automatically register ServiceProviders from Config
-
-Create your configuration
-
-```php
-<?php
-//config.php
-
-return [
-    'providers' => [
-        Acme\ServiceProvider::class
-    ]
-];
-```
-
-Add configuration to application and add middleware
-
-```php
-<?php 
-
-$app = new \Hawkbit\Application(include 'config.php');
-$app->addMiddleware(new \Hawkbit\Application\ServiceProvidersFromConfigMiddleware());
-```
-
-#### Reuse middleware integration
-
-You are also able to reuse the middleware implementatio in other classes e.g. Controllers.
 
 ```php
 <?php
 
-use Hawkbit\Application;
-
-class MyController{
-    
-    public function __construct(Application $application){
-        // you need to add this to your config or where ever you want
-        $middlewares = $application->getConfig('middlewares');
-        $application->handleMiddlewares($this, $middlewares[__CLASS__]);
-    }
-    
-}
+$app->addMiddleware(new Acme\SomeMiddleware);
 ```
+
+Hawkbit uses it's own runner `Hawkbit\Application\MiddelwareRunner`
 
 ## Routing
 
-Hawkbit is using routing integration of `league/route` and allows access to route collection methods directly.
+Hawkbit uses routing integration of `league/route` and allows access to route collection methods directly.
 
 Basic usage with anonymous functions:
 
@@ -263,7 +222,6 @@ $app->get('/hello/{name}', function ($request, $response, $args) {
 });
 
 ```
-
 
 Basic usage with controllers:
 
@@ -308,7 +266,7 @@ require __DIR__.'/../vendor/autoload.php';
 
 $app = new Hawkbit\Application();
 
-$app->share('CustomService', new \CustomService);
+$app->getContainer()->add('CustomService', new CustomService);
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
 $app->run();
@@ -349,8 +307,6 @@ class HomeController
     {
         //do somehing with service
         $service = $this->getService();
-    
-        $response->getBody()->write();
         return $response;
     }
 }
@@ -365,7 +321,7 @@ Hawkbit add support for route groups.
 ```php
 <?php
 
-$app->group('/admin', function ($route) {
+$app->group('/admin', function (\League\Route\RouteGroup $route) {
 
     //access app container (or any other method!)
     $app = $this;
@@ -402,13 +358,13 @@ $app->get('/', function ($request, $response) {
 
 $httpKernel = new Hawkbit\Symfony\HttpKernelAdapter($app);
 
-$stack = (new Stack\Builder())
+$stack = (new \Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
     ->push('Some/MiddleWare') // This will execute second
     ->push('Some/MiddleWare'); // This will execute third
 
 $app = $stack->resolve($httpKernel);
-Stack\run($httpKernel); // The app will run after all the middlewares have run
+\Stack\run($httpKernel); // The app will run after all the middlewares have run
 ```
 
 ### Zend Stratigility
@@ -625,7 +581,12 @@ You can fire custom events using the event emitter directly:
 <?php
 
 // addListener
-$app->addListener('custom.event', function (\Hawkbit\Application\ApplicationEvent $event, $time) {
+$app->addListener('custom.event', function ($event, $time) {
+    return 'the time is '.$time;
+});
+
+// or with class addListener
+$app->addListener(Acme\Event::class, function (Acme\Event $event, $time) {
     return 'the time is '.$time;
 });
 
@@ -662,7 +623,7 @@ $app['db'] = function () use($app) {
 };
 ```
 
-or by accessing the container directly:
+or by container access:
 
 ```php
 <?php
@@ -740,12 +701,12 @@ Get container
 ```php
 <?php
 
-$app->getContainer($container);
+$app->getContainer();
 ```
 
 ## Services
 
-Hawkbit uses dependecy injection container to access it's services. Following integrations can be exchanged.
+Hawkbit uses dependency injection container to access services. Following integrations can be exchanged.
 
 ### Configurator
 
