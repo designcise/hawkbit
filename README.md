@@ -26,7 +26,7 @@ Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton
 Hawkbit is available on [Packagist](https://packagist.org/packages/hawkbit/hawkbit) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
 
 ```bash
-composer require Hawkbit
+composer require hawkbit/hawkbit
 ```
 
 composer.json
