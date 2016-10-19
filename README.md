@@ -19,6 +19,10 @@ Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/r
 
 Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of Hawkbit Component collection by Marco Bunge. Hawkbit 1.x is also known as Blast Hawkbit.
 
+Hawkbit delivers also optional packages:
+
+ - Doctrine ORM Wrapper: [`hawkbit/persistence`](https://github.com/HawkBitPhp/hawkbit-persistence)
+
 ## Install
 
 ### Using Composer
