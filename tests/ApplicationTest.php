@@ -227,7 +227,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $request = ServerRequestFactory::fromGlobals();
 
-        $app->addListener($app::EVENT_RUNTIME_ERROR, function ($event, $exception) use ($app) {
+        $app->addListener($app::EVENT_SYSTEM_ERROR, function ($event, $exception) use ($app) {
             $this->assertInstanceOf(\Exception::class, $exception);
         });
 

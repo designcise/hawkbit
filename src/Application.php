@@ -120,22 +120,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
      */
     public function __construct($configuration = [])
     {
-        if (is_bool($configuration)) {
-            $this->setConfig(self::KEY_ERROR, $configuration);
-        } elseif (
-            is_array($configuration) ||
-            ($configuration instanceof \ArrayAccess ||
-                $configuration instanceof \Traversable)
-        ) {
-            $this->setConfig($configuration);
-        }
-        $this->init();
-    }
-
-    protected function init()
-    {
-        // configure request content type
-        $this->setContentType(ServerRequestFactory::getHeader('content-type', ServerRequestFactory::fromGlobals()->getHeaders(), $this->getContentType()));
+        $this->init($configuration);
     }
 
     /*******************************************
@@ -291,6 +276,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * @todo refactor in an integration
      * @return \Whoops\Run
      */
     public function getErrorHandler()
@@ -305,7 +291,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
 
                 // emit runtime error event
                 $applicationEvent = $this->getApplicationEvent();
-                $applicationEvent->setName(static::EVENT_RUNTIME_ERROR);
+                $applicationEvent->setName(static::EVENT_SYSTEM_ERROR);
                 $this->emit($applicationEvent, $exception);
 
                 return Handler::DONE;
@@ -320,6 +306,8 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
     }
 
     /**
+     * @todo refactor in an integration
+     *
      * Get the error response handler
      *
      * @return \Whoops\Handler\HandlerInterface
@@ -1058,7 +1046,7 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
         $this->collectGarbage();
         $applicationEvent = $this->getApplicationEvent();
         $applicationEvent->setResponse($response);
-        $applicationEvent->setName(self::EVENT_SHUTDOWN);
+        $applicationEvent->setName(self::EVENT_SYSTEM_SHUTDOWN);
         $this->emit($applicationEvent, $this->terminateOutputBuffering(1, $response));
     }
 
@@ -1260,6 +1248,58 @@ class Application implements ApplicationInterface, ContainerAwareInterface, List
             $this->applicationEvent = new ApplicationEvent($this);
         }
         return $this->applicationEvent;
+    }
+
+    /**
+     * @param $configuration
+     */
+    protected function initConfiguration($configuration)
+    {
+        if (is_bool($configuration)) {
+            $this->setConfig(self::KEY_ERROR, $configuration);
+        } elseif (
+            is_array($configuration) ||
+            ($configuration instanceof \ArrayAccess ||
+                $configuration instanceof \Traversable)
+        ) {
+            $this->setConfig($configuration);
+        }
+    }
+
+    /**
+     *
+     */
+    protected function initContentType()
+    {
+        // configure request content type
+        $this->setContentType(ServerRequestFactory::getHeader('content-type', ServerRequestFactory::fromGlobals()->getHeaders(), $this->getContentType()));
+    }
+
+    protected function initSystem(){
+        // error handler
+        set_error_handler(function($level, $message, $file = null, $line = null){
+            $this->emit(self::EVENT_SYSTEM_ERROR, [$level, $message, $file, $line]);
+        });
+
+        // exception handler
+        set_exception_handler(function($exception){
+            $this->emit(self::EVENT_SYSTEM_EXCEPTION, [$exception]);
+        });
+
+        // shutdown function
+        register_shutdown_function(function (){
+            $this->emit(self::EVENT_SYSTEM_SHUTDOWN);
+        });
+    }
+
+    /**
+     * @param $configuration
+     */
+    protected function init($configuration)
+    {
+        $this->initConfiguration($configuration);
+        $this->initContentType();
+        $this->initSystem();
     }
 
     /**
