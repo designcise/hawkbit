@@ -59,8 +59,8 @@ class MiddlewareRunner
     public function run(array $args = [], callable $final = null, callable $fail = null)
     {
         // declare default final middleware
-        if(!is_callable($final)){
-            $final = function($request, $response){
+        if (!is_callable($final)) {
+            $final = function ($request, $response) {
                 return $response;
             };
         }
@@ -72,32 +72,13 @@ class MiddlewareRunner
             };
         }
 
-        $last = function ($request, $response) {
-            // no op
-        };
-
-        $middlewares = $this->middlewares;
-        array_push($middlewares, $final);
         $result = null;
 
         try {
-            while ($middleware = array_pop($middlewares)) {
-                if(is_object($middleware)){
-                    if(method_exists($middleware, '__invoke')){
-                        $middleware = [$middleware, '__invoke'];
-                    }
-                }
+            $middlewares = $this->middlewares;
+            array_push($middlewares, $final);
 
-                if(!is_callable($middleware)){
-                    throw new \InvalidArgumentException('Middle needs to be callable');
-                }
-
-                $last = function () use ($middleware, $last) {
-                    $args = func_get_args();
-                    $args[] = $last;
-                    return call_user_func_array($middleware, $args);
-                };
-            }
+            $last = $this->resolve($middlewares);
 
             $result = call_user_func_array($last, $args);
         } catch (\Exception $e) {
@@ -113,6 +94,37 @@ class MiddlewareRunner
         }
 
         return $result;
+    }
+
+    /**
+     * Resolve middleware queue
+     *
+     * @param $middlewares
+     * @return \Closure
+     */
+    public function resolve($middlewares)
+    {
+        $last = function ($request, $response) {
+            // no op
+        };
+        while ($middleware = array_pop($middlewares)) {
+            if (is_object($middleware)) {
+                if (method_exists($middleware, '__invoke')) {
+                    $middleware = [$middleware, '__invoke'];
+                }
+            }
+
+            if (!is_callable($middleware)) {
+                throw new \InvalidArgumentException('Middle needs to be callable');
+            }
+
+            $last = function () use ($middleware, $last) {
+                $args = func_get_args();
+                $args[] = $last;
+                return call_user_func_array($middleware, $args);
+            };
+        }
+        return $last;
     }
 
 }
