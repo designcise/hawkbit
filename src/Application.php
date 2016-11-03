@@ -438,11 +438,11 @@ final class Application extends AbstractApplication implements RouteCollectionIn
 
         // init middleware runner
         $middlewareRunner = new MiddlewareRunner($this->getMiddlewares());
+
         // add request handler middleware
         $middlewareRunner->addMiddleware(function (ServerRequestInterface $request, $response, $next) {
             return $next($this->handleRequest($request), $response);
         });
-
 
         // fetch response
         $response = $middlewareRunner->run([$request, $response],
@@ -458,7 +458,11 @@ final class Application extends AbstractApplication implements RouteCollectionIn
             }
         );
 
-        $this->setContentType(ServerRequestFactory::getHeader('content-type', $this->getResponse()->getHeaders(), ''));
+        // validate response
+        $response = $this->validateContract($response, ResponseInterface::class);
+
+        // update content type
+        $this->setContentType(ServerRequestFactory::getHeader('content-type', $response->getHeaders(), ''));
 
         return $response;
     }
