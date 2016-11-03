@@ -20,22 +20,6 @@ use Zend\Stdlib\ArrayObject;
 
 class ApplicationEvent extends AbstractEvent
 {
-
-    /**
-     * @var
-     */
-    private $response;
-
-    /**
-     * @var
-     */
-    private $request;
-
-    /**
-     * @var
-     */
-    private $errorResponse;
-
     /**
      * @var
      */
@@ -61,60 +45,6 @@ class ApplicationEvent extends AbstractEvent
     }
 
     /**
-     * @return ResponseInterface
-     */
-    public function getResponse()
-    {
-        return $this->response;
-    }
-
-    /**
-     * @param ResponseInterface $response
-     * @return ApplicationEvent
-     */
-    public function setResponse($response)
-    {
-        $this->response = $response;
-        return $this;
-    }
-
-    /**
-     * @return ServerRequestInterface
-     */
-    public function getRequest()
-    {
-        return $this->request;
-    }
-
-    /**
-     * @param ServerRequestInterface $request
-     * @return ApplicationEvent
-     */
-    public function setRequest($request)
-    {
-        $this->request = $request;
-        return $this;
-    }
-
-    /**
-     * @return ResponseInterface
-     */
-    public function getErrorResponse()
-    {
-        return $this->errorResponse;
-    }
-
-    /**
-     * @param ResponseInterface $errorResponse
-     * @return ApplicationEvent
-     */
-    public function setErrorResponse($errorResponse)
-    {
-        $this->errorResponse = $errorResponse;
-        return $this;
-    }
-
-    /**
      * @return string
      */
     public function getName()
@@ -124,7 +54,7 @@ class ApplicationEvent extends AbstractEvent
 
     /**
      * @param mixed $name
-     * @return ApplicationEvent
+     * @return $this
      */
     public function setName($name)
     {

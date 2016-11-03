@@ -41,7 +41,12 @@ interface ApplicationInterface
     /**
      * This event is always fired when an error occurs.
      */
-    const EVENT_SYSTEM_ERROR = 'runtime.error';
+    const EVENT_HANDLE_ERROR = 'handle.error';
+
+    /**
+     * This event is always fired when an error occurs.
+     */
+    const EVENT_SYSTEM_ERROR = 'system.error';
 
     /**
      * This event is fired before completing application lifecycle.
@@ -51,12 +56,12 @@ interface ApplicationInterface
     /**
      * This event is fired on each shutdown.
      */
-    const EVENT_SYSTEM_SHUTDOWN = 'shutdown';
+    const EVENT_SYSTEM_SHUTDOWN = 'system.shutdown';
 
     /**
-     * This event is fired before completing application lifecycle.
+     * This event is fired when throw an exception.
      */
-    const EVENT_SYSTEM_EXCEPTION = 'lifecycle.handle.exception';
+    const EVENT_SYSTEM_EXCEPTION = 'system.exception';
 
     const KEY_ERROR_CATCH = 'error.catch';
     const KEY_ERROR = 'error';

@@ -21,7 +21,7 @@ use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Symfony\Bridge\PsrHttpMessage\Tests\Fixtures\ServerRequest;
 use Hawkbit\Application;
-use Hawkbit\Application\ApplicationEvent;
+use Hawkbit\Application\HttpApplicationEvent;
 use Hawkbit\Tests\TestAsset\SharedTestController;
 use Hawkbit\Tests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
@@ -83,7 +83,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application(true);
 
-        $app->addListener('request.received', function (ApplicationEvent $event) {
+        $app->addListener('request.received', function (HttpApplicationEvent $event) {
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
         });
 
@@ -111,7 +111,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
-        $app->addListener('response.sent', function (ApplicationEvent $event) {
+        $app->addListener('response.sent', function (HttpApplicationEvent $event) {
             $this->assertInstanceOf('League\Event\Event', $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
             $this->assertInstanceOf(ResponseInterface::class, $event->getResponse());
@@ -231,7 +231,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             $this->assertInstanceOf(\Exception::class, $exception);
         });
 
-        $app->addListener($app::EVENT_LIFECYCLE_ERROR, function (ApplicationEvent $event, $exception) use ($app) {
+        $app->addListener($app::EVENT_LIFECYCLE_ERROR, function (HttpApplicationEvent $event, $exception) use ($app) {
+            $this->assertInstanceOf(\Exception::class, $exception);
             $event->getErrorResponse()->getBody()->write('Fail');
         });
 
@@ -285,13 +286,13 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $app->getContainer()->add(EmitterInterface::class, new SapiStreamEmitter());
 
-        $app->addListener($app::EVENT_REQUEST_RECEIVED, function (ApplicationEvent $event) {
-            $this->assertInstanceOf(ApplicationEvent::class, $event);
+        $app->addListener($app::EVENT_REQUEST_RECEIVED, function (HttpApplicationEvent $event) {
+            $this->assertInstanceOf(HttpApplicationEvent::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
         });
 
-        $requestResponseCallback = function (ApplicationEvent $event) {
-            $this->assertInstanceOf(ApplicationEvent::class, $event);
+        $requestResponseCallback = function (HttpApplicationEvent $event) {
+            $this->assertInstanceOf(HttpApplicationEvent::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
             $this->assertInstanceOf(ResponseInterface::class, $event->getResponse());
         };
@@ -317,12 +318,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
             return $response;
         });
 
-        $app->addListener('request.received', function (ApplicationEvent $event) {
-            $this->assertInstanceOf(ApplicationEvent::class, $event);
+        $app->addListener('request.received', function (HttpApplicationEvent $event) {
+            $this->assertInstanceOf(HttpApplicationEvent::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
         });
-        $app->addListener('response.sent', function (ApplicationEvent $event) {
-            $this->assertInstanceOf(ApplicationEvent::class, $event);
+        $app->addListener('response.sent', function (HttpApplicationEvent $event) {
+            $this->assertInstanceOf(HttpApplicationEvent::class, $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
             $this->assertInstanceOf(ResponseInterface::class, $event->getResponse());
         });
