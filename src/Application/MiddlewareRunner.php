@@ -62,14 +62,14 @@ class MiddlewareRunner
 
         // declare default final middleware
         if (!is_callable($final)) {
-            $final = function ($request, $response) {
-                return $response;
+            $final = function ($command) {
+                return $command;
             };
         }
 
         // declare default error middleware
         if (!is_callable($fail)) {
-            $fail = function ($exception, $request, $response, $last) {
+            $fail = function ($exception) {
                 throw $exception;
             };
         }
