@@ -41,7 +41,7 @@ class MiddlewareTest extends \PHPUnit_Framework_TestCase
         ]);
 
         /** @var ResponseInterface $response */
-        $response = $middlewareRunner->run(ServerRequestFactory::fromGlobals(), new Response(), function ($request, ResponseInterface $response, $next) {
+        $response = $middlewareRunner->run([ServerRequestFactory::fromGlobals(), new Response()], function ($request, ResponseInterface $response, $next) {
             $response->getBody()->write('final-');
             return $response;
         });

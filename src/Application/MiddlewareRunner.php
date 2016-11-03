@@ -51,34 +51,33 @@ class MiddlewareRunner
     /**
      * Execute middlewares
      *
-     * @param ServerRequestInterface $request
-     * @param ResponseInterface $response
      * @param callable $final
      * @param callable|null $fail
+     * @param array $args Arguments for middleware
      * @return mixed
      */
-    public function run(ServerRequestInterface $request, ResponseInterface $response, callable $final = null, callable $fail = null)
+    public function run(array $args = [], callable $final = null, callable $fail = null)
     {
-        $middlewares = $this->middlewares;
-
+        // declare default final middleware
         if(!is_callable($final)){
             $final = function($request, $response){
                 return $response;
             };
         }
 
+        // declare default error middleware
         if (!is_callable($fail)) {
             $fail = function ($exception, $request, $response, $last) {
                 throw $exception;
             };
         }
 
-        array_push($middlewares, $final);
-
         $last = function ($request, $response) {
             // no op
         };
 
+        $middlewares = $this->middlewares;
+        array_push($middlewares, $final);
         $result = null;
 
         try {
@@ -93,14 +92,24 @@ class MiddlewareRunner
                     throw new \InvalidArgumentException('Middle needs to be callable');
                 }
 
-                $last = function ($request, $response) use ($middleware, $last) {
-                    return call_user_func_array($middleware, [$request, $response, $last]);
+                $last = function () use ($middleware, $last) {
+                    $args = func_get_args();
+                    $args[] = $last;
+                    return call_user_func_array($middleware, $args);
                 };
             }
 
-            $result = $last($request, $response);
+            $result = call_user_func_array($last, $args);
         } catch (\Exception $e) {
-            $result = call_user_func_array($fail, [$e, $request, $response, $result]);
+            // modify middleware args
+            // push exception to top
+            array_unshift($args, $e);
+
+            // push result to end
+            $args[] = $result;
+
+            // execute error middleware
+            $result = call_user_func_array($fail, $args);
         }
 
         return $result;

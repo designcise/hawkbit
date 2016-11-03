@@ -445,7 +445,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
 
 
         // fetch response
-        $response = $middlewareRunner->run($request, $response,
+        $response = $middlewareRunner->run([$request, $response],
             function ($request, $response) {
                 return $this->handleResponse($request, $response);
             },
