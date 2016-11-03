@@ -58,6 +58,8 @@ class MiddlewareRunner
      */
     public function run(array $args = [], callable $final = null, callable $fail = null)
     {
+        $result = null;
+
         // declare default final middleware
         if (!is_callable($final)) {
             $final = function ($request, $response) {
@@ -72,25 +74,10 @@ class MiddlewareRunner
             };
         }
 
-        $result = null;
-
         try {
-            $middlewares = $this->middlewares;
-            array_push($middlewares, $final);
-
-            $last = $this->resolve($middlewares);
-
-            $result = call_user_func_array($last, $args);
-        } catch (\Exception $e) {
-            // modify middleware args
-            // push exception to top
-            array_unshift($args, $e);
-
-            // push result to end
-            $args[] = $result;
-
-            // execute error middleware
-            $result = call_user_func_array($fail, $args);
+            $result = $this->handle($args, $final);
+        } catch (\Exception $exception) {
+            $result = $this->handleError($args, $fail, $exception, $result);
         }
 
         return $result;
@@ -125,6 +112,38 @@ class MiddlewareRunner
             };
         }
         return $last;
+    }
+
+    /**
+     * @param array $args
+     * @return mixed
+     */
+    public function handle(array $args, callable $final)
+    {
+        $middlewares = $this->middlewares;
+        array_push($middlewares, $final);
+        return call_user_func_array($this->resolve($middlewares), $args);
+    }
+
+    /**
+     * @param array $args
+     * @param callable $fail
+     * @param \Exception|\Throwable $exception
+     * @param $result
+     * @return mixed
+     */
+    public function handleError(array $args, callable $fail, $exception, $result)
+    {
+        // modify middleware args
+        // push exception to top
+        array_unshift($args, $exception);
+
+        // push result to end
+        $args[] = $result;
+
+        // execute error middleware
+        $result = call_user_func_array($fail, $args);
+        return $result;
     }
 
 }
