@@ -18,6 +18,7 @@
 
  - Remove dotted notation from from configuration
  - Zend Stratigility support
+ - Remove vagrant machine
 
 ## 2.0.1
 

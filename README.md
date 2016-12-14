@@ -63,24 +63,6 @@ The following versions of PHP are supported by this version.
 * PHP 7.0
 * HHVM
 
-### Vagrant
-
-Hawkbit uses scotch box with additional xdebug support, modified php setup and mailcatcher for development.
-
-Please read <a href="https://box.scotch.io/" target="_blank">scotch box documentation</a> for more information.
-
-#### Project development
-
-If your project depends on `Hawkbit`, you may use this box for your project development. You
-just need to install your composer dependencies and run following commands within your project 
-folder.
-
-```
-cp ./vendor/hawkbit/hawkbit/public .
-cp ./vendor/hawkbit/hawkbit/Vagrantfile .
-cp ./vendor/hawkbit/hawkbit/provision .
-```
-
 ## Setup
 
 Create a new app
