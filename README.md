@@ -8,9 +8,8 @@
 
 
 
-Hawkbit is a high customizable, middleware aware, event driven, 
-[PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/) and 
-[Zend Stratigility](https://github.com/zendframework/zend-stratigility) compatible micro framework.
+Hawkbit micro framework is a high customizable, event driven and compatible with [http-interop/http-middleware](https://packagist.org/packages/http-interop/http-middleware), 
+[PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/).
 
 Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
 [League\Container](https://github.com/thephpleague/container) for dependency injection, 
@@ -136,7 +135,9 @@ See also our example at `/public/index.php`.
 
 ## Configuration
 
-Add additional configuration to application 
+Add additional configuration to application
+ 
+Hawkbit Configuration is managed by [zend-config](https://docs.zendframework.com/zend-config/).
 
 ```php
 <?php
@@ -153,6 +154,9 @@ $app->setConfig([
 
 //add a single value
 $app->setConfig('baseurl', 'localhost/');
+
+$app->getConfig()->baseurl = 'localhost/';
+$app->getConfig()['baseurl'] = 'localhost/';
 ```
 
 Access configuration
@@ -163,11 +167,11 @@ Access configuration
 //access all configuration
 $app->getConfig();
 
-//get one configuration item
-$app->getConfig('database'); // returns ['default' => 'mysql://root:root@localhost/acmedb']
-
-//get one configuration item via dotnotation
-$app->getConfig('database.default'); // returns 'mysql://root:root@localhost/acmedb'
+//get configuration item
+$default = $app->getConfig('database')->default; // returns 'mysql://root:root@localhost/acmedb
+$default = $app->getConfig()->database->default; // returns 'mysql://root:root@localhost/acmedb
+$default = $app->getConfig('database')['default']; // returns 'mysql://root:root@localhost/acmedb
+$default = $app->getConfig()['database']['default']; // returns 'mysql://root:root@localhost/acmedb
 ```
 
 ## Middlewares
