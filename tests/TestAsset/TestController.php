@@ -22,6 +22,7 @@ class TestController
 {
     public function getIndex(ServerRequestInterface $request, ResponseInterface $response, array $args = [])
     {
-        return __FUNCTION__;
+        $response->getBody()->write(__FUNCTION__);
+        return $response;
     }
 }

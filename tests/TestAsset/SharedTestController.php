@@ -45,6 +45,7 @@ class SharedTestController
     public function getIndex(ServerRequestInterface $request, ResponseInterface $response, array $args = [])
     {
         $this->getApplication()->setConfig('customValueFromController', __FUNCTION__);
-        return __FUNCTION__;
+        $response->getBody()->write(__FUNCTION__);
+        return $response;
     }
 }

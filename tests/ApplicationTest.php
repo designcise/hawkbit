@@ -89,7 +89,8 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($app->getEmitter()->hasListeners('request.received'));
 
-        $app->get('/', function () {
+        $app->get('/', function (ServerRequestInterface $request, ResponseInterface $response, array $args = []) {
+            return $response;
         });
 
         $foo = null;
