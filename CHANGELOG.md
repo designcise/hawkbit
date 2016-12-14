@@ -1,5 +1,16 @@
 # Hawkbit Changelog
 
+## 2.1.0
+
+### Fixed
+
+ - Validate response contract after executing
+
+### Removed
+
+ - Remove dotted notation from from configuration
+ - Zend Stratigility support
+
 ## 2.0.1
 
 ### Altered
