@@ -52,6 +52,11 @@ abstract class AbstractApplication implements ApplicationInterface, ContainerAwa
      */
     protected $applicationEventClass = ApplicationEvent::class;
 
+    /**
+     * @var \Exception[]|\Throwable[]
+     */
+    protected $exceptionStack = [];
+
     /** IOC */
 
     /**
@@ -224,6 +229,14 @@ abstract class AbstractApplication implements ApplicationInterface, ContainerAwa
         /** @var \Hawkbit\Application\Services\WhoopsService $contract */
         $contract = $this->validateContract($this->getContainer()->get(WhoopsService::class), WhoopsService::class);
         return $contract;
+    }
+
+    /**
+     * @return \Exception[]|\Throwable[]
+     */
+    public function getExceptionStack()
+    {
+        return $this->exceptionStack;
     }
 
     /** Events */

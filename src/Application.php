@@ -512,6 +512,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
 
         $errorHandler = $this->getErrorHandler();
         $exception = $errorHandler->decorateException($exception);
+        $this->exceptionStack[] = $exception;
 
         // if delivered value of $catch, then configured value, then default value
         $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::KEY_ERROR_CATCH, $catch);

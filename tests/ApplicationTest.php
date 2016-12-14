@@ -217,6 +217,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertEquals(500, $response->getStatusCode());
         $this->assertTrue($app->isError());
+
+        $throwables = $app->getExceptionStack();
+        $this->assertTrue(0 < count($throwables));
+        $this->assertInstanceOf(\Exception::class, reset($throwables));
+
     }
 
     /**
@@ -243,6 +248,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals(404, $response->getStatusCode());
         $toString = $response->getBody()->__toString();
         $this->assertEquals('Fail', $toString);
+
+        $throwables = $app->getExceptionStack();
+        $this->assertTrue(0 < count($throwables));
+        $this->assertInstanceOf(\Exception::class, reset($throwables));
     }
 
     /**
@@ -255,6 +264,9 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request, null, false);
 
         $this->assertEquals(404, $response->getStatusCode());
+        $throwables = $app->getExceptionStack();
+        $this->assertTrue(0 < count($throwables));
+        $this->assertInstanceOf(\Exception::class, reset($throwables));
     }
 
 

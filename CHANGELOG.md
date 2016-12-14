@@ -6,6 +6,14 @@
 
  - Validate response contract after executing
 
+### Added
+
+ - Add exception stack `Hawkbit\Application\AbtractApplication::getExceptionStack` of all occured exceptions
+
+### Altered
+ 
+ - Update League Router and use router middleware implementation instead of application middleware
+
 ### Removed
 
  - Remove dotted notation from from configuration
