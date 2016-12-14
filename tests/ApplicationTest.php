@@ -216,6 +216,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $response = $app->handle($request);
 
         $this->assertEquals(500, $response->getStatusCode());
+        $this->assertTrue($app->isError());
     }
 
     /**

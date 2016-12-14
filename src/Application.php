@@ -70,11 +70,6 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     private $contentType = 'text/html';
 
     /**
-     * @var callable[]
-     */
-    private $middlewares = [];
-
-    /**
      * @var string
      */
     protected $applicationEventClass = HttpApplicationEvent::class;
@@ -120,7 +115,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
      */
     public function addMiddleware(callable $middleware)
     {
-        $this->middlewares[] = $middleware;
+        $this->getRouter()->middleware($middleware);
     }
 
     /**
@@ -128,7 +123,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
      */
     public function getMiddlewares()
     {
-        return $this->middlewares;
+        return $this->getRouter()->getMiddlewareStack();
     }
 
     /*******************************************
@@ -161,7 +156,9 @@ final class Application extends AbstractApplication implements RouteCollectionIn
             $this->router = (new RouteCollection($container));
         }
 
-        return $this->validateContract($this->router, RouteCollection::class);
+        /** @var RouteCollection $router */
+        $router = $this->validateContract($this->router, RouteCollection::class);
+        return $router;
     }
 
     /**
@@ -420,6 +417,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
         $catch = self::DEFAULT_ERROR_CATCH
     )
     {
+        /** @var ResponseInterface $response */
         // Passes the request to the container
         if (!$this->getContainer()->has(ServerRequestInterface::class)) {
             $this->getContainer()->share(ServerRequestInterface::class, $request);
@@ -436,27 +434,13 @@ final class Application extends AbstractApplication implements RouteCollectionIn
         $applicationEvent->setRequest($request);
         $applicationEvent->setResponse($response);
 
-        // init middleware runner
-        $middlewareRunner = new MiddlewareRunner($this->getMiddlewares());
-
-        // add request handler middleware
-        $middlewareRunner->addMiddleware(function (ServerRequestInterface $request, $response, $next) {
-            return $next($this->handleRequest($request), $response);
-        });
-
-        // fetch response
-        $response = $middlewareRunner->run([$request, $response],
-            function ($request, $response) {
-                return $this->handleResponse($request, $response);
-            },
-            function ($exception, $request, $response) use ($catch) {
-                $notFoundException = $exception instanceof NotFoundException;
-                $response = $this->handleError($exception, $request, $response, $catch)
-                    ->withStatus($notFoundException ? 404 : 500);
-
-                return $response;
-            }
-        );
+        try {
+            $response = $this->handleResponse($this->handleRequest($request), $response);
+        }catch (\Exception $exception){
+            $notFoundException = $exception instanceof NotFoundException;
+            $response = $this->handleError($exception, $request, $response, $catch)
+                ->withStatus($notFoundException ? 404 : 500);
+        }
 
         // validate response
         $response = $this->validateContract($response, ResponseInterface::class);
