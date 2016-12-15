@@ -6,8 +6,10 @@
 [![Total Downloads][ico-downloads]][link-downloads]
 [![Coverage Status][ico-coveralls]][link-coveralls]
 
-Hawkbit micro framework is a high customizable, event driven and compatible with [http-interop/http-middleware](https://packagist.org/packages/http-interop/http-middleware), 
-[PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/).
+Hawkbit micro framework is a high customizable, event driven and compatible with 
+[PSR-7](https://github.com/php-fig/http-message), 
+[StackPHP](http://stackphp.com/) and 
+[Zend Stratigility](https://github.com/zendframework/zend-stratigility).
 
 Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
 [League\Container](https://github.com/thephpleague/container) for dependency injection, 
