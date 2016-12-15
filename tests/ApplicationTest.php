@@ -412,6 +412,28 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app->handle(ServerRequestFactory::fromGlobals());
 
         $this->assertTrue($handledOnError);
+
+    }
+
+    public function testApplicationMiddleware()
+    {
+        $app = new Application();
+        $handled = false;
+        $app->get('/', [TestController::class, 'getIndex']);
+        $app->addMiddleware(function(ServerRequestInterface $request, ResponseInterface $response, callable $next) use (&$handled){
+            $handled = true;
+            $response->getBody()->write('<');
+            /** @var ResponseInterface $response */
+            $response = $next($request, $response);
+            $response->getBody()->write('>');
+            return $response;
+        });
+
+        $response = $app->handle(ServerRequestFactory::fromGlobals());
+
+        $this->assertTrue($handled);
+        $this->assertEquals('<getIndex>', $response->getBody()->__toString());
+
     }
 
 

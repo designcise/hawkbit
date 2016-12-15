@@ -12,12 +12,13 @@
 
 ### Altered
  
- - Update League Router and use router middleware implementation instead of application middleware
+ - Update [League Router](https://github.com/thephpleague/route/tree/507606b53d3935e7830aa7c48c43337bc2b1b2ba) and use router middleware implementation instead of application middleware. 
+ - Update Zend Stratigility to 1.3.1
+ - Advanced error capturing and error stack for debugging
 
 ### Removed
 
  - Remove dotted notation from from configuration
- - Zend Stratigility support
  - Remove vagrant machine
 
 ## 2.0.1
