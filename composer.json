@@ -27,11 +27,9 @@
   "require": {
     "php": ">=5.5.0",
     "filp/whoops": "~2.0",
-    "http-interop/http-middleware": "0.2.0",
     "league/route": "dev-master#507606b53d3935e7830aa7c48c43337bc2b1b2ba",
     "league/container": "~2.0",
     "league/event": "~2.1",
-    "league/tactician": "^1.0.2",
     "monolog/monolog": "~1.12",
     "zendframework/zend-config": "^2.6",
     "zendframework/zend-diactoros": "~1.3"

@@ -400,4 +400,19 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testApplicationMiddlewareOnError()
+    {
+        $app = new Application();
+        $handledOnError = false;
+        $app->addMiddleware(function(ServerRequestInterface $request, ResponseInterface $response, callable $next) use (&$handledOnError){
+            $handledOnError = true;
+            return $response;
+        });
+
+        $app->handle(ServerRequestFactory::fromGlobals());
+
+        $this->assertTrue($handledOnError);
+    }
+
+
 }

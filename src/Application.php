@@ -17,6 +17,7 @@ use Hawkbit\Application\Providers\WhoopsServiceProvider;
 use League\Container\ReflectionContainer;
 use League\Container\ServiceProvider\ServiceProviderInterface;
 use League\Route\Http\Exception\NotFoundException;
+use League\Route\Middleware\ExecutionChain;
 use League\Route\RouteCollection;
 use League\Route\RouteCollectionInterface;
 use League\Route\RouteCollectionMapTrait;
@@ -511,13 +512,30 @@ final class Application extends AbstractApplication implements RouteCollectionIn
         $this->error = true;
 
         $errorHandler = $this->getErrorHandler();
-        $exception = $errorHandler->decorateException($exception);
-        $this->exceptionStack[] = $exception;
 
         // if delivered value of $catch, then configured value, then default value
         $catch = self::DEFAULT_ERROR_CATCH !== $catch ? $catch : $this->getConfig(self::KEY_ERROR_CATCH, $catch);
 
         $showError = $this->getConfig(self::KEY_ERROR, static::DEFAULT_ERROR);
+
+        $this->pushException($errorHandler->decorateException($exception));
+
+        //execute application middlewares
+        try {
+            $middlewares = $this->getRouter()->getMiddlewareStack();
+            $middlewareRunner = new ExecutionChain();
+            foreach ($middlewares as $middleware) {
+                $middlewareRunner->middleware($middleware);
+            }
+
+            $response = $middlewareRunner->execute($request, $response);
+        }catch (\Exception $e){
+            $this->pushException($e);
+        }
+
+        // get last occured exception
+        $exception = $this->getLastException();
+
         if (
             false === $catch
             && true === $showError

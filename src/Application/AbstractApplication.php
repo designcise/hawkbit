@@ -239,6 +239,25 @@ abstract class AbstractApplication implements ApplicationInterface, ContainerAwa
         return $this->exceptionStack;
     }
 
+    /**
+     * @param \Exception|\Throwable $exception
+     * @return $this
+     */
+    public function pushException($exception){
+        array_push($this->exceptionStack, $exception);
+        return $this;
+    }
+
+    /**
+     * @return \Exception|\Throwable
+     */
+    public function getLastException(){
+        $exceptionStack = $this->getExceptionStack();
+        $exception = end($exceptionStack);
+        reset($exception);
+        return $exception;
+    }
+
     /** Events */
 
     /**

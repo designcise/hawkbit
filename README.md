@@ -6,8 +6,6 @@
 [![Total Downloads][ico-downloads]][link-downloads]
 [![Coverage Status][ico-coveralls]][link-coveralls]
 
-
-
 Hawkbit micro framework is a high customizable, event driven and compatible with [http-interop/http-middleware](https://packagist.org/packages/http-interop/http-middleware), 
 [PSR-7](https://github.com/php-fig/http-message), [StackPHP](http://stackphp.com/).
 
@@ -18,9 +16,13 @@ Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/r
 
 Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of Hawkbit Component collection by Marco Bunge. Hawkbit 1.x is also known as Blast Hawkbit.
 
+### Integrations
+
 Hawkbit delivers also optional packages:
 
- - Doctrine ORM Wrapper: [`hawkbit/persistence`](https://github.com/HawkBitPhp/hawkbit-persistence)
+ - Database: [`hawkbit/database`](https://github.com/HawkBitPhp/hawkbit-database)
+ - Doctrine ORM Wrapper: [`hawkbit/doctrine`](https://github.com/HawkBitPhp/hawkbit-doctrine)
+ - Plates View Engine: [`hawkbit/presentation`](https://github.com/HawkBitPhp/hawkbit-presentation)
 
 ## Install
 
