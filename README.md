@@ -267,6 +267,8 @@ $app->get('/', 'HomeController::index'); // calls index method on HomeController
 $app->run();
 ```
 
+*Please use boot method in Service Providers for correct injection of services into controller!*
+
 ```php
 <?php
 

@@ -1,5 +1,9 @@
 # Hawkbit Changelog
 
+## 2.1.1
+
+ - Add tests for controller constructor injection
+
 ## 2.1.0
 
 ### Fixed

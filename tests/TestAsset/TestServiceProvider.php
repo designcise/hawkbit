@@ -13,11 +13,12 @@ namespace Hawkbit\Tests\TestAsset;
 
 
 use League\Container\ServiceProvider\AbstractServiceProvider;
+use League\Container\ServiceProvider\BootableServiceProviderInterface;
 
-class TestServiceProvider extends AbstractServiceProvider
+class TestServiceProvider extends AbstractServiceProvider implements BootableServiceProviderInterface
 {
 
-    protected $provides= [
+    protected $provides = [
         'TestService'
     ];
 
@@ -31,5 +32,16 @@ class TestServiceProvider extends AbstractServiceProvider
     public function register()
     {
         $this->getContainer()->add('TestService', new \stdClass);
+    }
+
+    /**
+     * Method will be invoked on registration of a service provider implementing
+     * this interface. Provides ability for eager loading of Service Providers.
+     *
+     * @return void
+     */
+    public function boot()
+    {
+        $this->getContainer()->share(SingletonDummy::class, new SingletonDummy('singleton'));
     }
 }

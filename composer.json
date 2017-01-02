@@ -25,14 +25,14 @@
     }
   ],
   "require": {
-    "php": ">=5.5",
-    "filp/whoops": "~2.0",
-    "league/route": "dev-master#507606b53d3935e7830aa7c48c43337bc2b1b2ba",
-    "league/container": "~2.0",
-    "league/event": "~2.1",
-    "monolog/monolog": "~1.12",
+    "php": ">=5.5.9",
+    "filp/whoops": "^2.1",
+    "league/route": "dev-master#507606b53d3935e7830aa7c48c43337bc2b1b2ba@dev",
+    "league/container": "^2.2",
+    "league/event": "^2.1",
+    "monolog/monolog": "^1.22",
     "zendframework/zend-config": "^2.6",
-    "zendframework/zend-diactoros": "~1.3"
+    "zendframework/zend-diactoros": "^1.3"
   },
   "require-dev": {
     "phpunit/phpunit": "~4.8",
