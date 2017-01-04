@@ -1,5 +1,9 @@
 # Hawkbit Changelog
 
+## 2.1.2
+
+ - Fix #24 incorrect and buggy error handling
+
 ## 2.1.1
 
  - Add tests for controller constructor injection

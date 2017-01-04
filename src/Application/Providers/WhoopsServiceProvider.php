@@ -50,22 +50,22 @@ class WhoopsServiceProvider extends AbstractServiceProvider implements BootableS
         $app = $this->getContainer()->get(ApplicationInterface::class);
 
         $errorHandler = new Run(new ApplicationSystemFacade($app));
-        $errorHandler->pushHandler(function() use ($app){
-            $class = PrettyPageHandler::class;
-            if ($app->isCli() || false === $app->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR)) {
-                $class = PlainTextHandler::class;
-            }
+        $class = PrettyPageHandler::class;
+        if ($app->isCli() || false === $app->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR)) {
+            $class = PlainTextHandler::class;
+        }
 
-            if($app instanceof Application){
-                if ($app->isSoapRequest() || $app->isXmlRequest()) {
-                    $class = XmlResponseHandler::class;
-                } elseif ($app->isAjaxRequest() || $app->isJsonRequest()) {
-                    $class = JsonResponseHandler::class;
-                }
+        if($app instanceof Application){
+            if ($app->isSoapRequest() || $app->isXmlRequest()) {
+                $class = XmlResponseHandler::class;
+            } elseif ($app->isAjaxRequest() || $app->isJsonRequest()) {
+                $class = JsonResponseHandler::class;
             }
+        }
 
-            return new $class;
-        });
+        $errorHandler->pushHandler(
+            new $class
+        );
 
         $errorHandler->pushHandler(function (\Exception $exception) use ($app) {
 
@@ -79,8 +79,9 @@ class WhoopsServiceProvider extends AbstractServiceProvider implements BootableS
             return Handler::DONE;
         });
 
-        $service = new Application\Services\WhoopsService($errorHandler, $app);
+        $errorHandler->register();
 
+        $service = new Application\Services\WhoopsService($errorHandler, $app);
         $this->getContainer()->share(Application\Services\WhoopsService::class, $service);
     }
 }

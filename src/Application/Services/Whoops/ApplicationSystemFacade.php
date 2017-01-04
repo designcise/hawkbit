@@ -40,8 +40,24 @@ class ApplicationSystemFacade extends SystemFacade
      */
     public function setErrorHandler(callable $handler, $types = 'use-php-defaults')
     {
+
+//        $capturedHandler = $handler;
+//        $event = ApplicationInterface::EVENT_HANDLE_ERROR;
+//        $handler = function () use($capturedHandler, $event) {
+//            $args = func_get_args();
+//            $this->application->emit($event, $args);
+//            call_user_func_array($capturedHandler, $args);
+//        };
+//
+//        return parent::setErrorHandler($handler, $types);
+
         $this->errorHandler = $handler;
-        return $this->application->addListener(ApplicationInterface::EVENT_HANDLE_ERROR, $this->errorHandler);
+        return $this->application->addListener(
+            ApplicationInterface::EVENT_HANDLE_ERROR,
+            function ($event, $data) use ($handler) {
+                call_user_func_array($handler, $data);
+            }
+        );
     }
 
     /**
@@ -50,8 +66,12 @@ class ApplicationSystemFacade extends SystemFacade
      */
     public function setExceptionHandler(callable $handler)
     {
-        $this->exceptionHandler = $handler;
-        return $this->application->addListener(ApplicationInterface::EVENT_SYSTEM_EXCEPTION, $this->exceptionHandler);
+        return $this->application->addListener(
+            ApplicationInterface::EVENT_SYSTEM_EXCEPTION,
+            function ($event, $data) use ($handler) {
+                call_user_func_array($handler, $data);
+            }
+        );
     }
 
     /**
@@ -78,7 +98,12 @@ class ApplicationSystemFacade extends SystemFacade
      */
     public function registerShutdownFunction(callable $function)
     {
-        return $this->application->addListener(ApplicationInterface::EVENT_SYSTEM_SHUTDOWN, $function);
+        return $this->application->addListener(
+            ApplicationInterface::EVENT_SYSTEM_SHUTDOWN,
+            function ($event, $data) use ($function) {
+                call_user_func_array($function, $data);
+            }
+        );
     }
 
 }
