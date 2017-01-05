@@ -112,6 +112,10 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
 
+        $app->get('/', function (ServerRequestInterface $request, ResponseInterface $response, array $args = []) {
+            return $response;
+        });
+
         $app->addListener('response.sent', function (HttpApplicationEvent $event) {
             $this->assertInstanceOf('League\Event\Event', $event);
             $this->assertInstanceOf(ServerRequestInterface::class, $event->getRequest());
@@ -205,6 +209,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
      */
     public function testHandleWithOtherException()
     {
+
         $app = new Application();
 
         $request = ServerRequestFactory::fromGlobals();
@@ -225,12 +230,11 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     *
+     * This should not throw errors
      */
-    public function testExceptionHandling()
+    public function testHttpErrorHandling()
     {
         $app = new Application();
-        $app->setConfig('error', false);
 
         $request = ServerRequestFactory::fromGlobals();
 
@@ -404,7 +408,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     {
         $app = new Application();
         $handledOnError = false;
-        $app->addMiddleware(function(ServerRequestInterface $request, ResponseInterface $response, callable $next) use (&$handledOnError){
+        $app->addMiddleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use (&$handledOnError) {
             $handledOnError = true;
             return $response;
         });
@@ -420,7 +424,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
         $app = new Application();
         $handled = false;
         $app->get('/', [TestController::class, 'getIndex']);
-        $app->addMiddleware(function(ServerRequestInterface $request, ResponseInterface $response, callable $next) use (&$handled){
+        $app->addMiddleware(function (ServerRequestInterface $request, ResponseInterface $response, callable $next) use (&$handled) {
             $handled = true;
             $response->getBody()->write('<');
             /** @var ResponseInterface $response */
@@ -439,13 +443,12 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
     public function testErrorHandler()
     {
         $app = new Application();
-        $response = $app->handle(ServerRequestFactory::fromGlobals());
 
-        $text = $response->getBody()->__toString();
+        $response = $app->handle(ServerRequestFactory::fromGlobals());
+        $app->shutdown($response);
 
         $this->assertTrue($app->isError());
-        $this->assertEquals('League\Route\Http\Exception\NotFoundException', substr($text, 0, strpos($text, ':')));
-        $this->assertInstanceOf('League\Route\Http\Exception\NotFoundException', $app->getLastException());
+        $this->assertInstanceOf('\League\Route\Http\Exception\NotFoundException', $app->getLastException());
     }
 
 

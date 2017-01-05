@@ -537,6 +537,10 @@ final class Application extends AbstractApplication implements RouteCollectionIn
         // get last occured exception
         $exception = $this->getLastException();
 
+        $message = $errorHandler->getErrorMessage($exception);
+
+        $errorResponse = $this->determineErrorResponse($exception, $message, $response, $request);
+
         if (
             false === $catch
             && true === $showError
@@ -544,9 +548,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
             $this->throwException($exception);
         }
 
-        $message = $errorHandler->getErrorMessage($exception);
-
-        return $this->determineErrorResponse($exception, $message, $response, $request);
+        return $errorResponse;
     }
 
     /**
@@ -655,7 +657,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     public function terminateOutputBuffering($level = 0, $response = null)
     {
 
-        // close response stream berfore terminating output buffer
+        // close response stream before terminating output buffer
         // and only if response is an instance of
         // \Psr\Http\ResponseInterface
         if ($response instanceof ResponseInterface) {
@@ -801,18 +803,18 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     protected function initSystem(){
         // error handler
         set_error_handler(function($level, $message, $file = null, $line = null){
-            $this->emit(self::EVENT_HANDLE_ERROR, [$level, $message, $file, $line]);
+            $event = $this->getApplicationEvent();
+            $this->emit($event->setName(self::EVENT_HANDLE_ERROR), $level, $message, $file, $line);
         });
 
         // exception handler
         set_exception_handler(function($exception){
-            $this->emit(self::EVENT_SYSTEM_EXCEPTION, [$exception]);
+            $event = $this->getApplicationEvent();
+            $this->emit($event->setName(self::EVENT_SYSTEM_EXCEPTION), $exception);
         });
 
         // shutdown function
-        register_shutdown_function(function (){
-            $this->emit(self::EVENT_SYSTEM_SHUTDOWN);
-        });
+        register_shutdown_function([$this, 'shutdown']);
     }
 
 }

@@ -54,8 +54,10 @@ class ApplicationSystemFacade extends SystemFacade
         $this->errorHandler = $handler;
         return $this->application->addListener(
             ApplicationInterface::EVENT_HANDLE_ERROR,
-            function ($event, $data) use ($handler) {
-                call_user_func_array($handler, $data);
+            function ($event) use ($handler) {
+                $args = func_get_args();
+                array_shift($args);
+                call_user_func_array($handler, $args);
             }
         );
     }
@@ -68,8 +70,10 @@ class ApplicationSystemFacade extends SystemFacade
     {
         return $this->application->addListener(
             ApplicationInterface::EVENT_SYSTEM_EXCEPTION,
-            function ($event, $data) use ($handler) {
-                call_user_func_array($handler, $data);
+            function ($event) use ($handler) {
+                $args = func_get_args();
+                array_shift($args);
+                call_user_func_array($handler, $args);
             }
         );
     }
@@ -100,7 +104,7 @@ class ApplicationSystemFacade extends SystemFacade
     {
         return $this->application->addListener(
             ApplicationInterface::EVENT_SYSTEM_SHUTDOWN,
-            function () use ($function) {
+            function ($event) use ($function) {
                 call_user_func_array($function, []);
             }
         );
