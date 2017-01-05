@@ -15,6 +15,7 @@ use Hawkbit\ApplicationInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use League\Container\ServiceProvider\BootableServiceProviderInterface;
 use Whoops\Handler\Handler;
+use Whoops\Handler\HandlerInterface;
 use Whoops\Handler\JsonResponseHandler;
 use Whoops\Handler\PlainTextHandler;
 use Whoops\Handler\PrettyPageHandler;
@@ -50,21 +51,30 @@ class WhoopsServiceProvider extends AbstractServiceProvider implements BootableS
         $app = $this->getContainer()->get(ApplicationInterface::class);
 
         $errorHandler = new Run(new ApplicationSystemFacade($app));
-        $class = PrettyPageHandler::class;
-        if ($app->isCli() || false === $app->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR)) {
-            $class = PlainTextHandler::class;
-        }
-
-        if($app instanceof Application){
-            if ($app->isSoapRequest() || $app->isXmlRequest()) {
-                $class = XmlResponseHandler::class;
-            } elseif ($app->isAjaxRequest() || $app->isJsonRequest()) {
-                $class = JsonResponseHandler::class;
-            }
-        }
 
         $errorHandler->pushHandler(
-            new $class
+            function($exception, $inspector, Run $run) use ($app) {
+
+                $class = PrettyPageHandler::class;
+                if ($app->isCli() || false === $app->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR)) {
+                    $class = PlainTextHandler::class;
+                }
+
+                if($app instanceof Application){
+                    if ($app->isSoapRequest() || $app->isXmlRequest()) {
+                        $class = XmlResponseHandler::class;
+                    } elseif ($app->isAjaxRequest() || $app->isJsonRequest()) {
+                        $class = JsonResponseHandler::class;
+                    }
+                }
+
+                /** @var HandlerInterface $handler */
+                $handler = new $class;
+                $handler->setException($exception);
+                $handler->setInspector($inspector);
+                $handler->setRun($run);
+                return $handler->handle();
+            }
         );
 
         $errorHandler->pushHandler(function (\Exception $exception) use ($app) {

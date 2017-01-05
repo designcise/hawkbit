@@ -21,16 +21,16 @@ class WhoopsService
      */
     private $runner;
     /**
-     * @var Application
+     * @var Application\AbstractApplication
      */
     private $application;
 
     /**
      * ErrorHandler constructor.
      * @param Run $runner
-     * @param Application $application
+     * @param Application\AbstractApplication $application
      */
-    public function __construct(Run $runner, Application $application)
+    public function __construct(Run $runner, Application\AbstractApplication $application)
     {
         $this->runner = $runner;
         $this->application = $application;
@@ -52,9 +52,12 @@ class WhoopsService
         // quit if error occured
         $shouldQuit = $application->isError();
 
-        // if request type ist not strict e.g. xml or json consider error config
-        if (!$application->isXmlRequest() && !$application->isJsonRequest()) {
-            $shouldQuit = $shouldQuit && $application->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR);
+        //
+        if($application instanceof Application){
+            // if request type ist not strict e.g. xml or json consider error config
+            if (!$application->isXmlRequest() && !$application->isJsonRequest()) {
+                $shouldQuit = $shouldQuit && $application->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR);
+            }
         }
 
         $errorHandler->allowQuit($shouldQuit);

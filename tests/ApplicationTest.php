@@ -436,5 +436,17 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
     }
 
+    public function testErrorHandler()
+    {
+        $app = new Application();
+        $response = $app->handle(ServerRequestFactory::fromGlobals());
+
+        $text = $response->getBody()->__toString();
+
+        $this->assertTrue($app->isError());
+        $this->assertEquals('League\Route\Http\Exception\NotFoundException', substr($text, 0, strpos($text, ':')));
+        $this->assertInstanceOf('League\Route\Http\Exception\NotFoundException', $app->getLastException());
+    }
+
 
 }

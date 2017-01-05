@@ -100,8 +100,8 @@ class ApplicationSystemFacade extends SystemFacade
     {
         return $this->application->addListener(
             ApplicationInterface::EVENT_SYSTEM_SHUTDOWN,
-            function ($event, $data) use ($function) {
-                call_user_func_array($function, $data);
+            function () use ($function) {
+                call_user_func_array($function, []);
             }
         );
     }

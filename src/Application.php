@@ -425,7 +425,8 @@ final class Application extends AbstractApplication implements RouteCollectionIn
         }
 
         //inject request content type
-        $this->setContentType(ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), ''));
+        $contentType = ServerRequestFactory::getHeader('content-type', $this->getRequest()->getHeaders(), '');
+        $this->setContentType($contentType);
 
         if ($response === null) {
             $response = $this->getResponse();
