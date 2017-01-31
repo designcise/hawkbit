@@ -3,6 +3,7 @@
 ## 2.1.3
 
  - Fix #25 Ajax request is always forcing JSON request and response
+ - Fix #26 use league/route at dev master until official middleware release
 
 ## 2.1.2
 

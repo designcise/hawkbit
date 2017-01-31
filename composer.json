@@ -24,10 +24,16 @@
       "email": "hello@alexbilbie.com"
     }
   ],
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/thephpleague/route"
+    }
+  ],
   "require": {
     "php": ">=5.5.9",
     "filp/whoops": "^2.1",
-    "league/route": "dev-master#507606b53d3935e7830aa7c48c43337bc2b1b2ba@dev",
+    "league/route": "dev-master",
     "league/container": "^2.2",
     "league/event": "^2.1",
     "monolog/monolog": "^1.22",
