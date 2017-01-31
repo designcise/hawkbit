@@ -4,6 +4,7 @@
 
  - Fix #25 Ajax request is always forcing JSON request and response
  - Fix #26 use league/route at dev master until official middleware release
+ - Remove HHVM integration due to inconsitencies
 
 ## 2.1.2
 
