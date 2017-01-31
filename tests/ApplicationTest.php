@@ -25,6 +25,7 @@ use Hawkbit\Application\HttpApplicationEvent;
 use Hawkbit\Tests\TestAsset\SharedTestController;
 use Hawkbit\Tests\TestAsset\TestController;
 use Zend\Diactoros\Response\EmitterInterface;
+use Zend\Diactoros\Response\JsonResponse;
 use Zend\Diactoros\Response\SapiStreamEmitter;
 use Zend\Diactoros\ServerRequestFactory;
 
@@ -385,6 +386,7 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $_SERVER['CONTENT_TYPE'] = 'application/json';
         $request = ServerRequestFactory::fromGlobals();
+        unset($_SERVER['CONTENT_TYPE']);
 
         $response = $app->handle($request);
 
@@ -449,6 +451,54 @@ class ApplicationTest extends \PHPUnit_Framework_TestCase
 
         $this->assertTrue($app->isError());
         $this->assertInstanceOf('\League\Route\Http\Exception\NotFoundException', $app->getLastException());
+    }
+
+    public function testAjaxRequestRecogniseHTMLAutomatically()
+    {
+
+        $app = new Application();
+        $app->get('/', function (ServerRequestInterface $request, ResponseInterface $response) {
+            $response->getBody()->write('<h1>HELLO</h1>');
+            return $response;
+        });
+
+        // emulate http request from basic app
+        $_SERVER['CONTENT_TYPE'] = 'text/html';
+
+        // emulate xhr request
+        $_SERVER['X_REQUESTED_WITH'] = 'xmlhttprequest';
+
+        $serverRequest = ServerRequestFactory::fromGlobals();
+
+        unset($_SERVER['CONTENT_TYPE']);
+        unset($_SERVER['X_REQUESTED_WITH']);
+
+        $response = $app->handle($serverRequest);
+
+        $this->assertEquals('<h1>HELLO</h1>', $response->getBody()->__toString());
+        $this->assertEquals('text/html', $app->getContentType());
+    }
+
+    public function testAjaxRequestRecogniseHTML()
+    {
+
+        $app = new Application();
+        $app->get('/', function (ServerRequestInterface $request, ResponseInterface $response) {
+            return new JsonResponse(['title' => 'HELLO']);
+        });
+
+        $serverRequest = ServerRequestFactory::fromGlobals();
+
+        // set xhr header
+        $serverRequest = $serverRequest
+            ->withHeader('x-requested-with', 'xmlhttprequest')
+            // force content type to be json
+            ->withHeader('content-type', 'application/json');
+
+        $response = $app->handle($serverRequest);
+
+        $this->assertEquals('{"title":"HELLO"}', $response->getBody()->__toString());
+        $this->assertEquals('application/json', $app->getContentType());
     }
 
 

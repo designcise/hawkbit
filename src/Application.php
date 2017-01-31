@@ -188,7 +188,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     public function getResponse($content = '')
     {
         //transform content by content type
-        if ($this->isAjaxRequest() || $this->isJsonRequest()) {
+        if ($this->isJsonRequest()) {
             if ($content instanceof Response\JsonResponse) {
                 $content = json_decode($content->getBody());
             } elseif (!is_array($content)) {

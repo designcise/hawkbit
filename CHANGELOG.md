@@ -1,5 +1,9 @@
 # Hawkbit Changelog
 
+## 2.1.3
+
+ - Fix #25 Ajax request is always forcing JSON request and response
+
 ## 2.1.2
 
  - Fix #24 incorrect and buggy error handling
