@@ -10,6 +10,7 @@ namespace Hawkbit\Tests;
 
 
 use Hawkbit\Console;
+use Hawkbit\Tests\TestAsset\TestableCommand;
 use League\CLImate\Argument\Manager;
 
 
@@ -21,6 +22,7 @@ class ConsoleTest extends \PHPUnit_Framework_TestCase
         $handled = false;
 
         $console = new Console();
+        $test = $this;
         $console->map('test', function (Manager $args) use (&$handled){
             $handled = true;
             $this->assertEquals(10, $args->get('max'));
@@ -45,6 +47,20 @@ class ConsoleTest extends \PHPUnit_Framework_TestCase
     {
         $console = new Console(['dev' => 'val']);
         $this->assertEquals('val', $console->getConfig('dev'));
+    }
+
+    public function testConstructorInjection()
+    {
+
+        $console = new Console();
+        $console->map('test', [TestableCommand::class, 'handle']);
+
+        $args = ['test'];
+
+        $console->handle($args);
+        $feedback = $console['testFeedback'];
+
+        $this->assertInstanceOf(TestableCommand::class, $feedback);
     }
 
 

@@ -21,13 +21,15 @@ class Command
      * @var Manager
      */
     private $arguments;
+    private $name;
 
     /**
      * Command constructor.
-     * @param callable $handler
+     * @param $name
+     * @param $handler
      * @param array $arguments
      */
-    public function __construct($name, callable $handler, array $arguments = null)
+    public function __construct($name, $handler, array $arguments = null)
     {
         $this->handler = $handler;
 
@@ -36,6 +38,7 @@ class Command
             $manager->add($arguments);
         }
         $this->arguments = $manager;
+        $this->name = $name;
     }
 
     /**

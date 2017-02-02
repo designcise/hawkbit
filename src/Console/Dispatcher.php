@@ -65,7 +65,16 @@ class Dispatcher
         $arguments->parse($argv);
 
         // execute command
-        call_user_func_array($command->getHandler(), [$arguments]);
+        $handler = $command->getHandler();
+        if(is_array($handler)){
+            $class = $handler[0];
+//            if($this->container->has($class)){
+//                $this->container->add($class);
+//            }
+            $obj = $this->container->get($class);
+            $handler[0] = $obj;
+        }
+        call_user_func_array($handler, [$arguments]);
     }
 
 }

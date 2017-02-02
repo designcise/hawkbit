@@ -28,6 +28,15 @@ use Zend\Diactoros\ServerRequestFactory;
 
 class ApplicationTest extends \PHPUnit_Framework_TestCase
 {
+    /**
+     *
+     */
+    protected function tearDown()
+    {
+        restore_error_handler();
+        restore_exception_handler();
+    }
+
 
     /**
      * Test configuration mutation and accessing
