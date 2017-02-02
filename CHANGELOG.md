@@ -1,14 +1,16 @@
-# Hawkbit\Application Changelog
+# Hawkbit Changelog
 
 ## 2.2.0
 
 ## Added
 
  - Add console application
+ - Add constructor injection for console commands
  
 ## Altered
  
  - Move application interface to correct position
+ - Refactor configuration initiation into trait and reuse in application and console
 
 ## 2.1.3
 
