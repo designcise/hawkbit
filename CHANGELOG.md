@@ -5,18 +5,31 @@
 ## Added
 
  - Add console application
+ 
+## Altered
+ 
+ - Move application interface to correct position
 
 ## 2.1.3
 
+### Fixed
+
  - Fix #25 Ajax request is always forcing JSON request and response
  - Fix #26 use league/route at dev master until official middleware release
+
+### Removed
+
  - Remove HHVM integration due to inconsitencies
 
 ## 2.1.2
 
+### Fixed
+
  - Fix #24 incorrect and buggy error handling
 
 ## 2.1.1
+
+### Added
 
  - Add tests for controller constructor injection
 
