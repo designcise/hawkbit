@@ -12,7 +12,7 @@
 namespace Hawkbit\Tests\TestAsset;
 
 use Hawkbit\Application;
-use Hawkbit\ApplicationInterface;
+use Hawkbit\Application\ApplicationInterface;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 

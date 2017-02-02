@@ -15,7 +15,7 @@ namespace Hawkbit\Application;
 use League\Event\AbstractEvent;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Hawkbit\ApplicationInterface;
+use Hawkbit\Application\ApplicationInterface;
 use Zend\Stdlib\ArrayObject;
 
 class ApplicationEvent extends AbstractEvent

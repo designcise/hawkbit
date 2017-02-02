@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace Hawkbit;
+namespace Hawkbit\Application;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;

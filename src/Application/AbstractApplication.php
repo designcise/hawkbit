@@ -9,7 +9,6 @@
 namespace Hawkbit\Application;
 
 use Hawkbit\Application\Services\WhoopsService;
-use Hawkbit\ApplicationInterface;
 use Hawkbit\Configuration;
 use League\Container\Container;
 use League\Container\ContainerAwareInterface;
@@ -18,7 +17,6 @@ use League\Event\Emitter;
 use League\Event\EmitterInterface;
 use League\Event\EmitterTrait;
 use League\Event\ListenerAcceptorInterface;
-use Monolog\Handler\NullHandler;
 use Monolog\Logger;
 use Psr\Log\LoggerInterface;
 

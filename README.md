@@ -1,4 +1,4 @@
-# Hawkbit
+# Hawkbit\Application
 
 [![Latest Version on Packagist][ico-version]][link-packagist]
 [![Software License][ico-license]](LICENSE.md)
@@ -6,21 +6,21 @@
 [![Total Downloads][ico-downloads]][link-downloads]
 [![Coverage Status][ico-coveralls]][link-coveralls]
 
-Hawkbit micro framework is a high customizable, event driven and compatible with 
+Hawkbit\Application micro framework is a high customizable, event driven and compatible with 
 [PSR-7](https://github.com/php-fig/http-message), 
 [StackPHP](http://stackphp.com/) and 
 [Zend Stratigility](https://github.com/zendframework/zend-stratigility).
 
-Hawkbit uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
+Hawkbit\Application uses latest versions of [League\Route](https://github.com/thephpleague/route) for routing, 
 [League\Container](https://github.com/thephpleague/container) for dependency injection, 
 [League\Event](https://github.com/thephpleague/event) for event dispatching,
 [Zend Config](https://docs.zendframework.com/zend-config/) for configuration.
 
-Hawkbit is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of Hawkbit Component collection by Marco Bunge. Hawkbit 1.x is also known as Blast Hawkbit.
+Hawkbit\Application is an advanced derivate of [Proton](https://github.com/alexbilbie/Proton) and part of Hawkbit\Application Component collection by Marco Bunge. Hawkbit\Application 1.x is also known as Blast Hawkbit\Application.
 
 ### Integrations
 
-Hawkbit delivers also optional packages:
+Hawkbit\Application delivers also optional packages:
 
  - Database: [`hawkbit/database`](https://github.com/HawkBitPhp/hawkbit-database)
  - Doctrine ORM Wrapper: [`hawkbit/doctrine`](https://github.com/HawkBitPhp/hawkbit-doctrine)
@@ -30,7 +30,7 @@ Hawkbit delivers also optional packages:
 
 ### Using Composer
 
-Hawkbit is available on [Packagist](https://packagist.org/packages/hawkbit/hawkbit) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
+Hawkbit\Application is available on [Packagist](https://packagist.org/packages/hawkbit/hawkbit) and can be installed using [Composer](https://getcomposer.org/). This can be done by running the following command or by updating your `composer.json` file.
 
 ```bash
 composer require hawkbit/hawkbit
@@ -77,7 +77,7 @@ Create a new app
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new \Hawkbit\Application();
+$app = new \Hawkbit\Application\Application();
 ```
 
 Create a new app with configuration
@@ -88,7 +88,7 @@ Create a new app with configuration
 $config = [
     'key' => 'value'
 ];
-$app = new \Hawkbit\Application($config);
+$app = new \Hawkbit\Application\Application($config);
 ```
 
 Add routes
@@ -96,7 +96,7 @@ Add routes
 ```php
 <?php
 
-/** @var Hawkbit\Application $app */
+/** @var Hawkbit\Application\Application $app */
 $app->get('/', function ($request, $response) {
     $response->getBody()->write('<h1>It works!</h1>');
     return $response;
@@ -124,7 +124,7 @@ See also our example at `/public/index.php`.
 
 Add additional configuration to application
  
-Hawkbit Configuration is managed by [zend-config](https://docs.zendframework.com/zend-config/).
+Hawkbit\Application Configuration is managed by [zend-config](https://docs.zendframework.com/zend-config/).
 
 ```php
 <?php
@@ -163,7 +163,7 @@ $default = $app->getConfig()['database']['default']; // returns 'mysql://root:ro
 
 ## Middlewares
 
-Hawkbit middlewares allows advanced control of lifecycle execution.
+Hawkbit\Application middlewares allows advanced control of lifecycle execution.
 
 ```php
 <?php
@@ -171,11 +171,11 @@ Hawkbit middlewares allows advanced control of lifecycle execution.
 $app->addMiddleware(new Acme\SomeMiddleware);
 ```
 
-Hawkbit uses it's own runner `Hawkbit\Application\MiddelwareRunner`
+Hawkbit\Application uses it's own runner `Hawkbit\Application\Application\MiddelwareRunner`
 
 ## Routing
 
-Hawkbit uses routing integration of `league/route` and allows access to route collection methods directly.
+Hawkbit\Application uses routing integration of `league/route` and allows access to route collection methods directly.
 
 Basic usage with anonymous functions:
 
@@ -200,14 +200,14 @@ $app->run();
 
 #### Access app from anonymous function
 
-Hawkbit allows to access `Hawkbit\Application` from anonymous function through closure binding.
+Hawkbit\Application allows to access `Hawkbit\Application\Application` from anonymous function through closure binding.
 
 ```php
 <?php
 
 $app->get('/hello/{name}', function ($request, $response, $args) {
     
-    // access Hawkbit\Application
+    // access Hawkbit\Application\Application
     $app = $this;
     
     $response->getBody()->write(
@@ -225,7 +225,7 @@ Basic usage with controllers:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Hawkbit\Application();
+$app = new Hawkbit\Application\Application();
 
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
 
@@ -259,7 +259,7 @@ Automatic constructor injection of controllers:
 
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Hawkbit\Application();
+$app = new Hawkbit\Application\Application();
 
 $app->getContainer()->add('CustomService', new CustomService);
 $app->get('/', 'HomeController::index'); // calls index method on HomeController class
@@ -313,7 +313,7 @@ For more information about routes [read this guide](http://route.thephpleague.co
 
 ### Route groups
 
-Hawkbit add support for route groups. 
+Hawkbit\Application add support for route groups. 
 
 ```php
 <?php
@@ -332,7 +332,7 @@ $app->group('/admin', function (\League\Route\RouteGroup $route) {
 #### Available vars
 
 - `$route` - `\League\Route\RouteGroup`
-- `$this` - `\Hawkbit\Application`
+- `$this` - `\Hawkbit\Application\Application`
 
 ## Middleware integrations
 
@@ -346,14 +346,14 @@ Basic usage with StackPHP (using `Stack\Builder` and `Stack\Run`):
 // index.php
 require __DIR__.'/../vendor/autoload.php';
 
-$app = new Hawkbit\Application();
+$app = new Hawkbit\Application\Application();
 
 $app->get('/', function ($request, $response) {
     $response->setContent('<h1>Hello World</h1>');
     return $response;
 });
 
-$httpKernel = new Hawkbit\Symfony\HttpKernelAdapter($app);
+$httpKernel = new Hawkbit\Application\Symfony\HttpKernelAdapter($app);
 
 $stack = (new \Stack\Builder())
     ->push('Some/MiddleWare') // This will execute first
@@ -373,8 +373,8 @@ Basic usage with Stratigility (using `Zend\Stratigility\MiddlewarePipe`):
 
 use Psr\Http\Message\ResponseInterface;
 use Zend\Diactoros\ServerRequestFactory;
-use Hawkbit\Application;
-use Hawkbit\Stratigility\MiddlewarePipeAdapter;
+use Hawkbit\Application\Application;
+use Hawkbit\Application\Stratigility\MiddlewarePipeAdapter;
 
 $application = new Application();
 $application->get('/', function($request, ResponseInterface $response){
@@ -401,7 +401,7 @@ echo $response->getBody(); //prints <h1>Hello World</h1>
 
 ## Error handling
 
-Hawkbit uses <a href="https://github.com/filp/whoops" target="_blank">Whoops</a> error handling framework and determines the error handler by request content type.
+Hawkbit\Application uses <a href="https://github.com/filp/whoops" target="_blank">Whoops</a> error handling framework and determines the error handler by request content type.
 
 Set your own handler:
 
@@ -411,7 +411,7 @@ Set your own handler:
 $app->getErrorHandler()->push(new Acme\ErrorResponseHandler);
 ```
 
-By default Hawkbit runs with error options disabled. To enable debugging add
+By default Hawkbit\Application runs with error options disabled. To enable debugging add
 
 ```php
 <?php
@@ -419,7 +419,7 @@ By default Hawkbit runs with error options disabled. To enable debugging add
 $app->setConfig('error', true);
 ```
 
-By default Hawkbit is catching all errors. To disable error catching add
+By default Hawkbit\Application is catching all errors. To disable error catching add
 
 ```php
 <?php
@@ -429,7 +429,7 @@ $app->setConfig('error.catch', false);
 
 ## Logging
 
-Hawkbit has built in support for Monolog. To access a channel call:
+Hawkbit\Application has built in support for Monolog. To access a channel call:
 
 ```php
 <?php
@@ -442,7 +442,7 @@ For more information about channels read this guide - [https://github.com/Seldae
 ## Events
 
 You can intercept requests and responses at seven points during the lifecycle. You can manipulate Request, Response and 
-ErrorResponse via `Hawkbit\ApplicationEvent`.
+ErrorResponse via `Hawkbit\Application\ApplicationEvent`.
 
 ### Application event
 
@@ -450,7 +450,7 @@ ErrorResponse via `Hawkbit\ApplicationEvent`.
 ```php
 <?php
 
-/** @var \Hawkbit\Application\ApplicationEvent $event */
+/** @var \Hawkbit\Application\Application\ApplicationEvent $event */
 
 // custom params
 $event->getParamCollection(); // returns a mutable \ArrayObject
@@ -465,7 +465,7 @@ $event->getApplication();
 ```php
 <?php
 
-$app->addListener($app::EVENT_REQUEST_RECEIVED, function (\Hawkbit\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_REQUEST_RECEIVED, function (\Hawkbit\Application\Application\ApplicationEvent $event) {
     $request = $event->getRequest();
     
     // manipulate $request
@@ -481,7 +481,7 @@ This event is fired when a request is received but before it has been processed 
 ```php
 <?php
 
-$app->addListener($app::EVENT_RESPONSE_CREATED, function (\Hawkbit\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_RESPONSE_CREATED, function (\Hawkbit\Application\Application\ApplicationEvent $event) {
     $request = $event->getRequest();
     $response = $event->getResponse();
         
@@ -499,7 +499,7 @@ This event is fired when a response has been created but before it has been outp
 ```php
 <?php
 
-$app->addListener($app::EVENT_RESPONSE_SENT, function (\Hawkbit\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_RESPONSE_SENT, function (\Hawkbit\Application\Application\ApplicationEvent $event) {
     $request = $event->getRequest();
     $response = $event->getResponse();
     
@@ -517,7 +517,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->addListener($app::EVENT_RUNTIME_ERROR, function (\Hawkbit\Application\ApplicationEvent $event, $exception) use ($app) {
+$app->addListener($app::EVENT_RUNTIME_ERROR, function (\Hawkbit\Application\Application\ApplicationEvent $event, $exception) use ($app) {
     //process exception
 });
 ```
@@ -531,7 +531,7 @@ This event is always fired when an error occurs.
 ```php
 <?php
 
-$app->addListener($app::EVENT_LIFECYCLE_ERROR, function (\Hawkbit\Application\ApplicationEvent $event, \Exception $exception) {
+$app->addListener($app::EVENT_LIFECYCLE_ERROR, function (\Hawkbit\Application\Application\ApplicationEvent $event, \Exception $exception) {
     $errorResponse = $event->getErrorResponse();
  
     //manipulate error response and process exception
@@ -548,7 +548,7 @@ This event is fired after runtime.error
 ```php
 <?php
 
-$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function (\Hawkbit\Application\ApplicationEvent $event) {
+$app->addListener($app::EVENT_LIFECYCLE_COMPLETE, function (\Hawkbit\Application\Application\ApplicationEvent $event) {
     // access the request using $event->getRequest()
     // access the response using $event->getResponse()
 });
@@ -561,7 +561,7 @@ This event is fired when a response has been output and before the application l
 ```php
 <?php
 
-$app->addListener($app::EVENT_SHUTDOWN, function (\Hawkbit\Application\ApplicationEvent $event, $response, $terminatedOutputBuffers = []) {
+$app->addListener($app::EVENT_SHUTDOWN, function (\Hawkbit\Application\Application\ApplicationEvent $event, $response, $terminatedOutputBuffers = []) {
     // access the response using $event->getResponse()
     // access terminated output buffer contents
     // or force application exit()
@@ -593,13 +593,13 @@ $app->getEventEmitter()->emit('custom.event', time());
 
 ## Dependency Injection Container
 
-Hawkbit uses `League/Container` as its dependency injection container.
+Hawkbit\Application uses `League/Container` as its dependency injection container.
 
 You can bind singleton objects into the container from the main application object using ArrayAccess:
 
 ```php
 <?php
-/** @var Hawkbit\Application $app */
+/** @var Hawkbit\Application\Application $app */
 $app['db'] = function () use($app) {
     $config = $app->getConfig('database');
     $manager = new Illuminate\Database\Capsule\Manager;
@@ -624,7 +624,7 @@ or by container access:
 
 ```php
 <?php
-/** @var Hawkbit\Application $app */
+/** @var Hawkbit\Application\Application $app */
 $app->getContainer()->share('db', function () use($app) {
     $config = $app->getConfig('database');
     $manager = new Illuminate\Database\Capsule\Manager;
@@ -656,7 +656,7 @@ $app->getContainer()->add('foo', function () {
 });
 ```
 
-Service providers can be registered using the `register` method on the Hawkbit app or `addServiceProvider` on the container:
+Service providers can be registered using the `register` method on the Hawkbit\Application app or `addServiceProvider` on the container:
 
 ```php
 <?php
@@ -703,7 +703,7 @@ $app->getContainer();
 
 ## Services
 
-Hawkbit uses dependency injection container to access services. Following integrations can be exchanged.
+Hawkbit\Application uses dependency injection container to access services. Following integrations can be exchanged.
 
 ### Configurator
 

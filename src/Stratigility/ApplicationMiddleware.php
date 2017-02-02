@@ -14,7 +14,7 @@ namespace Hawkbit\Stratigility;
 
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
-use Hawkbit\ApplicationInterface;
+use Hawkbit\Application\ApplicationInterface;
 use Zend\Stratigility\MiddlewareInterface;
 
 class ApplicationMiddleware implements MiddlewareInterface

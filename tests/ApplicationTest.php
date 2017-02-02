@@ -11,16 +11,13 @@
 
 namespace Hawkbit\Tests;
 
+use Hawkbit\Application;
 use League\Container\Container;
 use League\Event\Emitter;
-use League\Event\Event;
-use League\Route\Http\Exception\NotFoundException;
 use League\Route\RouteCollection;
 use Monolog\Logger;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
-use Symfony\Bridge\PsrHttpMessage\Tests\Fixtures\ServerRequest;
-use Hawkbit\Application;
 use Hawkbit\Application\HttpApplicationEvent;
 use Hawkbit\Tests\TestAsset\SharedTestController;
 use Hawkbit\Tests\TestAsset\TestController;

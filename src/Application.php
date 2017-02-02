@@ -14,6 +14,7 @@ namespace Hawkbit;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Providers\MonologServiceProvider;
 use Hawkbit\Application\Providers\WhoopsServiceProvider;
+use Hawkbit\Application\TerminableInterface;
 use League\Container\ReflectionContainer;
 use League\Container\ServiceProvider\ServiceProviderInterface;
 use League\Route\Http\Exception\NotFoundException;
@@ -24,7 +25,6 @@ use League\Route\RouteCollectionMapTrait;
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
 use Hawkbit\Application\HttpApplicationEvent;
-use Hawkbit\Application\MiddlewareRunner;
 use Zend\Diactoros\Response;
 use Zend\Diactoros\ServerRequestFactory;
 

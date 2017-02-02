@@ -1,4 +1,10 @@
-# Hawkbit Changelog
+# Hawkbit\Application Changelog
+
+## 2.2.0
+
+## Added
+
+ - Add console application
 
 ## 2.1.3
 
@@ -22,7 +28,7 @@
 
 ### Added
 
- - Add exception stack `Hawkbit\Application\AbtractApplication::getExceptionStack` of all occured exceptions
+ - Add exception stack `Hawkbit\Application\Application\AbtractApplication::getExceptionStack` of all occured exceptions
 
 ### Altered
  
@@ -50,12 +56,12 @@ __Migrate Turbine from PhpThinkTank to hawkbit.__
 
 ### Added
 
- - Add `\Hawkbit\Configuration` (extending `\Zend\Config\Config`) as default configuration storage
- - Add PSR7 middleware implementation `\Hawkbit\Application\MiddlewareRunner` for advanced control of application lifecycle
+ - Add `\Hawkbit\Application\Configuration` (extending `\Zend\Config\Config`) as default configuration storage
+ - Add PSR7 middleware implementation `\Hawkbit\Application\Application\MiddlewareRunner` for advanced control of application lifecycle
  
 ### Altered
  
- - Change Hawkbit test namespace to Hawkbit\Tests
+ - Change Hawkbit\Application test namespace to Hawkbit\Application\Tests
  - Rewrite event behavior for advanced interception of requests, responses and errors
  - Implement dot chaining for nested configuration
  
@@ -93,11 +99,11 @@ __Migrate Turbine from PhpThinkTank to hawkbit.__
 
 ### Added
 
- - Add `\Hawkbit\Application\ConfiguratorInterface`
+ - Add `\Hawkbit\Application\Application\ConfiguratorInterface`
 
 ### Altered
 
- - `Application::getConfigurator` is now bound to `\Hawkbit\Application\ConfiguratorInterface` contract
+ - `Application::getConfigurator` is now bound to `\Hawkbit\Application\Application\ConfiguratorInterface` contract
 
 ## 1.1.4
 
@@ -118,11 +124,11 @@ __Migrate Turbine from PhpThinkTank to hawkbit.__
  - Replace applications [route collection methods](https://github.com/thephpleague/route/blob/master/src/RouteCollectionInterface.php) with `\League\Route\RouteCollectionMapTrait`
  - Application implements `\League\Route\RouteCollectionInterface`
  - add `\League\Route\RouteCollectionInterface::map()` 
- - add `\Hawkbit\Application::group()` for creating route groups, see [documentation](http://route.thephpleague.com/route-groups/)
+ - add `\Hawkbit\Application\Application::group()` for creating route groups, see [documentation](http://route.thephpleague.com/route-groups/)
 
 ### Deprecated
 
- - `\Hawkbit\Application::subscribe()`
+ - `\Hawkbit\Application\Application::subscribe()`
 
 ## 1.1.1
 
@@ -143,22 +149,22 @@ __Migrate Turbine from PhpThinkTank to hawkbit.__
  - refactor error handling and replace exception decorator with whoops
  - pass and receive all config 
  - remove possibilty to configure events, routes and services by callables
- - rename `Hawkbit\Psr7\TerminableInterface` to `Hawkbit\TerminableInterface`
+ - rename `Hawkbit\Application\Psr7\TerminableInterface` to `Hawkbit\Application\TerminableInterface`
  - rename debug config option to error
  - change configuration engine from `array` to instance of `\ArrayAccess`
- - Signature changes of `Hawkbit\Application::handle`, `Hawkbit\Application::run`, `Hawkbit\Application::__construct`, `Hawkbit\Application::handleErrors` 
+ - Signature changes of `Hawkbit\Application\Application::handle`, `Hawkbit\Application\Application::run`, `Hawkbit\Application\Application::__construct`, `Hawkbit\Application\Application::handleErrors` 
 
 ### Removed
 
- - `Hawkbit\Psr7\HttpKernelInterface` replaced by `Hawkbit\ApplicationInterface`
+ - `Hawkbit\Application\Psr7\HttpKernelInterface` replaced by `Hawkbit\Application\ApplicationInterface`
  
 ## 1.0.0 (2016-03-04)
 
 ### Added
 
- - `Hawkbit\Psr7\HttpKernelInterface` and `Hawkbit\Psr7\TerminableInterface` port of symfony HttpKernelInterface for PSR-7 compatibility
+ - `Hawkbit\Application\Psr7\HttpKernelInterface` and `Hawkbit\Application\Psr7\TerminableInterface` port of symfony HttpKernelInterface for PSR-7 compatibility
  - Add `zend/diactoros` for PSR-7 http support
- - provide compatibility with adapter `Hawkbit\Symfony\HttpKernelAdapter` for StackPHP and other Symfony HttpKernelInterface implementations
+ - provide compatibility with adapter `Hawkbit\Application\Symfony\HttpKernelAdapter` for StackPHP and other Symfony HttpKernelInterface implementations
  - Add `filp/whoops` as default error handler
  - Add `zendframework/zend-stratigility` integration
 

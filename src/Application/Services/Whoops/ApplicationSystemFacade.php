@@ -10,7 +10,7 @@ namespace Hawkbit\Application\Services\Whoops;
 
 
 use Hawkbit\Application;
-use Hawkbit\ApplicationInterface;
+use Hawkbit\Application\ApplicationInterface;
 use League\Event\EmitterTrait;
 use Whoops\Util\SystemFacade;
 

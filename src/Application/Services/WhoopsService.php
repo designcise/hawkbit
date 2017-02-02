@@ -10,7 +10,7 @@ namespace Hawkbit\Application\Services;
 
 
 use Hawkbit\Application;
-use Hawkbit\ApplicationInterface;
+use Hawkbit\Application\ApplicationInterface;
 use Whoops\Run;
 
 class WhoopsService

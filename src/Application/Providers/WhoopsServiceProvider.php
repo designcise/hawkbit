@@ -11,7 +11,7 @@ namespace Hawkbit\Application\Providers;
 
 use Hawkbit\Application;
 use Hawkbit\Application\Services\Whoops\ApplicationSystemFacade;
-use Hawkbit\ApplicationInterface;
+use Hawkbit\Application\ApplicationInterface;
 use League\Container\ServiceProvider\AbstractServiceProvider;
 use League\Container\ServiceProvider\BootableServiceProviderInterface;
 use Whoops\Handler\Handler;

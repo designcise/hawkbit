@@ -36,6 +36,7 @@
     "league/route": "dev-master",
     "league/container": "^2.2",
     "league/event": "^2.1",
+    "league/climate": "^3.2",
     "monolog/monolog": "^1.22",
     "zendframework/zend-config": "^2.6",
     "zendframework/zend-diactoros": "^1.3"

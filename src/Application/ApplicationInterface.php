@@ -9,7 +9,7 @@
  * @license MIT
  */
 
-namespace Hawkbit;
+namespace Hawkbit\Application;
 
 use Psr\Http\Message\ResponseInterface;
 use Psr\Http\Message\ServerRequestInterface;
@@ -75,32 +75,4 @@ interface ApplicationInterface
      * catch or throw errors
      */
     const DEFAULT_ERROR_CATCH = true;
-
-    /**
-     * Handles a Request to convert it to a Response.
-     *
-     * When $catch is true, the implementation must catch all exceptions
-     * and do its best to convert them to a Response instance.
-     *
-     * @param ServerRequestInterface $request A Request instance
-     * @param ResponseInterface $response A response instance
-     * @param bool $catch Whether to catch exceptions or not
-     *
-     * @return ResponseInterface A Response instance
-     *
-     */
-    public function handle(ServerRequestInterface $request, ResponseInterface $response = null, $catch = true);
-
-    /**
-     * Handle response / request lifecycle
-     *
-     * When $callable is a valid callable, callable will executed before emit response
-     *
-     * @param ServerRequestInterface $request A Request instance
-     * @param ResponseInterface $response A response instance
-     *
-     * @return ResponseInterface
-     *
-     */
-    public function run(ServerRequestInterface $request = null, ResponseInterface $response = null);
 }
