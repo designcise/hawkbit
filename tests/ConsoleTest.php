@@ -40,4 +40,12 @@ class ConsoleTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($handled);
 
     }
+
+    public function testConfiguration()
+    {
+        $console = new Console(['dev' => 'val']);
+        $this->assertEquals('val', $console->getConfig('dev'));
+    }
+
+
 }

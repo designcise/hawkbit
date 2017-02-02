@@ -9,6 +9,7 @@
 namespace Hawkbit;
 
 use Hawkbit\Application\AbstractApplication;
+use Hawkbit\Application\Init\InitConfigurationTrait;
 use Hawkbit\Application\Providers\MonologServiceProvider;
 use Hawkbit\Application\Providers\WhoopsServiceProvider;
 use Hawkbit\Console\Command;
@@ -23,6 +24,9 @@ use League\Container\ServiceProvider\ServiceProviderInterface;
  */
 final class Console extends AbstractApplication
 {
+
+    use InitConfigurationTrait;
+
     private $commands;
 
     /**
@@ -61,7 +65,7 @@ final class Console extends AbstractApplication
      */
     public function init($configuration = [])
     {
-        // TODO: Implement init() method.
+        $this->initConfiguration($configuration);
     }
 
     /**

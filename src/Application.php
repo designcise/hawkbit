@@ -12,6 +12,7 @@
 namespace Hawkbit;
 
 use Hawkbit\Application\AbstractApplication;
+use Hawkbit\Application\Init\InitConfigurationTrait;
 use Hawkbit\Application\Providers\MonologServiceProvider;
 use Hawkbit\Application\Providers\WhoopsServiceProvider;
 use Hawkbit\Application\TerminableInterface;
@@ -35,6 +36,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
 {
 
     use RouteCollectionMapTrait;
+    use InitConfigurationTrait;
 
     /**
      * @var \League\Route\RouteCollection
@@ -770,22 +772,6 @@ final class Application extends AbstractApplication implements RouteCollectionIn
         /** @var HttpApplicationEvent $applicationEvent */
         $applicationEvent = parent::getApplicationEvent();
         return $applicationEvent;
-    }
-
-    /**
-     * @param $configuration
-     */
-    protected function initConfiguration($configuration)
-    {
-        if (is_bool($configuration)) {
-            $this->setConfig(self::KEY_ERROR, $configuration);
-        } elseif (
-            is_array($configuration) ||
-            ($configuration instanceof \ArrayAccess ||
-                $configuration instanceof \Traversable)
-        ) {
-            $this->setConfig($configuration);
-        }
     }
 
     /**
