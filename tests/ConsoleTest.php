@@ -17,6 +17,8 @@ use League\CLImate\Argument\Manager;
 class ConsoleTest extends \PHPUnit_Framework_TestCase
 {
 
+    private $argvMock = [__FILE__, 'test'];
+
     public function testDispatching()
     {
         $handled = false;
@@ -35,7 +37,7 @@ class ConsoleTest extends \PHPUnit_Framework_TestCase
             ]
         ]);
 
-        $args = ['test', '--max', '10'];
+        $args = array_merge($this->argvMock, ['--max', '10']);
 
         $console->handle($args);
 
@@ -55,7 +57,7 @@ class ConsoleTest extends \PHPUnit_Framework_TestCase
         $console = new Console();
         $console->map('test', [TestableCommand::class, 'handle']);
 
-        $args = ['test'];
+        $args = $this->argvMock;
 
         $console->handle($args);
         $feedback = $console['testFeedback'];

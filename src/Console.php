@@ -95,7 +95,15 @@ final class Console extends AbstractApplication
      */
     public function handle(array $args = [])
     {
+
+        // remove source file name from argv
+        // @todo reuse as source file or something like that
+        array_shift($args);
+
+        // init dispatcher
         $dispatcher = new Dispatcher($this->commands, $this->container);
+
+        // dispatch command with args from cli
         $dispatcher->dispatch($args);
     }
 
@@ -111,7 +119,10 @@ final class Console extends AbstractApplication
             global $argv;
         }
 
+        // handle call
         $this->handle($argv);
+
+        // exit cli with code 0 or even 1 for error
         $this->shutdown();
     }
 
