@@ -14,6 +14,7 @@ namespace Hawkbit;
 use Hawkbit\Application\Init\InitHaltHookTrait;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Init\InitConfigurationTrait;
+use Hawkbit\Application\MiddlewareAwareInterface;
 use Hawkbit\Application\Providers\MonologServiceProvider;
 use Hawkbit\Application\Providers\WhoopsServiceProvider;
 use Hawkbit\Application\TerminableInterface;
@@ -33,7 +34,8 @@ use Zend\Diactoros\ServerRequestFactory;
 /**
  * Hawkbit Application Class.
  */
-final class Application extends AbstractApplication implements RouteCollectionInterface, TerminableInterface
+final class Application extends AbstractApplication
+    implements RouteCollectionInterface, TerminableInterface, MiddlewareAwareInterface
 {
 
     use RouteCollectionMapTrait;
@@ -116,7 +118,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     /**
      * Add a middleware
      *
-     * @param $middleware
+     * @param callable $middleware
      */
     public function addMiddleware(callable $middleware)
     {

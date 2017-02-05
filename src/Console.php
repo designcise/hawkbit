@@ -9,6 +9,8 @@
 namespace Hawkbit;
 
 use Hawkbit\Application\Init\InitHaltHookTrait;
+use Hawkbit\Application\MiddlewareAwareInterface;
+use Hawkbit\Application\MiddlewareRunner;
 use Hawkbit\Console\ConsoleEvent;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Init\InitConfigurationTrait;
@@ -24,7 +26,7 @@ use League\Container\ServiceProvider\ServiceProviderInterface;
  *
  * @todo add event handling equals to application
  */
-final class Console extends AbstractApplication
+final class Console extends AbstractApplication implements MiddlewareAwareInterface
 {
 
     use InitConfigurationTrait;
@@ -43,6 +45,11 @@ final class Console extends AbstractApplication
      * @var string
      */
     protected $applicationEventClass = ConsoleEvent::class;
+
+    /**
+     * @var callable[]
+     */
+    protected $middlewares = [];
 
     /**
      * New Application.
@@ -116,7 +123,6 @@ final class Console extends AbstractApplication
      */
     public function handle(array $args = [])
     {
-
         // remove source file name from argv
         $source = array_shift($args);
 
@@ -130,8 +136,12 @@ final class Console extends AbstractApplication
         // init dispatcher
         $dispatcher = new Dispatcher($this->commands, $this->container);
 
-        // dispatch command with args from cli
-        $dispatcher->dispatch($applicationEvent->getArguments());
+        $middlewareRunner = new MiddlewareRunner($this->getMiddlewares());
+
+        $middlewareRunner->run([$applicationEvent->getArguments()], function ($args) use ($applicationEvent, $dispatcher) {
+            // dispatch command with args from cli
+            $dispatcher->dispatch($args);
+        });
     }
 
     /**
@@ -160,5 +170,23 @@ final class Console extends AbstractApplication
     public function hasCommand($command)
     {
         return isset($this->commands[$command]);
+    }
+
+    /**
+     * Add a middleware
+     *
+     * @param callable $middleware
+     */
+    public function addMiddleware(callable $middleware)
+    {
+        $this->middlewares[] = $this->bindClosureToInstance($middleware, $this);
+    }
+
+    /**
+     * @return callable[]
+     */
+    public function getMiddlewares()
+    {
+        return $this->middlewares;
     }
 }
