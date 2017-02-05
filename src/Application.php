@@ -11,7 +11,7 @@
 
 namespace Hawkbit;
 
-use Application\Init\InitHaltHookTrait;
+use Hawkbit\Application\Init\InitHaltHookTrait;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Init\InitConfigurationTrait;
 use Hawkbit\Application\Providers\MonologServiceProvider;

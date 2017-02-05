@@ -6,7 +6,7 @@
  * Time: 11:47
  */
 
-namespace Console;
+namespace Hawkbit\Console;
 
 
 class ConsoleEvent

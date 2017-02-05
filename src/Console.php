@@ -8,6 +8,7 @@
 
 namespace Hawkbit;
 
+use Hawkbit\Console\ConsoleEvent;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Init\InitConfigurationTrait;
 use Hawkbit\Application\Providers\MonologServiceProvider;
@@ -28,6 +29,11 @@ final class Console extends AbstractApplication
     use InitConfigurationTrait;
 
     private $commands;
+
+    /**
+     * @var string
+     */
+    protected $applicationEventClass = ConsoleEvent::class;
 
     /**
      * New Application.

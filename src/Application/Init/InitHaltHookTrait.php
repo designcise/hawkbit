@@ -6,7 +6,7 @@
  * Time: 11:43
  */
 
-namespace Application\Init;
+namespace Hawkbit\Application\Init;
 
 
 use Hawkbit\Application;
