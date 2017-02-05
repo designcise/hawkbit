@@ -41,9 +41,14 @@
 
  - Validate response contract after executing
 
+### Altered
+
+ - Whoops handlers has been refactored to `\Hawkbit\Application\Services\Whoops\HandlerService`
+
 ### Added
 
  - Add exception stack `Hawkbit\Application\Application\AbtractApplication::getExceptionStack` of all occured exceptions
+ - Provide backwards / onwards compatibility for PHP 7 `\Throwables`
 
 ### Altered
  

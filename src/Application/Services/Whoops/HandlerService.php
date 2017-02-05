@@ -6,7 +6,7 @@
  * Time: 09:52
  */
 
-namespace Application\Services\Whoops;
+namespace Hawkbit\Application\Services\Whoops;
 
 
 use Hawkbit\Application;

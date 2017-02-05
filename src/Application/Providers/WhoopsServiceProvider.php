@@ -9,7 +9,7 @@
 namespace Hawkbit\Application\Providers;
 
 
-use Application\Services\Whoops\HandlerService;
+use Hawkbit\Application\Services\Whoops\HandlerService;
 use Hawkbit\Application;
 use Hawkbit\Application\Services\Whoops\ApplicationSystemFacade;
 use Hawkbit\Application\ApplicationInterface;
