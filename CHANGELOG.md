@@ -44,11 +44,13 @@
 ### Altered
 
  - Whoops handlers has been refactored to `\Hawkbit\Application\Services\Whoops\HandlerService`
-
+ - Error und shutdown handling has been refactored to `Hawkbit\Application\Init\InitHaltHooksTrait`
+ 
 ### Added
 
  - Add exception stack `Hawkbit\Application\Application\AbtractApplication::getExceptionStack` of all occured exceptions
  - Provide backwards / onwards compatibility for PHP 7 `\Throwables`
+
 
 ### Altered
  

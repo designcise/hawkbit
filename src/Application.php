@@ -11,6 +11,7 @@
 
 namespace Hawkbit;
 
+use Application\Init\InitHaltHookTrait;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Init\InitConfigurationTrait;
 use Hawkbit\Application\Providers\MonologServiceProvider;
@@ -37,6 +38,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
 
     use RouteCollectionMapTrait;
     use InitConfigurationTrait;
+    use InitHaltHookTrait;
 
     /**
      * @var \League\Route\RouteCollection
@@ -102,7 +104,7 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     {
         $this->initConfiguration($configuration);
         $this->initContentType();
-        $this->initSystem();
+        $this->initHaltHooks();
     }
 
     /*******************************************
@@ -781,39 +783,6 @@ final class Application extends AbstractApplication implements RouteCollectionIn
     {
         // configure request content type
         $this->setContentType(ServerRequestFactory::getHeader('content-type', ServerRequestFactory::fromGlobals()->getHeaders(), $this->getContentType()));
-    }
-
-    /**
-     *
-     */
-    protected function initSystem(){
-        // error handler
-        set_error_handler(function($level, $message, $file = null, $line = null){
-            $event = $this->getApplicationEvent();
-            $this->emit($event->setName(self::EVENT_HANDLE_ERROR), $level, $message, $file, $line);
-        });
-
-        // exception handler
-        set_exception_handler(function($exception){
-            /** @var \Exception|\Throwable $exception */
-            // Convert throwable to exception fpr backwards compatibility
-            if(!($exception instanceof \Exception)){
-                $throwable = $exception;
-                $exception = new \ErrorException(
-                    $throwable->getMessage(),
-                    $throwable->getCode(),
-                    E_ERROR,
-                    $throwable->getFile(),
-                    $throwable->getLine()
-                );
-            }
-
-            $event = $this->getApplicationEvent();
-            $this->emit($event->setName(self::EVENT_SYSTEM_EXCEPTION), $exception);
-        });
-
-        // shutdown function
-        register_shutdown_function([$this, 'shutdown']);
     }
 
 }
