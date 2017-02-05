@@ -78,7 +78,6 @@ class WhoopsService
      */
     public function decorateException($error)
     {
-
         $application = $this->application;
 
         if (is_callable($error)) {

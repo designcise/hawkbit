@@ -9,6 +9,7 @@
 namespace Hawkbit\Application\Providers;
 
 
+use Application\Services\Whoops\HandlerService;
 use Hawkbit\Application;
 use Hawkbit\Application\Services\Whoops\ApplicationSystemFacade;
 use Hawkbit\Application\ApplicationInterface;
@@ -51,44 +52,10 @@ class WhoopsServiceProvider extends AbstractServiceProvider implements BootableS
         $app = $this->getContainer()->get(ApplicationInterface::class);
 
         $errorHandler = new Run(new ApplicationSystemFacade($app));
+        $handlerService = new HandlerService($app);
 
-        $errorHandler->pushHandler(
-            function($exception, $inspector, Run $run) use ($app) {
-
-                $class = PrettyPageHandler::class;
-                if ($app->isCli() || false === $app->getConfig(ApplicationInterface::KEY_ERROR, ApplicationInterface::DEFAULT_ERROR)) {
-                    $class = PlainTextHandler::class;
-                }
-
-                if($app instanceof Application){
-                    if ($app->isSoapRequest() || $app->isXmlRequest()) {
-                        $class = XmlResponseHandler::class;
-                    } elseif ($app->isAjaxRequest() || $app->isJsonRequest()) {
-                        $class = JsonResponseHandler::class;
-                    }
-                }
-
-                /** @var HandlerInterface $handler */
-                $handler = new $class;
-                $handler->setException($exception);
-                $handler->setInspector($inspector);
-                $handler->setRun($run);
-                return $handler->handle();
-            }
-        );
-
-        $errorHandler->pushHandler(function (\Exception $exception) use ($app) {
-
-            // log all errors
-            $app->getLogger()->error($exception->getMessage());
-
-            $applicationEvent = $app->getApplicationEvent();
-            $applicationEvent->setName(ApplicationInterface::EVENT_SYSTEM_ERROR);
-            $app->emit($applicationEvent, $exception);
-
-            return Handler::DONE;
-        });
-
+        $errorHandler->pushHandler([$handlerService, 'recognizeErrorResponseHandler']);
+        $errorHandler->pushHandler([$handlerService, 'notifySystemWithError']);
         $errorHandler->register();
 
         $service = new Application\Services\WhoopsService($errorHandler, $app);
