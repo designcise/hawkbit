@@ -8,6 +8,7 @@
 
 namespace Hawkbit;
 
+use Hawkbit\Application\Init\InitHaltHookTrait;
 use Hawkbit\Console\ConsoleEvent;
 use Hawkbit\Application\AbstractApplication;
 use Hawkbit\Application\Init\InitConfigurationTrait;
@@ -27,10 +28,18 @@ final class Console extends AbstractApplication
 {
 
     use InitConfigurationTrait;
+    use InitHaltHookTrait;
 
+    /**
+     * A list of commands
+     *
+     * @var Command[]
+     */
     private $commands;
 
     /**
+     * Represents event class for this application
+     *
      * @var string
      */
     protected $applicationEventClass = ConsoleEvent::class;
@@ -60,6 +69,11 @@ final class Console extends AbstractApplication
      */
     public function shutdown()
     {
+        // dispatch shutdown event
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setName(self::EVENT_SYSTEM_SHUTDOWN);
+        $this->emit($applicationEvent);
+
         exit((int)$this->isError());
     }
 
@@ -72,6 +86,7 @@ final class Console extends AbstractApplication
     public function init($configuration = [])
     {
         $this->initConfiguration($configuration);
+        $this->initHaltHooks();
     }
 
     /**
@@ -95,7 +110,7 @@ final class Console extends AbstractApplication
     }
 
     /**
-     * ispatch command from given args
+     * Dispatch command from given args
      *
      * @param array $args
      */
@@ -103,14 +118,20 @@ final class Console extends AbstractApplication
     {
 
         // remove source file name from argv
-        // @todo reuse as source file or something like that
-        array_shift($args);
+        $source = array_shift($args);
+
+        /** @var ConsoleEvent $applicationEvent */
+        $applicationEvent = $this->getApplicationEvent();
+        $applicationEvent->setName(self::EVENT_REQUEST_RECEIVED);
+        $applicationEvent->setSourceFile($source);
+        $applicationEvent->setArguments($args);
+        $this->emit($applicationEvent);
 
         // init dispatcher
         $dispatcher = new Dispatcher($this->commands, $this->container);
 
         // dispatch command with args from cli
-        $dispatcher->dispatch($args);
+        $dispatcher->dispatch($applicationEvent->getArguments());
     }
 
     /**

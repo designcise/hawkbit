@@ -200,14 +200,14 @@ $app->run();
 
 #### Access app from anonymous function
 
-Hawkbit\Application allows to access `Hawkbit\Application\Application` from anonymous function through closure binding.
+Hawkbit\Application allows to access itself from anonymous function through closure binding.
 
 ```php
 <?php
 
 $app->get('/hello/{name}', function ($request, $response, $args) {
     
-    // access Hawkbit\Application\Application
+    // access Hawkbit\Application
     $app = $this;
     
     $response->getBody()->write(
@@ -427,6 +427,12 @@ By default Hawkbit\Application is catching all errors. To disable error catching
 $app->setConfig('error.catch', false);
 ```
 
+## Console
+
+The console application inherit all methods from Http Application except routing and PSR-7 handling and capturing. 
+In addition to http application, the console application does not support all events (Refer to events for more 
+information!)
+
 ## Logging
 
 Hawkbit\Application has built in support for Monolog. To access a channel call:
@@ -445,7 +451,6 @@ You can intercept requests and responses at seven points during the lifecycle. Y
 ErrorResponse via `Hawkbit\Application\ApplicationEvent`.
 
 ### Application event
-
 
 ```php
 <?php
@@ -478,6 +483,8 @@ This event is fired when a request is received but before it has been processed 
 
 ### response.created
 
+*Not available for Console applications!*
+
 ```php
 <?php
 
@@ -496,6 +503,8 @@ This event is fired when a response has been created but before it has been outp
 
 ### response.sent
 
+*Not available for Console applications! Please use `shutdown`*
+
 ```php
 <?php
 
@@ -510,7 +519,7 @@ $app->addListener($app::EVENT_RESPONSE_SENT, function (\Hawkbit\Application\Appl
 });
 ```
 
-This event is fired when a response has been output and before the application lifecycle is completed.
+This event is fired when a response has been output and before the application lifecycle is completed. Not available for Console Applications!
 
 ### runtime.error
 
@@ -525,6 +534,8 @@ $app->addListener($app::EVENT_RUNTIME_ERROR, function (\Hawkbit\Application\Appl
 This event is always fired when an error occurs.
 
 ### lifecycle.error
+
+*Not available for Console applications! Please use `runtime.error`*
 
 `$errorResponse` is used as default response
 
@@ -544,6 +555,8 @@ This event is fired only when an error occurs while handling request/response li
 This event is fired after runtime.error
 
 ### lifecycle.complete
+
+*Not available for Console applications! Please use `shutdown`*
 
 ```php
 <?php
