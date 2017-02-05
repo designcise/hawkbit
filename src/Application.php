@@ -795,6 +795,19 @@ final class Application extends AbstractApplication implements RouteCollectionIn
 
         // exception handler
         set_exception_handler(function($exception){
+            /** @var \Exception|\Throwable $exception */
+            // Convert throwable to exception fpr backwards compatibility
+            if(!($exception instanceof \Exception)){
+                $throwable = $exception;
+                $exception = new \ErrorException(
+                    $throwable->getMessage(),
+                    $throwable->getCode(),
+                    E_ERROR,
+                    $throwable->getFile(),
+                    $throwable->getLine()
+                );
+            }
+
             $event = $this->getApplicationEvent();
             $this->emit($event->setName(self::EVENT_SYSTEM_EXCEPTION), $exception);
         });
