@@ -30,6 +30,13 @@ Hawkbit\Application delivers also optional packages:
  - Doctrine ORM Wrapper: [`hawkbit/doctrine`](https://github.com/HawkBitPhp/hawkbit-doctrine)
  - Plates View Engine: [`hawkbit/presentation`](https://github.com/HawkBitPhp/hawkbit-presentation)
 
+## Special thanks
+
+Thank you for PR, identifing Bus, or any other Improvements!
+
+- [designcise](https://github.com/designcise)
+- [Vitalij Mik](https://github.com/BlackScorp)
+
 ## Install
 
 ### Using Composer
