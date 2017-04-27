@@ -2,32 +2,32 @@
 
 ## 2.3.1
  
-## Fixed
+### Fixed
 
- - Fix #29, Special Thanks to @BlackScorp for fixing and @designcise for identification
+ - Reopen and fix #29, Special Thanks to @BlackScorp for fixing and @designcise for identification
 
 ## 2.3.0
 
-## Added
+### Added
 
  - Add basic usage example
  
-## Altered
+### Altered
  
  - Add official league/route 3.0 support
  
-## Fixed
+### Fixed
 
  - Fix #29, #30
 
 ## 2.2.0
 
-## Added
+### Added
 
  - Add console application
  - Add constructor injection for console commands
  
-## Altered
+### Altered
  
  - Move application interface to correct position
  - Refactor configuration initiation into trait and reuse in application and console
