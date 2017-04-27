@@ -1,5 +1,11 @@
 # Hawkbit Changelog
 
+## 2.3.1
+ 
+## Fixed
+
+ - Fix #29, Special Thanks to @BlackScorp for fixing and @designcise for identification
+
 ## 2.3.0
 
 ## Added
